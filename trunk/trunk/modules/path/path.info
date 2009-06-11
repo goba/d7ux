@@ -1,0 +1,9 @@
+; $Id: path.info,v 1.8 2009/06/08 09:23:53 dries Exp $
+name = Path
+description = Allows users to rename URLs.
+package = Core
+version = VERSION
+core = 7.x
+files[] = path.module
+files[] = path.admin.inc
+files[] = path.test

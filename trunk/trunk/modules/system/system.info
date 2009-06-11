@@ -1,0 +1,13 @@
+; $Id: system.info,v 1.13 2009/06/08 09:23:54 dries Exp $
+name = System
+description = Handles general site configuration for administrators.
+package = Core
+version = VERSION
+core = 7.x
+files[] = system.module
+files[] = system.admin.inc
+files[] = system.queue.inc
+files[] = image.gd.inc
+files[] = system.install
+files[] = system.test
+required = TRUE
