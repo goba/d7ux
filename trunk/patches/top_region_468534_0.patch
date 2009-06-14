@@ -1,0 +1,54 @@
+Index: modules/system/page.tpl.php
+===================================================================
+RCS file: /cvs/drupal/drupal/modules/system/page.tpl.php,v
+retrieving revision 1.22
+diff -u -p -r1.22 page.tpl.php
+--- modules/system/page.tpl.php	28 May 2009 16:44:06 -0000	1.22
++++ modules/system/page.tpl.php	10 Jun 2009 18:52:33 -0000
+@@ -104,6 +104,11 @@
+ </head>
+ <body class="<?php print $classes; ?>">
+ 
++  <?php if ($page_top): ?>
++    <div id="page-top-region" class="clearfix">
++      <?php print $page_top ?>
++    </div>
++  <?php endif;?>
+   <div id="page-wrapper"><div id="page">
+ 
+     <div id="header"><div class="section clearfix">
+Index: modules/system/system.module
+===================================================================
+RCS file: /cvs/drupal/drupal/modules/system/system.module,v
+retrieving revision 1.710
+diff -u -p -r1.710 system.module
+--- modules/system/system.module	8 Jun 2009 04:28:19 -0000	1.710
++++ modules/system/system.module	10 Jun 2009 18:52:33 -0000
+@@ -1329,6 +1329,7 @@ function _system_get_theme_data() {
+         'footer' => 'Footer',
+         'highlight' => 'Highlighted content',
+         'help' => 'Help',
++        'page_top' => 'Page top',
+       ),
+       'description' => '',
+       'features' => array(
+Index: themes/garland/page.tpl.php
+===================================================================
+RCS file: /cvs/drupal/drupal/themes/garland/page.tpl.php,v
+retrieving revision 1.27
+diff -u -p -r1.27 page.tpl.php
+--- themes/garland/page.tpl.php	28 May 2009 16:44:07 -0000	1.27
++++ themes/garland/page.tpl.php	10 Jun 2009 18:52:33 -0000
+@@ -15,6 +15,12 @@
+   </head>
+   <body class="<?php print $classes ?>">
+ 
++  <?php if ($page_top): ?>
++    <div id="page-top-region" class="clearfix">
++      <?php print $page_top ?>
++    </div>
++  <?php endif;?>
++
+   <div id="header-region" class="clearfix"><?php print $header ?></div>
+ 
+   <div id="wrapper">
