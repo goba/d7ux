@@ -1,0 +1,51 @@
+<?php
+// $Id$
+
+/**
+ * Implement hook_install().
+ */
+function admin_install() {
+  $t = get_t();
+  $query = db_insert('menu_custom')->fields(array('menu_name', 'title', 'description'));
+  $query->values(array('menu_name' => 'admin', 'title' => $t('Admin'), 'description' => $t('The <em>Admin</em> menu contains commonly used links for administrative tasks.')))->execute();
+}
+
+/**
+ * Implement hook_enable().
+ *
+ * Add starter convenience links to the admin menu.
+ */
+function admin_enable() {
+  menu_rebuild();
+  $items = array(
+    'node/add' => 'Add',
+    'admin/content/node' => 'Edit',
+    'admin' => 'Dashboard',
+  );
+  $weight = -20;
+  foreach ($items as $path => $title) {
+    $link = array(
+      'mlid' => 0,
+      'link_title' => $title,
+      'link_path' => $path,
+      'router_path' => $path,
+      'menu_name' => 'admin',
+      'module' => 'menu',
+      'weight' => $weight,
+    );
+
+    // Check for an existing menu item before attempting to create a new one.
+    $menu_link = db_query("SELECT mlid FROM {menu_links} WHERE link_path = :path AND menu_name = :menu_name", array(
+      ':path' => $link['link_path'],
+      ':menu_name' => $link['menu_name']
+    ))
+    ->fetchField();
+    if (!$menu_link) {
+      menu_link_save($link);
+    }
+
+    // Increment weight so items can be displayed in desired order.
+    $weight++;
+  }
+  menu_cache_clear_all();
+}

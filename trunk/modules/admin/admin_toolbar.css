@@ -1,0 +1,169 @@
+/* $Id$ */
+
+body.admin-toolbar { padding-top:30px; }
+body.admin-toolbar-links { padding-top:80px; }
+
+/**
+ * Aggressive resets so we can achieve a consistent look in
+ * hostile CSS environments.
+ */
+div#admin-toolbar,
+div#admin-toolbar * {
+  margin:0px;
+  padding:0px;
+  border:0px;
+  outline:0px;
+  font-size:100%;
+  vertical-align:baseline;
+  line-height:inherit;
+  text-align:left;
+  list-style:none;
+  }
+
+/**
+ * Base styles
+ */
+div#admin-toolbar {
+  font:normal 11px/20px "Lucida Grande",Verdana,sans-serif;
+  background:#666;
+  color:#ccc;
+
+  position:fixed;
+  left:0px;
+  right:0px;
+  top:0px;
+
+  z-index:100;
+  }
+
+div#admin-toolbar .collapsed { display:none; }  
+
+div#admin-toolbar div.shadow {
+  position:absolute;
+  left:0px;
+  right:0px;
+  bottom:-15px;
+
+  height:15px;
+  background:url(sprite.png) 0px -85px repeat-x;
+  }
+
+div#admin-toolbar a {
+  text-decoration:none;
+  color:#fff;
+  }
+
+div#admin-toolbar ul li,
+div#admin-toolbar ul li a { float:left; }
+
+/**
+ * First level menus
+ */
+div#admin-toolbar div.admin-menu {
+  background:url(sprite.png) 0px -20px repeat-x;
+  height:25px;
+  line-height:20px;
+  padding:5px 10px 0px;
+
+  overflow:hidden;
+  position:relative;
+  }
+
+div#admin-toolbar div.admin-menu #admin-toolbar-user {
+  position:absolute;
+  right:35px;
+  }
+
+div#admin-toolbar div.admin-menu #admin-toolbar-menu {
+  position:absolute;
+  left:10px;
+  }
+
+div#admin-toolbar div.admin-menu span.toggle {
+  position:absolute;
+  right:10px;
+  cursor:pointer;
+
+  background:url(sprite.png) 0px -60px no-repeat;
+  text-indent:-9999px;
+  overflow:hidden;
+
+  width:25px;
+  height:25px;
+  }
+
+div#admin-toolbar div.admin-menu span.toggle-active { background-position: -25px -60px; }
+
+div#admin-toolbar div.admin-menu ul li a {
+  -moz-border-radius:10px;
+  -webkit-border-radius:10px;
+  padding:0px 10px;
+  }
+
+div#admin-toolbar div.admin-menu ul li a:hover {
+  background:#444;
+  }
+
+div#admin-toolbar div.admin-menu ul li a.active:hover,
+div#admin-toolbar div.admin-menu ul li a.active {
+  text-shadow:#333 0px 1px 0px;
+  background:url(sprite.png) 0px 0px repeat-x;
+  }
+
+/**
+ * Second level menus
+ */
+div#admin-toolbar div.admin-links {
+  position:relative;
+  padding:0px 10px;
+  }
+
+div#admin-toolbar div.admin-links ul {
+  padding:5px 0px;
+  height:40px;
+  line-height:30px;
+  overflow:hidden;
+  float:left;
+  }
+
+div#admin-toolbar div.admin-links ul li a {
+  -moz-border-radius:5px;
+  -webkit-border-radius:5px;
+  padding:5px 10px 5px 5px;
+  margin-right:5px;
+  }
+
+div#admin-toolbar div.admin-links ul li a:hover {
+  background:#555;
+  }
+
+div#admin-toolbar div.admin-links ul li a.active:hover
+div#admin-toolbar div.admin-links ul li a.active {
+  background:url(sprite.png) 0px -20px repeat-x;
+  }
+
+div#admin-toolbar div.admin-links span.icon {
+  float:left;
+
+  background:#444;
+  width:30px;
+  height:30px;
+  margin-right:5px;
+
+  -moz-border-radius:5px;
+  -webkit-border-radius:5px;
+  }
+
+/**
+ * IE 6 Fixes.
+ *
+ * Since IE 6 has severe problems interpreting fixed positioning,
+ * we downgrade the behavior of the admin toolbar entirely to static
+ * positioning.
+ */
+* html body.admin-toolbar,
+* html body.admin-toolbar-links { padding-top:0px; }
+
+* html div#admin-toolbar { position:static; }
+
+* html div#admin-toolbar div.shadow { display:none; }

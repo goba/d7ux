@@ -1,0 +1,9 @@
+; $Id$
+name = "Admin"
+description = "Drupal administration UI helpers. Includes: admin menu, contextual administration links, admin theme."
+package = "Administration"
+core = "7.x"
+version = "7.0-dev"
+files[] = "admin.install"
+files[] = "admin.module"
+dependencies[] = "menu"
