@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * @file
+ * D7UX overlay look for modal frame API.
+ */
+
+/**
+ * Implementation of hook_init().
+ */
+function d7uxoverlay_init() {
+  // Only act if the admin toolbar "is enabled" (user has access).
+  if (admin_is_enabled('admin toolbar')) {
+    if (!empty($_GET['d7uxmodalframe'])) {
+      // d7uxmodalframe marks modal frames.
+      modalframe_child_js();
+    }
+    else {
+      // Otherwise add modalframe parent code and our behavior.
+      modalframe_parent_js();
+      $module_path = drupal_get_path('module', 'd7uxoverlay');
+      drupal_add_css($module_path .'/d7uxoverlay.css');
+      drupal_add_js($module_path .'/d7uxoverlay.js');
+    }
+  }
+}

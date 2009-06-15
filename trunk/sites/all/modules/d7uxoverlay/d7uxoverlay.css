@@ -1,0 +1,22 @@
+.ui-widget-overlay {
+  background-color: #000 !important;
+  opacity: 0.8 !important;
+}
+
+.modalframe {
+  border: none !important;
+  background-color: transparent !important;
+}
+
+.modalframe .ui-dialog-titlebar {
+  background-color: transparent !important;
+  border: none !important;
+}
+.modalframe .ui-dialog-title {
+  color: #fff !important;
+  font-size: 1.3em  !important;
+}
+
+#modalframe-container {
+  background-color: #fff !important;
+}
