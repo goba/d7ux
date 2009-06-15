@@ -1,0 +1,8 @@
+; $Id: modalframe.info,v 1.1.2.3 2009/05/30 09:38:56 markuspetrux Exp $
+name = Modal Frame API
+description = Provides an API to render an iframe within a modal dialog based on the jQuery UI Dialog plugin.
+package = User interface
+dependencies[] = jquery_ui
+;dependencies[] = onbeforeunload
+core = 7.x
+files[] = modalframe.module
