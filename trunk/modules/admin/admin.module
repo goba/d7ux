@@ -105,7 +105,8 @@ function admin_toolbar() {
     'account' => array(
       'title' => t('Hello <strong>!username</strong>', array('!username' => check_plain($user->name))),
       'href' => 'user',
-      'html' => TRUE
+      'html' => TRUE,
+      'attributes' => array('class' => 'popups'),
     ),
     'logout' => array(
       'title' => t('Logout'),
@@ -137,7 +138,7 @@ function admin_menu_navigation_links($tree) {
       $l = $item['link']['localized_options'];
       $l['href'] = $item['link']['href'];
       $l['title'] = "<span class='icon'></span>". $item['link']['title'];
-      $l['attributes'] = array('id' => 'admin-link-'. $id);
+      $l['attributes'] = array('id' => 'admin-link-'. $id, 'class' => 'popups');
       $l['html'] = TRUE;
 
       $class = ' path-'. $id;
