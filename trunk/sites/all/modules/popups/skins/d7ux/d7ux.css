@@ -1,0 +1,50 @@
+#popups-overlay {
+  opacity: 0.8 !important;
+}
+
+#header_ux,
+#header-edit {
+  z-index: 500;
+}
+.popups-box {
+  z-index: 30 !important;
+  background: none;
+  border: none;
+  padding: 0;
+  overflow: hidden;
+}
+.popups-container {
+  position: relative;
+}
+.popups-box .popups-body,
+.popups-box .popups-buttons,
+.popups-box .popups-footer {
+  background: white;
+}
+.popups-box .popups-title {
+  color: white;
+  font-size: 1.3em;
+  font-weight: normal;
+}
+.popups-box .popups-body {
+  padding: 15px; /* in pixel, so we can measure height */
+  margin-right: 20px;
+  overflow: auto;
+}
+.popups-container .popups-close {
+  position: absolute;
+  top: 40px;
+  right: -1px;
+  background-color: white;
+  -moz-border-radius: 0 3px 3px 0;
+  -webkit-border-radius: 0 3px 3px 0;
+  border-radius: 0 3px 3px 0;
+  padding: 2px 3px;
+  height: 18px;
+}
+.popups-container .popups-close a {
+  outline: none;
+}
+#popups-overlay {
+  z-index: 20 !important;
+}
