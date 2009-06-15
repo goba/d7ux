@@ -2,5 +2,19 @@ This file keeps a record of any D7UX-related patches that have been
 applied. Please provide the filename and related issue #.
 
 #468534:  Add a region at the top of the page above the header region
-file:     top_region_468534_0.patch
+file:     http://drupal.org/files/issues/top_region_468534_0.patch
 url:      http://drupal.org/node/468534#comment-1687578
+
+#484820:  Initial D7UX admin header
+file:     http://drupal.org/files/issues/d7ux_header_jun14.patch
+          http://drupal.org/files/issues/d7ux_header_jun14.tar_.gz
+url:      http://drupal.org/node/484820#comment-1701718
+
+#491224:  Port modalframe API to Drual 7
+file:     http://drupal.org/files/issues/modalframe-port-to-7_0.patch
+url:      http://drupal.org/node/491224#comment-1703366
+
+#357780:  Update jQuery UI to Drupal 7
+file:     http://drupal.org/files/issues/jquery-ui-7.patch
+url:      http://drupal.org/node/357780#comment-1703376
+
