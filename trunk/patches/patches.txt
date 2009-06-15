@@ -18,3 +18,12 @@ url:      http://drupal.org/node/491224#comment-1703366
 file:     http://drupal.org/files/issues/jquery-ui-7.patch
 url:      http://drupal.org/node/357780#comment-1703376
 
+#466732:  Port popups module to Drupal 7
+file:     http://drupal.org/files/issues/popups-7.patch
+url:      http://drupal.org/node/466732#comment-1681554
+
+
+CUSTOM:
+
+  - popups/skins/d7ux for the popups module
+  - d7uxoverlay.module for the modal dialog API module
