@@ -14,10 +14,6 @@ url:      http://drupal.org/node/484820#comment-1701718
 file:     http://drupal.org/files/issues/modalframe-port-to-7_0.patch
 url:      http://drupal.org/node/491224#comment-1703366
 
-#357780:  Update jQuery UI to Drupal 7
-file:     http://drupal.org/files/issues/jquery-ui-7.patch
-url:      http://drupal.org/node/357780#comment-1703376
-
 #466732:  Port popups module to Drupal 7
 file:     http://drupal.org/files/issues/popups-7.patch
 url:      http://drupal.org/node/466732#comment-1681554
