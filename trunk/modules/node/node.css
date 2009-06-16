@@ -43,3 +43,11 @@ td.revision-current {
   display: inline;
 }
 
+.node-switch-throbber {
+  width: 1px;
+  height: 1px;
+  margin: 4px;
+  padding-right: 14px; /* LTR */
+  padding-bottom: 14px;
+  background: transparent url(../../misc/throbber.gif) no-repeat 0px -18px;
+}

@@ -139,6 +139,20 @@ function node_form(&$form_state, $node) {
     );
   }
 
+  // Only give the option to change node types if we're on a node creation form
+  // because it does not make sense to change the node type of an existing node.
+  if (empty($node->nid)) {
+    $types = node_type_get_names();
+    foreach ($types as $key => $type) {
+      if (!node_access('create', $key)) {
+        unset($types[$key]);
+      }
+    }
+    if (count($types > 1)) {
+      drupal_add_js(array('nodeTypes' => $types, 'nodeType' => $node->type), 'setting');
+    }
+  }
+
   // Changed must be sent to the client, for later overwrite error checking.
   $form['changed'] = array(
     '#type' => 'hidden',
@@ -533,6 +547,16 @@ function node_delete_confirm_submit($form, &$form_state) {
   }
 
   $form_state['redirect'] = '<front>';
+}
+
+/**
+ * Prints out the HTML for only the node form, omitting the theming of the rest
+ * of the page. This is used so users can easily switch between node forms when
+ * creating new content.
+ */
+function node_form_js($type) {
+  print drupal_render(menu_execute_active_handler('node/add/' . $type));
+  exit;
 }
 
 /**
