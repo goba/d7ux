@@ -595,6 +595,7 @@ function comment_form_alter(&$form, $form_state, $form_id) {
       '#group' => 'additional_settings',
       '#attached_js' => array(drupal_get_path('module', 'comment') . '/comment-node-form.js'),
       '#weight' => 30,
+      '#group' => 'meta',
     );
     $comment_count = isset($node->nid) ? db_query('SELECT comment_count FROM {node_comment_statistics} WHERE nid = :nid', array(':nid' => $node->nid))->fetchField() : 0;
     $comment_settings = ($node->comment == COMMENT_NODE_HIDDEN && empty($comment_count)) ? COMMENT_NODE_CLOSED : $node->comment;

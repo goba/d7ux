@@ -4058,6 +4058,9 @@ function drupal_common_theme() {
     'vertical_tabs' => array(
       'arguments' => array('element' => NULL),
     ),
+    'horizontal_tabs' => array(
+      'arguments' => array('element' => NULL),
+    ),
   );
 }
 

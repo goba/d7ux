@@ -192,4 +192,25 @@ Drupal.behaviors.nodeSwitchType = {
   }
 }
 
+Drupal.behaviors.nodeFloatingButtons = {
+  attach: function (context) {
+    if (!$('#node-form-floating-buttons:not(.node-floating-buttons-processed)', context).size()) {
+      return;
+    }
+    var buttons = $('#node-form-floating-buttons');
+    buttons.prepend('<div class="node-form-button"/>');
+    buttons.addClass('node-floating-buttons-processed').wrap('<div id="node-floating-buttons-wrapper"></div>');
+    var clone = buttons.clone(true).attr('id', 'node-form-floating-buttons-fixed').hide().insertAfter(buttons);
+    $(window).scroll(function() {
+      if ($(window).scrollTop() > $('#node-form-floating-buttons').parent().offset().top) {
+        clone.show();
+        buttons.children(':not(div)').hide();
+      }
+      else {
+        buttons.children(':not(div)').show();
+      }
+    });
+  }
+};
+
 })(jQuery);

@@ -153,6 +153,18 @@ function node_form(&$form_state, $node) {
     }
   }
 
+  $form['#tabs'] = 'tabs';
+  $form['tabs'] = array(
+    '#type' => 'horizontal_tabs',
+    '#tabs' => array(
+      'content' => t('Content'),
+      'meta' => t('Meta information'),
+    ),
+    '#default_tab' => 'content',
+    '#primary_tab' => 'content',
+    '#weight' => -10,
+  );
+
   // Changed must be sent to the client, for later overwrite error checking.
   $form['changed'] = array(
     '#type' => 'hidden',
@@ -168,10 +180,6 @@ function node_form(&$form_state, $node) {
 
   $form['#node'] = $node;
 
-  $form['additional_settings'] = array(
-    '#type' => 'vertical_tabs',
-  );
-
   // Add a log field if the "Create new revision" option is checked, or if the
   // current user has the ability to check that option.
   if (!empty($node->revision) || user_access('administer nodes')) {
@@ -181,7 +189,7 @@ function node_form(&$form_state, $node) {
       '#collapsible' => TRUE,
       // Collapsed by default when "Create new revision" is unchecked
       '#collapsed' => !$node->revision,
-      '#group' => 'additional_settings',
+      '#group' => 'meta',
       '#attached_js' => array(drupal_get_path('module', 'node') . '/node.js'),
       '#weight' => 20,
     );
@@ -207,7 +215,7 @@ function node_form(&$form_state, $node) {
     '#title' => t('Authoring information'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#group' => 'additional_settings',
+    '#group' => 'meta',
     '#attached_js' => array(drupal_get_path('module', 'node') . '/node.js'),
     '#weight' => 90,
   );
@@ -238,7 +246,7 @@ function node_form(&$form_state, $node) {
     '#title' => t('Publishing options'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#group' => 'additional_settings',
+    '#group' => 'meta',
     '#attached_js' => array(drupal_get_path('module', 'node') . '/node.js'),
     '#weight' => 95,
   );
@@ -268,13 +276,17 @@ function node_form(&$form_state, $node) {
 
   // Add the buttons.
   $form['buttons'] = array();
-  $form['buttons']['#weight'] = 100;
+  $form['buttons']['#weight'] = 120;
+  $form['buttons']['#group'] = 'none';
+  $form['buttons']['#prefix'] = '<div id="node-form-buttons">';
+  $form['buttons']['#suffix'] = '</div>';
   $form['buttons']['submit'] = array(
     '#type' => 'submit',
     '#access' => variable_get('node_preview_' . $node->type, 1) != DRUPAL_REQUIRED || (!form_get_errors() && isset($form_state['node_preview'])),
     '#value' => t('Save'),
     '#weight' => 5,
     '#submit' => array('node_form_submit'),
+    '#attributes' => array('class' => 'node-form-button'),
   );
   $form['buttons']['preview'] = array(
     '#access' => variable_get('node_preview_' . $node->type, 1) != DRUPAL_DISABLED,
@@ -282,6 +294,7 @@ function node_form(&$form_state, $node) {
     '#value' => t('Preview'),
     '#weight' => 10,
     '#submit' => array('node_form_build_preview'),
+    '#attributes' => array('class' => 'node-form-button'),
   );
   if (!empty($node->nid) && node_access('delete', $node)) {
     $form['buttons']['delete'] = array(
@@ -289,8 +302,14 @@ function node_form(&$form_state, $node) {
       '#value' => t('Delete'),
       '#weight' => 15,
       '#submit' => array('node_form_delete_submit'),
+      '#attributes' => array('class' => 'node-form-button'),
     );
   }
+  // Make a copy of the buttons for the floating buttons.
+  $form['floating_buttons'] = $form['buttons'];
+  $form['floating_buttons']['#weight'] = 100;
+  $form['floating_buttons']['#prefix'] = '<div id="node-form-floating-buttons">';
+
   $form['#validate'][] = 'node_form_validate';
   $form['#theme'] = array($node->type . '_node_form', 'node_form');
 

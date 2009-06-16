@@ -407,6 +407,7 @@ function menu_form_alter(&$form, $form_state, $form_id) {
       '#attached_js' => array(drupal_get_path('module', 'menu') . '/menu.js'),
       '#tree' => TRUE,
       '#weight' => -2,
+      '#group' => 'meta',
       '#attributes' => array('class' => 'menu-item-form'),
     );
     $item = $form['#node']->menu;

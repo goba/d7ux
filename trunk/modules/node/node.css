@@ -43,6 +43,31 @@ td.revision-current {
   display: inline;
 }
 
+#node-form-buttons {
+  clear: both;
+}
+
+#node-form .node-form .horizontal-tab-section {
+  float: left;
+  width: 80%;
+}
+
+#node-floating-buttons-wrapper {
+  margin-top: 0.5em;
+  float: right;
+}
+
+#node-form-floating-buttons-fixed {
+  position: fixed;
+  top: 1px;
+}
+
+#node-form-floating-buttons .node-form-button, #node-form-floating-buttons-fixed .node-form-button {
+  display: block;
+  margin: 0.5em 0;
+  width: 120px;
+}
+
 .node-switch-throbber {
   width: 1px;
   height: 1px;

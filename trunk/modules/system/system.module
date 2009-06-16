@@ -251,6 +251,7 @@ function system_elements() {
     '#method' => 'post',
     '#action' => request_uri(),
     '#theme_wrapper' => 'form',
+    '#process' => array('form_expand_horizontal_tabs'),
   );
 
   $type['page'] = array(
@@ -444,6 +445,14 @@ function system_elements() {
     '#theme_wrapper' => 'vertical_tabs',
     '#default_tab' => '',
     '#process' => array('form_process_vertical_tabs'),
+  );
+
+  $type['horizontal_tabs'] = array(
+    '#theme_wrapper' => 'horizontal_tabs',
+    '#default_tab' => '',
+    '#primary_tab' => 'none',
+    '#tabs' => array(),
+    '#process' => array('form_process_horizontal_tabs'),
   );
 
   $type['token'] = array(

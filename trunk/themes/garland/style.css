@@ -911,6 +911,44 @@ div.vertical-tabs ul.vertical-tabs-list li.selected a strong {
 }
 
 /**
+ * Horizontal tabs.
+ */
+ul.horizontal-tabs-panes, ul.horizontal-tabs-panes li {
+  border: 0;
+  background: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul.horizontal-tabs-panes {
+  clear: both;
+  text-align: right; /* LTR */
+  border-bottom: 1px solid #e9eff3;
+  margin: -0.2em -26px 1em; /* LTR */
+  padding: 0 26px 0.2em; /* LTR */
+}
+
+ul.horizontal-tabs-panes li a, ul.horizontal-tabs-panes li.active a, ul.horizontal-tabs-panes li a:hover, ul.horizontal-tabs-panes li a:visited {
+  border: 0;
+  background: transparent;
+  padding: 4px 1em;
+  margin: 0 0 0 1px; /* LTR */
+  height: auto;
+  text-decoration: none;
+  position: relative;
+  top: -1px;
+}
+
+ul.horizontal-tabs-panes li.active a, ul.horizontal-tabs-panes li.active a:link, ul.horizontal-tabs-panes li.active a:visited, ul.horizontal-tabs-panes li a:hover {
+  background: url(images/bg-tab.png) repeat-x 0 50%;
+  color: #fff;
+}
+
+ul.horizontal-tabs-panes li.active a {
+  font-weight: bold;
+}
+
+/**
  * Syndication icons and block
  */
 #block-node-syndicate h2 {
