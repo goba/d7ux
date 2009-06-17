@@ -33,14 +33,14 @@
 }
 .popups-container .popups-close {
   position: absolute;
-  top: 40px;
+  top: 25px;
   right: -1px;
   background-color: white;
-  -moz-border-radius: 0 3px 3px 0;
-  -webkit-border-radius: 0 3px 3px 0;
-  border-radius: 0 3px 3px 0;
-  padding: 2px 3px;
-  height: 18px;
+  -moz-border-radius: 0 10px 10px 0;
+  -webkit-border-radius: 0 10px 10px 0;
+  border-radius: 0 10px 10px 0;
+  padding: 2px 5px;
+  height: 16px;
 }
 .popups-container .popups-close a {
   outline: none;
