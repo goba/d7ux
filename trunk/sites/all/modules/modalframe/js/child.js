@@ -94,9 +94,21 @@ Drupal.modalFrameChild.behaviors.parseLinks = function(context) {
       return;
     }
     if (href.indexOf('http') != 0 && href.indexOf('https') != 0) {
-      // Try to avoid keeping external links in the overlay.
+      // Keep internal linked pages in the modal frame.
       href += (href.indexOf('?') > -1 ? '&' : '?') + 'd7uxmodalframe=1';
       $(this).attr('href', href);
+    }
+    else {
+      $(this).attr('target', '_new');
+    }
+  });
+  $('form:not(.modalframe-processed)', context).addClass('modalframe-processed').each(function() {
+    // Obtain the action attribute of the form.
+    var action = $(this).attr('action');
+    if (action.indexOf('http') != 0 && action.indexOf('https') != 0) {
+      // Keep internal forms in the modal frame.
+      action += (action.indexOf('?') > -1 ? '&' : '?') + 'd7uxmodalframe=1';
+      $(this).attr('action', action);
     }
     else {
       $(this).attr('target', '_new');

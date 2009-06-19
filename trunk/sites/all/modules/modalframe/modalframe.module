@@ -205,7 +205,7 @@ function modalframe_parent_js() {
   }
   $processed = TRUE;
 
-  jquery_ui_add(array('ui.dialog', 'ui.draggable'));
+  jquery_ui_add(array('ui.dialog'/*, 'ui.draggable'*/));
   $module_path = drupal_get_path('module', 'modalframe');
   drupal_add_css($module_path .'/css/parent.css');
   drupal_add_js($module_path .'/js/parent.js');
