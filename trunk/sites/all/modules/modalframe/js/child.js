@@ -93,7 +93,14 @@ Drupal.modalFrameChild.behaviors.parseLinks = function(context) {
     if (href.length <= 0 || href.charAt(0) == '#') {
       return;
     }
-    $(this).attr('target', '_new');
+    if (href.indexOf('http') != 0 && href.indexOf('https') != 0) {
+      // Try to avoid keeping external links in the overlay.
+      href += (href.indexOf('?') > -1 ? '&' : '?') + 'd7uxmodalframe=1';
+      $(this).attr('href', href);
+    }
+    else {
+      $(this).attr('target', '_new');
+    }
   });
 };
 
