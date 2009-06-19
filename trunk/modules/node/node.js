@@ -198,16 +198,15 @@ Drupal.behaviors.nodeFloatingButtons = {
       return;
     }
     var buttons = $('#node-form-floating-buttons');
-    buttons.prepend('<div class="node-form-button"/>');
-    buttons.addClass('node-floating-buttons-processed').wrap('<div id="node-floating-buttons-wrapper"></div>');
-    var clone = buttons.clone(true).attr('id', 'node-form-floating-buttons-fixed').hide().insertAfter(buttons);
+    buttons.wrapInner('<div id="node-form-floating-buttons-wrapper"></div>');
+    buttons.prepend('<div class="node-form-button">&nbsp;</div>');
+    buttons.addClass('node-floating-buttons-processed');
     $(window).scroll(function() {
-      if ($(window).scrollTop() > $('#node-form-floating-buttons').parent().offset().top) {
-        clone.show();
-        buttons.children(':not(div)').hide();
+      if ($(window).scrollTop() > buttons.offset().top - 1) {
+        buttons.find('> #node-form-floating-buttons-wrapper').addClass('node-form-floating-buttons-fixed');
       }
       else {
-        buttons.children(':not(div)').show();
+        buttons.find('> #node-form-floating-buttons-wrapper').removeClass('node-form-floating-buttons-fixed');
       }
     });
   }
