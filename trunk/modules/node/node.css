@@ -74,6 +74,15 @@ td.revision-current {
   width: 120px;
 }
 
+#horizontal-tab-section-meta fieldset.collapsible legend {
+  font-weight: bold;
+}
+
+#horizontal-tab-section-meta fieldset.collapsible div.summary {
+  padding-left: 3em;
+  padding-bottom: 5px;
+}
+
 .node-switch-throbber {
   width: 1px;
   height: 1px;

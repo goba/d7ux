@@ -212,4 +212,41 @@ Drupal.behaviors.nodeFloatingButtons = {
   }
 };
 
+Drupal.behaviors.nodeMetaFieldsets = {
+  attach: function (context) {
+    $('#horizontal-tab-section-meta fieldset.collapsible legend', context)
+      .addClass('collapse-processed')
+      .parent().removeClass('collapsed')
+      .children(':not(legend)').hide()
+      .parent().append('<div class="more-link">'
+        + Drupal.t('<a href="@link" title="@title">more</a>', {'@link': '#', '@title': 'More options'})
+        + '</div>')
+      .find('> div.more-link:last-child a', context).click(function() {
+        $(this).parent().parent().children(':not(legend, div.more-link, div.summary)').toggle();
+        var change_link = $(this).parent().parent().find('> div.summary a').get(0);
+        change_link.innerHTML = change_link.innerHTML == Drupal.t('change') ? Drupal.t('done') : Drupal.t('change');
+        this.innerHTML = this.innerHTML == Drupal.t('more') ? Drupal.t('less') : Drupal.t('more');
+        return false;
+      }).parent().parent().each(function() {
+        var summary = $('<div class="summary"></div>');
+        $(this).
+          bind('summaryUpdated', function () {
+            var text = $.trim($(this).getSummary());
+            console.log(this);
+            summary.html((text ? text : Drupal.t('none')) + ' (<a href="#">' + ($(this).children(':not(legend, div.more-link, div.summary):visible').size() ? Drupal.t('done') : Drupal.t('change')) + '</a>)');
+            summary.find('> a').click(function() {
+              this.innerHTML = this.innerHTML == Drupal.t('change') ? Drupal.t('done') : Drupal.t('change');
+              var fieldset = $(this).parent().parent();
+              fieldset.children(':not(legend, div.more-link, div.summary)').toggle();
+              var more_link = fieldset.find('> div.more-link:last-child a').get(0);
+              more_link.innerHTML = more_link.innerHTML == Drupal.t('more') ? Drupal.t('less') : Drupal.t('more');
+              return false;
+            });
+          })
+          .trigger('summaryUpdated');
+          $(this).find('> legend').after(summary);
+      });
+  }
+};
+
 })(jQuery);
