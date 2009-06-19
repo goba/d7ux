@@ -139,6 +139,18 @@ function node_form(&$form_state, $node) {
     );
   }
 
+  $form['#tabs'] = 'tabs';
+  $form['tabs'] = array(
+    '#type' => 'horizontal_tabs',
+    '#tabs' => array(
+      'content' => t('Content'),
+      'meta' => t('Meta information'),
+    ),
+    '#default_tab' => 'content',
+    '#primary_tab' => 'content',
+    '#weight' => -10,
+  );
+
   // Only give the option to change node types if we're on a node creation form
   // because it does not make sense to change the node type of an existing node.
   if (empty($node->nid)) {
@@ -152,18 +164,6 @@ function node_form(&$form_state, $node) {
       drupal_add_js(array('nodeTypes' => $types, 'nodeType' => $node->type), 'setting');
     }
   }
-
-  $form['#tabs'] = 'tabs';
-  $form['tabs'] = array(
-    '#type' => 'horizontal_tabs',
-    '#tabs' => array(
-      'content' => t('Content'),
-      'meta' => t('Meta information'),
-    ),
-    '#default_tab' => 'content',
-    '#primary_tab' => 'content',
-    '#weight' => -10,
-  );
 
   // Changed must be sent to the client, for later overwrite error checking.
   $form['changed'] = array(

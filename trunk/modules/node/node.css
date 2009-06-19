@@ -83,6 +83,11 @@ td.revision-current {
   padding-bottom: 5px;
 }
 
+#choose-content {
+  display: block;
+  padding-bottom: 10px;
+}
+
 .node-switch-throbber {
   width: 1px;
   height: 1px;
