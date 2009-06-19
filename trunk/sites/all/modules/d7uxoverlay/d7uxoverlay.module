@@ -24,3 +24,40 @@ function d7uxoverlay_init() {
     }
   }
 }
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function d7uxoverlay_form_alter(&$form, $form_state, $form_id) {
+  if (admin_is_enabled('admin toolbar') && !empty($_GET['d7uxmodalframe'])) {
+    $form['#submit'][] = 'd7uxoverlay_form_submit';
+  }
+}
+
+/**
+ * Extra form submission handler.
+ *
+ * For cases when we need to keep the form in the modal frame.
+ */
+function d7uxoverlay_form_submit($form, &$form_state) {
+  if (is_array($form_state['redirect'])) {
+    if (!empty($form_state['redirect'][1])) {
+      if (is_array($form_state['redirect'][1])) {
+        // Query is an array, add our marker as a key.
+        $form_state['redirect'][1]['d7uxmodalframe'] = 1;
+      }
+      else {
+        // Query is not an array, add our marker as string.
+        $form_state['redirect'][1] .= '&d7uxmodalframe=1';
+      }
+    }
+    else {
+      // Empty or is not set, but parent is array. Add array.
+      $form_state['redirect'][1] = array('d7uxmodalframe' => 1);
+    }
+  }
+  elseif (!isset($form_state['redirect']) || ($form_state['redirect'] !== FALSE && $form_state['redirect'] !== NULL)) {
+    // Not an array. Save the path value and add our own marker.
+    $form_state['redirect'] = array(!empty($form_state['redirect']) ? $form_state['redirect'] : $_GET['q'], array('d7uxmodalframe' => 1));
+  }
+}
