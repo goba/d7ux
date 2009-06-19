@@ -100,7 +100,7 @@ Drupal.modalFrame.create = function() {
       // the frame hidden until the child document is loaded.
       self.iframe.$element.hide();
       $('.modalframe').hide().css({top: dialogPosition.top, left: dialogPosition.left});
-      $('.modalframe').fadeIn('slow', function() {
+      $('.modalframe').fadeIn('fast', function() {
         // Load the document on hidden iframe (see bindChild method).
         self.load(self.options.url);
       });
@@ -260,7 +260,7 @@ Drupal.modalFrame.bindChild = function(iFrameWindow, isClosing) {
   $iFrameDocument.attr('tabIndex', -1).css('outline', 0);
 
   // Perform animation to show the iframe element.
-  self.iframe.$element.fadeIn('slow', function() {
+  self.iframe.$element.fadeIn('fast', function() {
     // @todo: Watch for experience in the way we compute the size of the
     // iframed document. There are many ways to do it, and none of them
     // seem to be perfect. Note though, that the size of the iframe itself

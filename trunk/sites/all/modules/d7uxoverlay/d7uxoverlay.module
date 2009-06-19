@@ -13,6 +13,8 @@ function d7uxoverlay_init() {
   if (admin_is_enabled('admin toolbar')) {
     if (!empty($_GET['d7uxmodalframe'])) {
       // d7uxmodalframe marks modal frames.
+      global $custom_theme;
+      $custom_theme = 'overlay';
       modalframe_child_js();
     }
     else {

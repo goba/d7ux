@@ -12,9 +12,13 @@
   background-color: transparent !important;
   border: none !important;
 }
+.modalframe .ui-dialog-titlebar {
+  cursor: normal !important;
+  height: 2em !important;
+}
 .modalframe .ui-dialog-title {
   color: #fff !important;
-  font-size: 1.3em  !important;
+  font-size: 1.2em !important;
 }
 
 #modalframe-container {
