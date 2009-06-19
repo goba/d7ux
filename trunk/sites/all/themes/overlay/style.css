@@ -1,0 +1,31 @@
+/* $Id$ */
+
+/* some main styles */
+
+body {
+  background-color: #fff;
+  font-family: Lucida Grande, Lucida Sans Unicode, sans-serif;
+  font-size: 0.8em;
+}
+
+/* tables */
+
+table {
+  width: 100%;
+}
+
+th {
+  font-size: 0.8em;
+}
+
+/* forms */
+
+.description, .filter-guidelines li {
+  color: #7A7B75;
+}
+form label {
+  text-transform: uppercase;
+}
+#node-form-buttons {
+  padding-top: 2em;
+}
