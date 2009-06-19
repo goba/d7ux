@@ -1,5 +1,5 @@
 <?php
-// $Id: modalframe-page.tpl.php,v 1.1.2.1 2009/05/26 17:36:56 markuspetrux Exp $
+// $Id: modalframe-page.tpl.php,v 1.1.4.2 2009/06/17 15:01:20 markuspetrux Exp $
 
 /**
  * @file
@@ -18,12 +18,12 @@
  */
 
 ?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php print $language->language ?>" lang="<?php print $language->language ?>" dir="<?php print $language->dir ?>">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="<?php print $language->language; ?>" lang="<?php print $language->language; ?>" dir="<?php print $language->dir; ?>">
 <head>
-<?php print $head ?>
-<title><?php print $head_title ?></title>
-<?php print $styles ?>
-<?php print $scripts ?>
+<?php print $head; ?>
+<title><?php print $head_title; ?></title>
+<?php print $styles; ?>
+<?php print $scripts; ?>
 </head>
 <body>
 <div class="modalframe-page-wrapper">
@@ -32,10 +32,11 @@
 <?php if ($show_messages && $messages): print $messages; endif; ?>
 <?php print $help; ?>
 <div class="clear-block">
-  <?php print $content ?>
+  <?php print $content; ?>
 </div>
     </div>
   </div>
 </div>
+<?php print $closure; ?>
 </body>
 </html>

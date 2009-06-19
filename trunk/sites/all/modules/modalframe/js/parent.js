@@ -1,4 +1,4 @@
-// $Id: parent.js,v 1.1.2.5 2009/05/29 19:17:05 markuspetrux Exp $
+// $Id: parent.js,v 1.1.4.2 2009/06/17 15:01:20 markuspetrux Exp $
 
 (function ($) {
 
@@ -26,6 +26,8 @@ Drupal.modalFrame.open = function(options) {
   // Build modal frame options structure.
   self.options = {
     url: options.url,
+    width: options.width,
+    height: options.height,
     autoFit: (options.autoFit == undefined || options.autoFit ? true : false),
     autoResize: (options.autoResize ? true : false),
     onSubmit: options.onSubmit
@@ -33,9 +35,6 @@ Drupal.modalFrame.open = function(options) {
 
   // Create the dialog and related DOM elements.
   self.create(options);
-
-  // Compute initial dialog size.
-  self.dialogSize = self.sanitizeSize({width: options.width, height: options.height});
 
   // Open the dialog offscreen where we can set its size, etc.
   self.iframe.$container.dialog('option', {position: ['-999em', '-999em']}).dialog('open');
@@ -81,23 +80,26 @@ Drupal.modalFrame.create = function() {
       // Fix dialog position on the viewport.
       self.fixPosition($('.modalframe'), true);
 
+      // Compute initial dialog size.
+      var dialogSize = self.sanitizeSize({width: self.options.width, height: self.options.height});
+
       // Compute frame size and dialog position based on dialog size.
-      var frameSize = $.extend({}, self.dialogSize);
+      var frameSize = $.extend({}, dialogSize);
       frameSize.height -= $('.modalframe .ui-dialog-titlebar').outerHeight(true);
-      self.dialogPosition = self.computeCenterPosition($('.modalframe'), self.dialogSize);
+      var dialogPosition = self.computeCenterPosition($('.modalframe'), dialogSize);
 
       // Adjust size of the iframe element and container.
-      $('.modalframe').width(self.dialogSize.width).height(self.dialogSize.height);
+      $('.modalframe').width(dialogSize.width).height(dialogSize.height);
       self.iframe.$container.width(frameSize.width).height(frameSize.height);
       self.iframe.$element.width(frameSize.width).height(frameSize.height);
 
       // Update the dialog size so that UI internals are aware of the change.
-      self.iframe.$container.dialog('option', {width: self.dialogSize.width, height: self.dialogSize.height});
+      self.iframe.$container.dialog('option', {width: dialogSize.width, height: dialogSize.height});
 
       // Hide the dialog, center it on the viewport and then fade it in with
       // the frame hidden until the child document is loaded.
       self.iframe.$element.hide();
-      $('.modalframe').hide().css({top: self.dialogPosition.top, left: self.dialogPosition.left});
+      $('.modalframe').hide().css({top: dialogPosition.top, left: dialogPosition.left});
       $('.modalframe').fadeIn('slow', function() {
         // Load the document on hidden iframe (see bindChild method).
         self.load(self.options.url);
@@ -105,9 +107,14 @@ Drupal.modalFrame.create = function() {
 
       // Enable auto resize feature?
       if (self.options.autoResize) {
-        $(window).bind('resize.modalframe-event', function() {
+        var $window = $(window), currentWindowSize = {width: $window.width(), height: $window.height()};
+        $window.bind('resize.modalframe-event', function() {
           if (self.isOpen && self.isObject(self.iframe.documentSize)) {
-            self.resize(self.iframe.documentSize);
+            var newWindowSize = {width: $window.width(), height: $window.height()};
+            if (Math.abs(currentWindowSize.width - newWindowSize.width) > 5 || Math.abs(currentWindowSize.height - newWindowSize.height) > 5) {
+              currentWindowSize = newWindowSize;
+              self.resize(self.iframe.documentSize);
+            }
           }
         });
       }
@@ -193,7 +200,7 @@ Drupal.modalFrame.canClose = function() {
 /**
  * Close the modal frame.
  */
-Drupal.modalFrame.close = function(args) {
+Drupal.modalFrame.close = function(args, statusMessages) {
   var self = this;
 
   // Check if the dialog can be closed.
@@ -211,7 +218,7 @@ Drupal.modalFrame.close = function(args) {
     self.beforeCloseEnabled = true;
     self.iframe.$container.dialog('close');
     if ($.isFunction(self.options.onSubmit)) {
-      self.options.onSubmit(args);
+      self.options.onSubmit(args, statusMessages);
     }
   }
   if (!self.isObject(self.iframe.$element) || !self.iframe.$element.size() || !self.iframe.$element.is(':visible')) {
@@ -351,7 +358,7 @@ Drupal.modalFrame.unbindChild = function(iFrameWindow) {
 
   // Prevent memory leaks by explicitly unbinding keyboard event handler
   // on the child document.
-  iFrameWindow.$(iFrameWindow.document).unbind('keydown.modalframe-event');
+  iFrameWindow.jQuery(iFrameWindow.document).unbind('keydown.modalframe-event');
 
   // Change the modal dialog title.
   $('.modalframe .ui-dialog-title').html(Drupal.t('Please, wait...'));
@@ -455,23 +462,21 @@ Drupal.modalFrame.computeCenterPosition = function($element, elementSize) {
 Drupal.modalFrame.resize = function(size) {
   var self = this;
 
-  // Compute frame size.
-  var frameSize = self.sanitizeSize(size);
-
-  // Compute dialog size based on frame size.
-  var dialogSize = $.extend({}, frameSize);
-  dialogSize.height += $('.modalframe .ui-dialog-titlebar').outerHeight(true);
-  var animationOptions = {width: dialogSize.width, height: dialogSize.height};
+  // Compute frame and dialog size based on requested document size.
+  var maxSize = self.sanitizeSize({}), titleBarHeight = $('.modalframe .ui-dialog-titlebar').outerHeight(true);
+  var frameSize = self.sanitizeSize(size), dialogSize = $.extend({}, frameSize);
+  if ((dialogSize.height + titleBarHeight) <= maxSize.height) {
+    dialogSize.height += titleBarHeight;
+  }
+  else {
+    dialogSize.height = maxSize.height;
+    frameSize.height = dialogSize.height - titleBarHeight;
+  }
 
   // Compute dialog position centered on viewport.
   var dialogPosition = self.computeCenterPosition($('.modalframe'), dialogSize);
 
-  // Change dialog position only if it differs more than certain amount from
-  // previous position.
-  if (Math.abs(self.dialogPosition.top - dialogPosition.top) > 20 || Math.abs(self.dialogPosition.left - dialogPosition.left) > 20) {
-    self.dialogPosition = dialogPosition;
-    animationOptions = $.extend(animationOptions, dialogPosition);
-  }
+  var animationOptions = $.extend(dialogSize, dialogPosition);
 
   // Perform the resize animation.
   $('.modalframe').animate(animationOptions, 'fast', function() {

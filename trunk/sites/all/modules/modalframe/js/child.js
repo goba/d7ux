@@ -1,4 +1,4 @@
-// $Id: child.js,v 1.1.2.4 2009/05/29 16:32:35 markuspetrux Exp $
+// $Id: child.js,v 1.1.4.3 2009/06/17 15:16:26 markuspetrux Exp $
 
 (function ($) {
 
@@ -11,10 +11,18 @@ Drupal.modalFrameChild = Drupal.modalFrameChild || {
 };
 
 /**
- * Child dialog behavior.
+ * Drupal behavior.
  */
 Drupal.behaviors.modalFrameChild = {
   attach: function(context) {
+    Drupal.modalFrameChild.attachBehavior(context);
+  }
+};
+
+/**
+ * Attach child dialog behavior.
+ */
+Drupal.modalFrameChild.attachBehavior = function(context) {
   var self = Drupal.modalFrameChild;
   var settings = Drupal.settings.modalFrameChild || {};
 
@@ -35,7 +43,7 @@ Drupal.behaviors.modalFrameChild = {
     parent.Drupal.modalFrame.bindChild(window, true);
     // Close the child window from a separate thread because the current
     // one is busy processing Drupal behaviors.
-    setTimeout(function() { parent.Drupal.modalFrame.close(settings.args); }, 1);
+    setTimeout(function() { parent.Drupal.modalFrame.close(settings.args, settings.statusMessages); }, 1);
     return;
   }
 
@@ -52,7 +60,6 @@ Drupal.behaviors.modalFrameChild = {
 
   // Attach child related behaviors to the iframed document.
   self.attachBehaviors(context);
-  }
 };
 
 /**

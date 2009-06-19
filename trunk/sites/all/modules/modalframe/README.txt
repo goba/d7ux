@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Modal Frame API module for Drupal 6
-;; $Id: README.txt,v 1.1.2.6 2009/05/30 09:38:56 markuspetrux Exp $
+;; Modal Frame API module for Drupal 7
+;; $Id: README.txt,v 1.1.4.2 2009/06/17 15:03:11 markuspetrux Exp $
 ;;
 ;; Original author: markus_petrux (http://drupal.org/user/39593)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -43,10 +43,14 @@ REQUIREMENTS
     which is currently provided by jQuery Update 6.x-2.x. Please, see the
     project page at: http://drupal.org/project/jquery_update
 
-- onBeforeUnload API.
+- The onBeforeUnload API is not required but recommended. It enhances
+  synchronization of parent/child windows.
+
   http://drupal.org/project/onbeforeunload
 
-- Dirty Forms (not required but recommended).
+- The Dirty Forms module is not required, but supported. It warns users
+  if they are about to close a modal dialog with unsaved changes.
+
   http://drupal.org/project/dirtyforms
 
 

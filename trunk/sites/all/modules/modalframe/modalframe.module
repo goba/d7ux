@@ -1,5 +1,5 @@
 <?php
-// $Id: modalframe.module,v 1.1.2.4 2009/05/29 16:32:34 markuspetrux Exp $
+// $Id: modalframe.module,v 1.1.4.2 2009/06/17 15:01:20 markuspetrux Exp $
 
 /**
  * @file
@@ -128,10 +128,28 @@ function modalframe_form_alter(&$form, $form_state, $form_id) {
  * the global variable $GLOBALS['modalframe_page_template'], then we want to
  * scan the form structure in search of elements with submit handlers.
  *
+ * @see _form_builder_handle_input_element()
+ * @see _form_builder_ie_cleanup()
+ * @see form_execute_handlers()
+ * @see form_builder()
+ *
  * @ingroup forms
  */
 function modalframe_form_after_build($form, &$form_state) {
   if (!empty($GLOBALS['modalframe_page_template'])) {
+    // Form API may have already captured submit handlers from the submitted
+    // button before after_build callback is invoked. This may have been done
+    // by _form_builder_handle_input_element().
+    // If so, the list of submit handlers is stored in the $form_state array
+    // which is something we can also alter from here, luckly. :)
+    // Rememeber: our goal here is set $form_state['redirect'] is set to FALSE
+    // if the API modalframe_close_dialog() has been invoked. That's because we
+    // want to tell the parent window to close the modal frame.
+    if (!empty($form_state['submit_handlers']) && !in_array('modalframe_form_submit', $form_state['submit_handlers'])) {
+      $form_state['submit_handlers'][] = 'modalframe_form_submit';
+    }
+
+    // Find form elements with submit handlers recursively.
     modalframe_form_after_build_recursive($form, $form_state);
   }
   return $form;
@@ -247,6 +265,7 @@ function modalframe_close_dialog($args = NULL) {
   // client side.
   $child_js_settings = array(
     'closeModal' => 1,
+    'statusMessages' => theme('status_messages'),
     'args' => (isset($args) && is_array($args) ? $args : array()),
   );
   drupal_add_js(array('modalFrameChild' => $child_js_settings), 'setting');
