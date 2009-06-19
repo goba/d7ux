@@ -29,3 +29,16 @@ form label {
 #node-form-buttons {
   padding-top: 2em;
 }
+
+#edit-switch-wrapper {
+  padding: 10px;
+  background-color: #fff7c9;
+}
+
+.horizontal-tabs > ul {
+  padding-bottom: 0px;
+}
+
+.horizontal-tab-section {
+  margin-top: 10px;
+}
