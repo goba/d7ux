@@ -46,3 +46,23 @@
   width: 16px;
   height: 16px;
 }
+
+.ui-dialog-titlebar ul.horizontal-tabs-panes, .ui-dialog-titlebar ul.primary {
+  float: right;
+  border-bottom: none;
+  margin: 0;
+  padding: 0.5em 0 10px;
+  line-height: normal;
+}
+
+.ui-dialog-titlebar ul.horizontal-tabs-panes li {
+  display: inline;
+  list-style: none;
+}
+
+.ui-dialog-titlebar ul.primary li a,
+.ui-dialog-titlebar ul.primary li.active a,
+.ui-dialog-titlebar ul.primary li a:hover,
+.ui-dialog-titlebar ul.primary li a:visited {
+  top: 0px;
+}
