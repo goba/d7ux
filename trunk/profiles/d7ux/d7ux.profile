@@ -13,9 +13,9 @@ function d7ux_profile_modules() {
     // Extra core modules.
     // ...
     // Extra contrib modules.
-    // ...
+    'jquery_ui', 'modalframe',
     // Custom modules.
-    'admin',
+    'admin', 'd7uxoverlay'
   );
 }
 
@@ -167,6 +167,17 @@ function d7ux_profile_tasks(&$task, $url) {
       'cache' => -1,
       'custom' => 0,
     ),
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => 'overlay',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+      'custom' => 0,
+    ),
   );
   $query = db_insert('block')->fields(array('module', 'delta', 'theme', 'status', 'weight', 'region', 'pages', 'cache', 'custom'));
   foreach ($values as $record) {
@@ -228,6 +239,21 @@ function d7ux_profile_tasks(&$task, $url) {
   ))->execute();
   db_insert('taxonomy_vocabulary_node_type')->fields(array('vid' => $vid, 'type' => 'article'))->execute();
 
+  // Create a default role for site administrators.
+  $rid = db_insert('role')->fields(array('name' => 'administrator'))->execute();
+
+  // Set this as the administrator role.
+  variable_set('user_admin_role', $rid);
+
+  // Assign all available permissions to this role.
+  foreach (module_invoke_all('perm') as $key => $value) {
+    db_insert('role_permission')
+      ->fields(array(
+        'rid' => $rid,
+        'permission' => $key,
+      ))->execute();
+  }
+
   // Update the menu router information.
   menu_rebuild();
 
@@ -239,6 +265,9 @@ function d7ux_profile_tasks(&$task, $url) {
   variable_set('popups_always_scan', 1);
   // Set popups to unskinned.
   variable_set('popups_skin', 'D7ux');
+  
+  // Enable the overlay theme (quick and ugly).
+  db_query("UPDATE {system} SET status = 1 WHERE name = 'overlay'");
 }
 
 /**
