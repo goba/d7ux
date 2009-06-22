@@ -60,9 +60,37 @@
   list-style: none;
 }
 
-.ui-dialog-titlebar ul.primary li a,
-.ui-dialog-titlebar ul.primary li.active a,
-.ui-dialog-titlebar ul.primary li a:hover,
-.ui-dialog-titlebar ul.primary li a:visited {
-  top: 0px;
+.ui-dialog-titlebar ul.primary {
+  float: right;
+  padding: 4px 0px;
+}
+
+.ui-dialog-titlebar ul.primary li {
+  background:#bbb;
+  -moz-border-radius-topleft:15px;
+  -moz-border-radius-topright:15px;
+  padding:5px 10px 5px 10px;
+  text-transform: uppercase;
+  font: #000 bold;
+}
+
+.ui-dialog-titlebar ul.primary li.active {
+  background:#fff;  
+}
+
+.ui-dialog-titlebar ul.primary li.active a.active {
+  background: none;
+  color: #000;
+  font-weight: bold;
+}
+
+.ui-dialog-titlebar ul.primary a:hover {
+  background: none;
+  color: #000;
+  font-weight: bold;
+}
+
+.ui-dialog-titlebar ul.primary a {
+  color: #000;
+  font-weight: bold;
 }
