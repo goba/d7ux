@@ -50,6 +50,7 @@ form label {
 #node-form-floating-buttons-wrapper {
   background-color: #E0E0D8;
   padding: 10px 20px;
+  margin-left: -40px;
 }
 
 /* Form buttons */
