@@ -36,6 +36,7 @@ form label {
 #edit-switch-wrapper {
   padding: 10px;
   background-color: #fff7c9;
+  margin-top: 0;
 }
 
 .horizontal-tabs > ul {

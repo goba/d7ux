@@ -8,6 +8,12 @@ Drupal.behaviors.d7uxOverlay = {
     // implementation for testing purposes.
     $('a.popups:not(.popups-processed)').addClass('popups-processed').click(function() {
 
+      // Remove the active class from where it was, and add 
+      // the active class to this link, so the button keeps 
+      // highlighting where we are. 
+      $('#admin-toolbar a').each(function() { $(this).removeClass('active'); });
+      $(this).addClass('active');
+      
       // Append d7uxmodalframe variable, so the server side can pick up
       // this marker and add child modal frame code to the page if needed.
       var linkURL = $(this).attr('href');

@@ -137,7 +137,7 @@ div#admin-toolbar div.admin-links ul li a:hover {
   background:#555;
   }
 
-div#admin-toolbar div.admin-links ul li a.active:hover
+div#admin-toolbar div.admin-links ul li a.active:hover,
 div#admin-toolbar div.admin-links ul li a.active {
   background:url(sprite.png) 0px -20px repeat-x;
   }
