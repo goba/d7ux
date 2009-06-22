@@ -15,7 +15,7 @@ Drupal.behaviors.horizontalTabs = {
           label = Drupal.settings.horizontalTabs[horizontalTabs][horizontalTab];
           $(this).append('<li id="horizontal-tabs-tab-' + Drupal.checkPlain(horizontalTab) + '"><a href="#">' + Drupal.checkPlain(label) + '</a></li>');
           $('#horizontal-tabs-tab-' + Drupal.checkPlain(horizontalTab) + ' > a').click(function() {
-            $(this).parent().parent().parent().find('.horizontal-tab-section').hide();
+            $(this).parents().find('.horizontal-tab-section').hide();
             $('#horizontal-tab-section-' + $(this).parent().attr('id').substr(20)).show();
             $(this).parent().parent().find('> li').removeClass('active').find('> a').removeClass('active');
             $(this).addClass('active').parent().addClass('active');
@@ -24,7 +24,7 @@ Drupal.behaviors.horizontalTabs = {
         }
         $(this).addClass('horizontal-tabs-processed');
         var active_tab = $('#' + horizontalTabs + '--active-tab').val();
-        $('#horizontal-tabs-panes-' + horizontalTabs).parent().find('.horizontal-tab-section').hide();
+        $('#horizontal-tabs-panes-' + horizontalTabs).parents().find('.horizontal-tab-section').hide();
         $('#horizontal-tab-section-' + active_tab).show();
         $('#horizontal-tabs-tab-' + active_tab).addClass('active').find('> a').addClass('active');
       });
