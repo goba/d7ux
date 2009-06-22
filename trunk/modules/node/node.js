@@ -72,7 +72,6 @@ Drupal.behaviors.nodeMetaFieldsets = {
         $(this).
           bind('summaryUpdated', function () {
             var text = $.trim($(this).getSummary());
-            console.log(this);
             summary.html((text ? text : Drupal.t('none')) + ' (<a href="#">' + ($(this).children(':not(legend, div.more-link, div.summary):visible').size() ? Drupal.t('done') : Drupal.t('change')) + '</a>)');
             summary.find('> a').click(function() {
               this.innerHTML = this.innerHTML == Drupal.t('change') ? Drupal.t('done') : Drupal.t('change');
