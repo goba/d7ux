@@ -30,6 +30,7 @@
   <div class="modalframe-page-container clear-block">
     <div class="modalframe-page-content">
 <?php if ($show_messages && $messages): print $messages; endif; ?>
+<?php if ($tabs): ?><?php print $tabs; ?><?php endif; ?>
 <?php print $help; ?>
 <div class="clear-block">
   <?php print $content; ?>

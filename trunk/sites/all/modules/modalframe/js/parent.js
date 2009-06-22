@@ -261,6 +261,9 @@ Drupal.modalFrame.bindChild = function(iFrameWindow, isClosing) {
   // Update the dialog title with the child window title.
   $('.modalframe .ui-dialog-title').html($iFrameDocument.attr('title'));
 
+  // Remove any existing tabs.
+  $('.modalframe .ui-dialog-titlebar ul').remove();
+
   // Setting tabIndex makes the div focusable.
   // Setting outline to 0 prevents a border on focus in Mozilla.
   // Inspired by ui.dialog initialization code.
@@ -354,6 +357,17 @@ Drupal.modalFrame.bindChild = function(iFrameWindow, isClosing) {
         return false;
       }
     });
+
+    var tabs = $iFrameDocument.find('ul.horizontal-tabs-panes, ul.primary').get(0);
+
+    // If there are tabs in the page, move them to the titlebar.
+    if (typeof tabs != 'undefined') {
+      $('.ui-dialog-titlebar').append($(tabs).remove().get(0));
+      if ($(tabs).is('.primary')) {
+        $(tabs).find('a').addClass('popups');
+        Drupal.attachBehaviors($(tabs));
+      }
+    }
   });
 };
 
