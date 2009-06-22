@@ -380,7 +380,7 @@ Drupal.modalFrame.isObject = function(something) {
 Drupal.modalFrame.sanitizeSize = function(size) {
   var width, height;
   var $window = $(window);
-  var minWidth = 300, maxWidth = parseInt($window.width() * .98);
+  var minWidth = 300, maxWidth = parseInt($window.width() * .92);
   if (typeof size.width != 'number') {
     width = maxWidth;
   }
@@ -390,7 +390,7 @@ Drupal.modalFrame.sanitizeSize = function(size) {
   else {
     width = size.width;
   }
-  var minHeight = 100, maxHeight = parseInt($window.height() * .98);
+  var minHeight = 100, maxHeight = parseInt($window.height() * .92);
   if (typeof size.height != 'number') {
     height = maxHeight;
   }

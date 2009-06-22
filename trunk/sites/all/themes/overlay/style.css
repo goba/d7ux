@@ -42,3 +42,56 @@ form label {
 .horizontal-tab-section {
   margin-top: 10px;
 }
+
+#node-form-floating-buttons-wrapper {
+  background-color: #E0E0D8;
+  padding: 10px 20px;
+}
+
+/* Form buttons */
+button { 
+	position: relative;
+	border: 0; 
+	padding: 0;
+	cursor: pointer;
+	overflow: visible; /* removes extra side padding in IE */
+}
+button::-moz-focus-inner {
+	border: none;  /* overrides extra padding in Firefox */
+}
+button span { 
+	position: relative;
+	display: block; 
+	white-space: nowrap;	
+}
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+	/* Safari and Google Chrome only - fix margins */
+	button span {
+		margin-top: -1px;
+	}
+}
+button.form-submit { 
+	margin-right:5px; 
+	font-size: 1.3em; 
+	text-align: center; 
+	background: transparent url(images/btn_std_lt.png) no-repeat left top; 
+}
+button.form-submit span {
+	padding: 3px 15px 0; 
+	height: 27px; 
+	background: transparent url(images/btn_std_rt.png) no-repeat right top; 
+	color: #5A5A5A; 
+}
+button.form-submit.form-button-emphasized {
+	background: transparent url(images/btn_emph_lt.png) no-repeat left top; 
+}
+button.form-submit.form-button-emphasized span {
+	background: transparent url(images/btn_emph_rt.png) no-repeat right top; 
+        color: #00273F;
+}
+button.form-submit:hover, button.submitBtnHover {
+	/* ... */
+}
+button.form-submit:hover span, button.submitBtnHover span {
+	/* ... */ 
+}
