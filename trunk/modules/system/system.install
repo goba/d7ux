@@ -1,5 +1,5 @@
 <?php
-// $Id: system.install,v 1.342 2009/06/11 04:59:26 dries Exp $
+// $Id: system.install,v 1.346 2009/06/21 05:18:44 dries Exp $
 
 /**
  * @file
@@ -372,17 +372,17 @@ function system_install() {
   db_query("UPDATE {users} SET uid = 1 WHERE name = '%s'", 'placeholder-for-uid-1');
 
   // Built-in roles.
-  db_query("INSERT INTO {role} (name) VALUES ('%s')", 'anonymous user');
-  db_query("INSERT INTO {role} (name) VALUES ('%s')", 'authenticated user');
+  db_query("INSERT INTO {role} (rid, name) VALUES (%d, '%s')", DRUPAL_ANONYMOUS_RID, 'anonymous user');
+  db_query("INSERT INTO {role} (rid, name) VALUES (%d, '%s')", DRUPAL_AUTHENTICATED_RID, 'authenticated user');
 
   // Anonymous role permissions.
-  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", 1, 'access content');
+  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", DRUPAL_ANONYMOUS_RID, 'access content');
 
   // Authenticated role permissions.
-  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", 2, 'access comments');
-  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", 2, 'access content');
-  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", 2, 'post comments');
-  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", 2, 'post comments without approval');
+  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", DRUPAL_AUTHENTICATED_RID, 'access comments');
+  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", DRUPAL_AUTHENTICATED_RID, 'access content');
+  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", DRUPAL_AUTHENTICATED_RID, 'post comments');
+  db_query("INSERT INTO {role_permission} (rid, permission) VALUES (%d, '%s')", DRUPAL_AUTHENTICATED_RID, 'post comments without approval');
 
   db_query("INSERT INTO {variable} (name, value) VALUES ('%s', '%s')", 'theme_default', 's:7:"garland";');
   db_query("UPDATE {system} SET status = %d WHERE type = '%s' AND name = '%s'", 1, 'theme', 'garland');
@@ -390,7 +390,7 @@ function system_install() {
   db_query("INSERT INTO {node_access} (nid, gid, realm, grant_view, grant_update, grant_delete) VALUES (%d, %d, '%s', %d, %d, %d)", 0, 0, 'all', 1, 0, 0);
 
   // Add text formats.
-  db_query("INSERT INTO {filter_format} (name, roles, cache) VALUES ('%s', '%s', %d)", 'Filtered HTML', ',1,2,', 1);
+  db_query("INSERT INTO {filter_format} (name, roles, cache) VALUES ('%s', '%s', %d)", 'Filtered HTML', ',' . DRUPAL_ANONYMOUS_RID . ',' . DRUPAL_AUTHENTICATED_RID . ',', 1 );
   db_query("INSERT INTO {filter_format} (name, roles, cache) VALUES ('%s', '%s', %d)", 'Full HTML', '', 1);
 
   // Enable filters for each text format.
@@ -1727,7 +1727,7 @@ function system_update_6017() {
         $ret[] = array('success' => TRUE, 'query' => "variable_set($new_name)");
         $ret[] = array('success' => TRUE, 'query' => "variable_del($old_name)");
         if ($old_name == 'user_mail_approval_body') {
-          drupal_set_message('Saving an old value of the welcome message body for users that are pending administrator approval. However, you should consider modifying this text, since Drupal can now be configured to automatically notify users and send them their login information when their accounts are approved. See the <a href="' . url('admin/user/settings') . '">User settings</a> page for details.');
+          drupal_set_message('Saving an old value of the welcome message body for users that are pending administrator approval. However, you should consider modifying this text, since Drupal can now be configured to automatically notify users and send them their login information when their accounts are approved. See the <a href="' . url('admin/settings/user') . '">User settings</a> page for details.');
         }
       }
     }
@@ -3547,6 +3547,36 @@ function system_update_7026() {
   db_change_field($ret, 'url_alias', 'dst', 'dst', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE));
   return $ret;
 }
+
+/**
+ * Enable field type modules.
+ */
+function system_update_7027() {
+  $ret = array();
+  $module_list = array('text', 'number', 'list', 'options');
+  db_delete('system')->condition('type', 'module')->condition('name', $module_list)->execute();
+  drupal_install_modules($module_list);
+  module_enable($module_list);
+  return $ret;
+}
+
+/**
+ * Rename taxonomy tables.
+ */
+function system_update_7028() {
+  $ret = array();
+  db_rename_table($ret, 'term_data', 'taxonomy_term_data');
+  db_rename_table($ret, 'term_hierarchy', 'taxonomy_term_hierarchy');
+  db_rename_table($ret, 'term_node', 'taxonomy_term_node');
+  db_rename_table($ret, 'term_relation', 'taxonomy_term_relation');
+  db_rename_table($ret, 'term_synonym', 'taxonomy_term_synonym');
+  db_rename_table($ret, 'vocabulary', 'taxonomy_vocabulary');
+  db_rename_table($ret, 'vocabulary_node_types', 'taxonomy_vocabulary_node_type');
+
+  return $ret;
+}
+
+
 
 /**
  * @} End of "defgroup updates-6.x-to-7.x"

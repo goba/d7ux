@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Modal Frame API module for Drupal 7
-;; $Id: README.txt,v 1.1.4.2 2009/06/17 15:03:11 markuspetrux Exp $
+;; $Id: README.txt,v 1.1.4.3 2009/06/19 15:22:08 markuspetrux Exp $
 ;;
 ;; Original author: markus_petrux (http://drupal.org/user/39593)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -123,6 +123,10 @@ The client-side API looks as follows:
     This option activates an onResize handler that will automatically resize
     and center the modal frame whenever the browser window is resized. Note
     though, that this feature may not work very well on some browsers.
+
+  o draggable (Optional)
+
+    This option is enabled by default. Use false to disable.
 
   o onSubmit (Optional)
 

@@ -1,4 +1,4 @@
-// $Id: parent.js,v 1.1.4.2 2009/06/17 15:01:20 markuspetrux Exp $
+// $Id: parent.js,v 1.1.4.4 2009/06/19 15:32:57 markuspetrux Exp $
 
 (function ($) {
 
@@ -30,6 +30,7 @@ Drupal.modalFrame.open = function(options) {
     height: options.height,
     autoFit: (options.autoFit == undefined || options.autoFit ? true : false),
     autoResize: (options.autoResize ? true : false),
+    draggable: (options.draggable == undefined || options.draggable ? true : false),
     onSubmit: options.onSubmit
   };
 
@@ -59,6 +60,7 @@ Drupal.modalFrame.create = function() {
     modal: true,
     autoOpen: false,
     closeOnEscape: true,
+    draggable: self.options.draggable,
     resizable: false,
     title: Drupal.t('Loading...'),
     dialogClass: 'modalframe',
@@ -76,6 +78,11 @@ Drupal.modalFrame.create = function() {
         .attr('href', 'javascript:void(0)')
         .attr('title', Drupal.t('Close'))
         .unbind('click').bind('click', function() { try { self.close(false); } catch(e) {}; return false; });
+
+      // Adjust titlebar.
+      if (!self.options.draggable) {
+        $('.modalframe .ui-dialog-titlebar').css('cursor', 'default');
+      }
 
       // Fix dialog position on the viewport.
       self.fixPosition($('.modalframe'), true);

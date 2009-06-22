@@ -1,5 +1,5 @@
 <?php
-// $Id: system.test,v 1.46 2009/05/27 18:34:01 dries Exp $
+// $Id: system.test,v 1.50 2009/06/13 21:08:31 dries Exp $
 
 /**
  * Helper class for module test cases.
@@ -454,8 +454,8 @@ class AdminOverviewTestCase extends DrupalWebTestCase {
     $this->assertLink(t('Content management'));
 
     // Make sure menu items without children are hidden.
-    $this->assertNoLink(t('Site building'));
     $this->assertNoLink(t('Site configuration'));
+    $this->assertNoLink(t('Site building'));
     $this->assertNoLink(t('User management'));
     $this->assertNoLink(t('Reports'));
   }
@@ -518,7 +518,7 @@ class AccessDeniedTestCase extends DrupalWebTestCase {
 
     $edit = array(
       'title' => $this->randomName(10),
-      'body' => $this->randomName(100)
+      'body' => array(array('value' => $this->randomName(100))),
     );
     $node = $this->drupalCreateNode($edit);
 
@@ -579,7 +579,7 @@ class PageNotFoundTestCase extends DrupalWebTestCase {
 
     $edit = array(
       'title' => $this->randomName(10),
-      'body' => $this->randomName(100)
+      'body' => array(array('value' => $this->randomName(100))),
     );
     $node = $this->drupalCreateNode($edit);
 
@@ -705,7 +705,7 @@ class PageTitleFiltering extends DrupalWebTestCase {
     // Generate node content.
     $edit = array(
      'title' => '!SimpleTest! ' . $title . $this->randomName(20),
-     'body' => '!SimpleTest! test body' . $this->randomName(200),
+     'body[0][value]' => '!SimpleTest! test body' . $this->randomName(200),
     );
     // Create the node with HTML in the title.
     $this->drupalPost('node/add/page', $edit, t('Save'));

@@ -1,5 +1,5 @@
 <?php
-// $Id: node.tpl.php,v 1.12 2009/05/28 16:44:06 webchick Exp $
+// $Id: node.tpl.php,v 1.14 2009/06/22 09:10:05 dries Exp $
 
 /**
  * @file
@@ -7,7 +7,10 @@
  *
  * Available variables:
  * - $title: the (sanitized) title of the node.
- * - $content: Node body or teaser depending on $teaser flag.
+ * - $content: An array of node items. Use render($content) to print them all, or 
+ *   print a subset such as render($content['field_example']). Use 
+ *   hide($content['field_example]) to temporarily suppress the printing of a 
+ *   given element.
  * - $comments: the themed list of comments (if any).
  * - $picture: The authors picture of the node output from
  *   theme_user_picture().
@@ -48,7 +51,8 @@
  * - $id: Position of the node. Increments each time it's output.
  *
  * Node status variables:
- * - $teaser: Flag for the teaser state.
+ * - $build_mode: Build mode, e.g. 'full', 'teaser'...
+ * - $teaser: Flag for the teaser state (shortcut for $build_mode == 'teaser').
  * - $page: Flag for the full page state.
  * - $promote: Flag for front page promotion state.
  * - $sticky: Flags for sticky post setting.
@@ -78,17 +82,22 @@
     <span class="submitted"><?php print $submitted ?></span>
   <?php endif; ?>
 
-  <?php if ($terms): ?>
-    <div class="terms terms-inline"><?php print $terms ?></div>
+  <?php if (!empty($content['links']['terms'])): ?>
+    <div class="terms terms-inline"><?php render($content['links']['terms']) ?></div>
   <?php endif;?>
   </div>
 
   <div class="content">
-    <?php print $content ?>
+    <?php
+      // We hide the comments and links now so that we can render them later.
+      hide($content['comments']);
+      hide($content['links']);
+      render($content);
+    ?>
   </div>
 
-  <?php print $links; ?>
+  <?php render($content['links']); ?>
 
-  <?php print $comments; ?>
+  <?php render($content['comments']); ?>
 
 </div>

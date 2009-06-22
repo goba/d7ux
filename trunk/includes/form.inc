@@ -1,5 +1,5 @@
 <?php
-// $Id: form.inc,v 1.339 2009/06/02 13:47:25 dries Exp $
+// $Id: form.inc,v 1.343 2009/06/20 15:17:38 dries Exp $
 
 /**
  * @defgroup forms Form builder functions
@@ -346,6 +346,7 @@ function form_set_cache($form_build_id, $form, $form_state) {
  *   in here when it is called.
  * For example:
  *
+ * @code
  * // register a new user
  * $form_state = array();
  * $form_state['values']['name'] = 'robo-user';
@@ -363,6 +364,7 @@ function form_set_cache($form_build_id, $form, $form_state) {
  * $form_state['values']['name'] = 'robo-user';
  * $form_state['values']['op'] = t('Save');
  * drupal_form_submit('story_node_form', $form_state, (object)$node);
+ * @endcode
  */
 function drupal_form_submit($form_id, &$form_state) {
   if (!isset($form_state['args'])) {
@@ -1574,7 +1576,7 @@ function theme_fieldset($element) {
   }
   $element['#attributes']['id'] = $element['#id'];
 
-  return '<fieldset' . drupal_attributes($element['#attributes']) . '>' . ($element['#title'] ? '<legend>' . $element['#title'] . '</legend>' : '') . (isset($element['#description']) && $element['#description'] ? '<div class="description">' . $element['#description'] . '</div>' : '') . (!empty($element['#children']) ? $element['#children'] : '') . (isset($element['#value']) ? $element['#value'] : '') . "</fieldset>\n";
+  return '<fieldset' . drupal_attributes($element['#attributes']) . '>' . ($element['#title'] ? '<legend>' . $element['#title'] . '</legend>' : '') . (isset($element['#description']) && $element['#description'] ? '<div class="fieldset-description">' . $element['#description'] . '</div>' : '') . (!empty($element['#children']) ? $element['#children'] : '') . (isset($element['#value']) ? $element['#value'] : '') . "</fieldset>\n";
 }
 
 /**
@@ -2642,15 +2644,6 @@ function theme_form($element) {
 function theme_textarea($element) {
   $class = array('form-textarea');
 
-  // Add teaser behavior (must come before resizable)
-  if (!empty($element['#teaser'])) {
-    drupal_add_js('misc/teaser.js');
-    // Note: arrays are merged in drupal_get_js().
-    drupal_add_js(array('teaserCheckbox' => array($element['#id'] => $element['#teaser_checkbox'])), 'setting');
-    drupal_add_js(array('teaser' => array($element['#id'] => $element['#teaser'])), 'setting');
-    $class[] = 'teaser';
-  }
-
   // Add resizable behavior
   if ($element['#resizable'] !== FALSE) {
     drupal_add_js('misc/textarea.js');
@@ -2752,7 +2745,16 @@ function theme_form_element($element) {
   // This is also used in the installer, pre-database setup.
   $t = get_t();
 
-  $output = '<div class="form-item"';
+  // Add element's #type and #name as class to aid with JS/CSS selectors.
+  $class = array('form-item');
+  if (!empty($element['#type'])) {
+    $class[] = 'form-item-' . strtr($element['#type'], array('_' => '-'));
+  }
+  if (!empty($element['#name'])) {
+    $class[] = strtr($element['#name'], array('_' => '-', '[' => '-', ']' => '')) . '-wrapper';
+  }
+
+  $output = '<div class="' . implode(' ', $class) . '"';
   if (!empty($element['#id'])) {
     $output .= ' id="' . $element['#id'] . '-wrapper"';
   }
@@ -2762,10 +2764,10 @@ function theme_form_element($element) {
   if (!empty($element['#title']) && empty($element['#form_element_skip_title'])) {
     $title = $element['#title'];
     if (!empty($element['#id'])) {
-      $output .= ' <label for="' . $element['#id'] . '">' . $t('!title: !required', array('!title' => filter_xss_admin($title), '!required' => $required)) . "</label>\n";
+      $output .= ' <label for="' . $element['#id'] . '">' . $t('!title !required', array('!title' => filter_xss_admin($title), '!required' => $required)) . "</label>\n";
     }
     else {
-      $output .= ' <label>' . $t('!title: !required', array('!title' => filter_xss_admin($title), '!required' => $required)) . "</label>\n";
+      $output .= ' <label>' . $t('!title !required', array('!title' => filter_xss_admin($title), '!required' => $required)) . "</label>\n";
     }
   }
 

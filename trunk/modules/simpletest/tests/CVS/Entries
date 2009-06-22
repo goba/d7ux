@@ -1,8 +1,6 @@
 /actions.test/1.4/Sat May 30 11:17:32 2009//
 /batch.test/1.1/Wed May  6 10:41:43 2009//
 /bootstrap.test/1.17/Sat May 30 11:17:32 2009//
-/cache.test/1.6/Sun May 24 05:21:56 2009//
-/common.test/1.45/Sat Jun  6 15:43:05 2009//
 /database_test.info/1.2/Thu Oct  9 22:51:40 2008//
 /database_test.install/1.8/Wed May 27 18:34:00 2009//
 /database_test.module/1.9/Wed May 27 18:34:00 2009//
@@ -26,7 +24,6 @@
 /menu.test/1.11/Sat May 30 11:17:32 2009//
 /menu_test.info/1.1/Sun Dec 28 18:27:14 2008//
 /menu_test.module/1.5/Wed May 27 18:34:00 2009//
-/module.test/1.4/Sat May 30 11:17:32 2009//
 /registry.test/1.11/Sat May 30 11:17:32 2009//
 /schema.test/1.7/Sat May 30 11:17:32 2009//
 /session.test/1.14/Tue Jun  2 06:58:17 2009//
@@ -42,4 +39,7 @@
 /xmlrpc.test/1.9/Sun May 24 17:39:34 2009//
 /xmlrpc_test.info/1.1/Sat Aug  9 12:41:22 2008//
 /xmlrpc_test.module/1.4/Wed May 27 18:34:00 2009//
+/cache.test/1.7/Mon Jun 22 09:37:00 2009//
+/common.test/1.46/Mon Jun 22 09:37:00 2009//
+/module.test/1.6/Mon Jun 22 09:37:00 2009//
 D

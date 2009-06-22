@@ -1,5 +1,5 @@
 <?php
-// $Id: system.module,v 1.711 2009/06/11 04:36:22 dries Exp $
+// $Id: system.module,v 1.714 2009/06/21 14:16:28 dries Exp $
 
 /**
  * @file
@@ -840,12 +840,12 @@ function system_admin_menu_block_access($path, $permission) {
  * Implement hook_init().
  */
 function system_init() {
-  // Use the administrative theme if the user is looking at a page in the admin/* path.
+  /*// Use the administrative theme if the user is looking at a page in the admin/* path.
   if (arg(0) == 'admin' || (variable_get('node_admin_theme', '0') && arg(0) == 'node' && (arg(1) == 'add' || arg(2) == 'edit'))) {
     global $custom_theme;
     $custom_theme = variable_get('admin_theme', 0);
     drupal_add_css(drupal_get_path('module', 'system') . '/admin.css');
-  }
+  }*/
 
   // Add the CSS for this module.
   drupal_add_css(drupal_get_path('module', 'system') . '/defaults.css');
@@ -1345,8 +1345,8 @@ function _system_get_theme_data() {
       'description' => '',
       'features' => array(
         'comment_user_picture',
+        'comment_user_verification',
         'favicon',
-        'mission',
         'logo',
         'name',
         'node_user_picture',
@@ -1355,10 +1355,6 @@ function _system_get_theme_data() {
         'main_menu',
         'secondary_menu',
       ),
-      'stylesheets' => array(
-        'all' => array('style.css')
-      ),
-      'scripts' => array('script.js'),
       'screenshot' => 'screenshot.png',
       'php' => DRUPAL_MINIMUM_PHP,
     );
@@ -2310,7 +2306,7 @@ function system_message_action_form($context) {
     '#default_value' => isset($context['message']) ? $context['message'] : '',
     '#required' => TRUE,
     '#rows' => '8',
-    '#description' => t('The message to be displayed to the current user. You may include the following variables: %site_name, %username, %node_url, %node_type, %title, %teaser, %body. Not all variables will be available in all contexts.'),
+    '#description' => t('The message to be displayed to the current user. You may include the following variables: %site_name, %username, %node_url, %node_type, %title, %teaser, %body, %term_name, %term_description, %term_id, %vocabulary_name, %vocabulary_description, %vocabulary_id. Not all variables will be available in all contexts.'),
   );
   return $form;
 }

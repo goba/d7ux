@@ -1,5 +1,5 @@
 <?php
-// $Id: system.admin.inc,v 1.155 2009/06/08 04:48:43 webchick Exp $
+// $Id: system.admin.inc,v 1.158 2009/06/19 20:35:05 dries Exp $
 
 /**
  * @file
@@ -139,7 +139,6 @@ function system_settings_overview() {
  * @see system_themes_form_submit()
  */
 function system_themes_form() {
-  drupal_clear_css_cache();
 
   $themes = system_get_theme_data();
   uasort($themes, 'system_sort_modules_by_info_name');
@@ -240,6 +239,7 @@ function system_themes_form() {
  * Process system_themes_form form submissions.
  */
 function system_themes_form_submit($form, &$form_state) {
+  drupal_clear_css_cache();
 
   // Store list of previously enabled themes and disable all themes
   $old_theme_list = $new_theme_list = array();
@@ -1224,7 +1224,7 @@ function system_site_information_settings() {
     '#title' => t('Default 403 (access denied) page'),
     '#default_value' => '',
     '#size' => 40,
-    '#description' => t('This page is displayed when the requested document is denied to the current user. If unsure, specify nothing.'),
+    '#description' => t('This page is displayed when the requested document is denied to the current user. Leave blank to display a generic "access denied" page.'),
     '#field_prefix' => url(NULL, array('absolute' => TRUE)) . (variable_get('clean_url', 0) ? '' : '?q=')
   );
   $form['site_404'] = array(
@@ -1232,8 +1232,14 @@ function system_site_information_settings() {
     '#title' => t('Default 404 (not found) page'),
     '#default_value' => '',
     '#size' => 40,
-    '#description' => t('This page is displayed when no other content matches the requested document. If unsure, specify nothing.'),
+    '#description' => t('This page is displayed when no other content matches the requested document. Leave blank to display a generic "page not found" page.'),
     '#field_prefix' => url(NULL, array('absolute' => TRUE)) . (variable_get('clean_url', 0) ? '' : '?q=')
+  );
+  $form['site_404_blocks'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display blocks on default 404 (not found) page'),
+    '#description' => t('Render all blocks on the default 404 (not found) page. Disabling blocks can help with performance but might leave users with a less functional site.'),
+    '#default_value' => variable_get('site_404_blocks', 0)
   );
   $form['#validate'][] = 'system_site_information_settings_validate';
 
@@ -1883,7 +1889,7 @@ EOT;
 /**
  * This function formats the content of an administrative block.
  *
- * @param $block
+ * @param $content
  *   An array containing information about the block. It should
  *   include a 'title', a 'description' and a formatted 'content'.
  * @ingroup themeable

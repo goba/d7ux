@@ -1,5 +1,5 @@
 <?php
-// $Id: system.api.php,v 1.41 2009/06/08 09:23:54 dries Exp $
+// $Id: system.api.php,v 1.43 2009/06/22 09:10:06 dries Exp $
 
 /**
  * @file
@@ -437,14 +437,13 @@ function hook_image_toolkits() {
  *   - comment: Links to be placed below a comment being viewed.
  * @param $object
  *   A comment object.
- * @param $teaser
- *   A 0/1 flag depending on whether the node is
- *   displayed with its teaser or its full form.
+ * @param $build_mode
+ *   Build mode for the node, e.g. 'full', 'teaser'...
  * @return
  *   An array of the requested links.
  *
  */
-function hook_link($type, $object, $teaser = FALSE) {
+function hook_link($type, $object, $build_mode) {
   $links = array();
 
   if ($type == 'comment') {
@@ -551,11 +550,13 @@ function hook_system_info_alter(&$info, $file) {
  * Define user permissions.
  *
  * This hook can supply permissions that the module defines, so that they
- * can be selected on the user permissions page and used to restrict
+ * can be selected on the user permissions page and used to grant or restrict
  * access to actions the module performs.
  *
  * @return
- *   An array of which permission names are the keys and their corresponding value is a description of the permission
+ *   An array of permissions where the permission name is the array key and the
+ *   corresponding key value is an array of key/value pairs specifying
+ *   the permission's title and description
  *
  * The permissions in the array do not need to be wrapped with the function t(),
  * since the string extractor takes care of extracting permission names defined in the perm hook for translation.
@@ -566,7 +567,10 @@ function hook_system_info_alter(&$info, $file) {
  */
 function hook_perm() {
   return array(
-    'administer my module' => t('Perform maintenance tasks for my module'),
+    'administer my module' =>  array(
+      'title' => t('Administer my module'),
+      'description' => t('Perform administration tasks for my module.'),
+    ),
   );
 }
 
