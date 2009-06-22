@@ -15,6 +15,7 @@
 .modalframe .ui-dialog-titlebar {
   background-color: transparent !important;
   border: none !important;
+  cursor: auto;
 }
 .modalframe .ui-dialog-titlebar {
   cursor: normal !important;
