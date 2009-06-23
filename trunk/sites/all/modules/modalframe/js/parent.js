@@ -415,7 +415,8 @@ Drupal.modalFrame.sanitizeSize = function(size) {
   if (typeof size.height != 'number') {
     height = maxHeight;
   }
-  else if (size.height < minHeight || size.height > maxHeight) {
+  // d7ux: do not maximise in maxheight
+  else if (size.height < minHeight /*|| size.height > maxHeight*/) {
     height = Math.min(maxHeight, Math.max(minHeight, size.height));
   }
   else {
@@ -431,6 +432,8 @@ Drupal.modalFrame.sanitizeSize = function(size) {
  * @see http://www.howtocreate.co.uk/fixedPosition.html
  */
 Drupal.modalFrame.fixPosition = function($element, isOpen) {
+  // d7ux: do not make it fixed.
+  return;
   var $window = $(window);
   if ($.browser.msie && parseInt($.browser.version) <= 6) {
     // IE6 does not support position:'fixed'.
@@ -467,7 +470,8 @@ Drupal.modalFrame.computeCenterPosition = function($element, elementSize) {
   var $window = $(window);
   var position = {
     left: Math.max(0, parseInt(($window.width() - elementSize.width) / 2)),
-    top: Math.max(0, parseInt(($window.height() - elementSize.height) / 2))
+    // d7ux: do not hide it behind header toolbar
+    top: headerHeight = $('#admin-toolbar').height() + 20, //; Math.max(0, parseInt(($window.height() - elementSize.height) / 2))
   };
   if ($element.css('position') != 'fixed') {
     var $document = $(document);
@@ -486,13 +490,13 @@ Drupal.modalFrame.resize = function(size) {
   // Compute frame and dialog size based on requested document size.
   var maxSize = self.sanitizeSize({}), titleBarHeight = $('.modalframe .ui-dialog-titlebar').outerHeight(true);
   var frameSize = self.sanitizeSize(size), dialogSize = $.extend({}, frameSize);
-  if ((dialogSize.height + titleBarHeight) <= maxSize.height) {
+  //if ((dialogSize.height + titleBarHeight) <= maxSize.height) {
     dialogSize.height += titleBarHeight;
-  }
-  else {
-    dialogSize.height = maxSize.height;
-    frameSize.height = dialogSize.height - titleBarHeight;
-  }
+  //}
+  //else {
+  //  dialogSize.height = maxSize.height;
+  //  frameSize.height = dialogSize.height - titleBarHeight;
+  //}
 
   // Compute dialog position centered on viewport.
   var dialogPosition = self.computeCenterPosition($('.modalframe'), dialogSize);

@@ -31,7 +31,7 @@ Drupal.behaviors.d7uxOverlay = {
       var modalOptions = {
         url: linkURL,
         autoResize: false,
-        autoFit: false,
+        //autoFit: false,
         width: $(window).width() - 40,
         height: $(window).height() - 40 - headerHeight
       };
