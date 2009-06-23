@@ -93,6 +93,7 @@ Drupal.modalFrame.create = function() {
       // Compute frame size and dialog position based on dialog size.
       var frameSize = $.extend({}, dialogSize);
       frameSize.height -= $('.modalframe .ui-dialog-titlebar').outerHeight(true);
+      frameSize.height -= 15;
       var dialogPosition = self.computeCenterPosition($('.modalframe'), dialogSize);
 
       // Adjust size of the iframe element and container.
@@ -358,6 +359,10 @@ Drupal.modalFrame.bindChild = function(iFrameWindow, isClosing) {
       }
     });
 
+    if (!$('#modalframe-container').find('div.shadow').size()) {
+      $('#modalframe-container').append('<div class="shadow"/>');
+    }
+
     var tabs = $iFrameDocument.find('ul.horizontal-tabs-panes, ul.primary').get(0);
 
     // If there are tabs in the page, move them to the titlebar.
@@ -498,6 +503,7 @@ Drupal.modalFrame.resize = function(size) {
   //  dialogSize.height = maxSize.height;
   //  frameSize.height = dialogSize.height - titleBarHeight;
   //}
+  frameSize.height = frameSize.height - 15;
 
   // Compute dialog position centered on viewport.
   var dialogPosition = self.computeCenterPosition($('.modalframe'), dialogSize);

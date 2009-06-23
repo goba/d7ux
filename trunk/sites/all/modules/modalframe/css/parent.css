@@ -72,3 +72,17 @@
   border: none;
   border-bottom: 1px solid #1b5084;
 }
+
+/**
+ * Shadows.
+ */
+#modalframe-container div.shadow {
+  height: 15px;
+  background: transparent url(../images/gradient-vertical.png) repeat-x scroll 0 0;
+  margin-top: -5px;
+}
+
+#modalframe-container {
+  background: transparent url(../images/gradient-horizontal.png) repeat-y scroll right center;
+  padding-right: 15px;
+}
