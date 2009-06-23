@@ -20,6 +20,7 @@ function admin_enable() {
   $items = array(
     'node/add' => 'Add',
     'admin/content/node' => 'Edit',
+    'admin/content/node' => 'Find content',
     'admin' => 'Dashboard',
   );
   $weight = -20;
