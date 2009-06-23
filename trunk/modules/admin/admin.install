@@ -19,7 +19,7 @@ function admin_enable() {
   menu_rebuild();
   $items = array(
     'node/add' => 'Add',
-    'admin/content/node' => 'Edit',
+    'admin/content/node/edit' => 'Edit',
     'admin/content/node' => 'Find content',
     'admin' => 'Dashboard',
   );
