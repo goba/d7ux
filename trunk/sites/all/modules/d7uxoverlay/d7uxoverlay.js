@@ -39,7 +39,9 @@ Drupal.behaviors.d7uxOverlay = {
         autoResize: false,
         //autoFit: false,
         width: $(window).width() - 40,
-        height: $(window).height() - 40 - headerHeight
+        height: $(window).height() - 40 - headerHeight,
+        // Remove active class from all header buttons.
+        onSubmit: function() { $('#admin-toolbar a').each(function() { $(this).removeClass('active'); }); }
       };
       Drupal.modalFrame.open(modalOptions);
     
