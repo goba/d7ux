@@ -490,6 +490,7 @@ Drupal.modalFrame.resize = function(size) {
   // Compute frame and dialog size based on requested document size.
   var maxSize = self.sanitizeSize({}), titleBarHeight = $('.modalframe .ui-dialog-titlebar').outerHeight(true);
   var frameSize = self.sanitizeSize(size), dialogSize = $.extend({}, frameSize);
+  // d7ux: do not maximize height in Window height.
   //if ((dialogSize.height + titleBarHeight) <= maxSize.height) {
     dialogSize.height += titleBarHeight;
   //}
@@ -514,6 +515,9 @@ Drupal.modalFrame.resize = function(size) {
 
       // Update the dialog size so that UI internals are aware of the change.
       self.iframe.$container.dialog('option', {width: dialogSize.width, height: dialogSize.height});
+      
+      // d7ux: Keep the overlay grow or shrink with the dialog.
+      $('.ui-widget-overlay').height($(document).height());
     }
   });
 };
