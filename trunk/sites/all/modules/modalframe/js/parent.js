@@ -93,7 +93,7 @@ Drupal.modalFrame.create = function() {
       // Compute frame size and dialog position based on dialog size.
       var frameSize = $.extend({}, dialogSize);
       frameSize.height -= $('.modalframe .ui-dialog-titlebar').outerHeight(true);
-      frameSize.height -= 15;
+      dialogSize.height += 15;
       var dialogPosition = self.computeCenterPosition($('.modalframe'), dialogSize);
 
       // Adjust size of the iframe element and container.
@@ -503,7 +503,7 @@ Drupal.modalFrame.resize = function(size) {
   //  dialogSize.height = maxSize.height;
   //  frameSize.height = dialogSize.height - titleBarHeight;
   //}
-  frameSize.height = frameSize.height - 15;
+  dialogSize.height += 15;
 
   // Compute dialog position centered on viewport.
   var dialogPosition = self.computeCenterPosition($('.modalframe'), dialogSize);
