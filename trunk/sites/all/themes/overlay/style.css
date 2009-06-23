@@ -39,8 +39,9 @@ form label {
   margin-top: 0;
 }
 
-.horizontal-tabs > ul {
-  padding-bottom: 0px;
+/* Don't display tabs, they're taken out by the overlay anyway. */
+.horizontal-tabs ul.horizontal-tabs-panes, ul.primary {
+  display: none;
 }
 
 .horizontal-tab-section {

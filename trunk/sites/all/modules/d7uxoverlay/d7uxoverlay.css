@@ -61,27 +61,29 @@
   list-style: none;
 }
 
-.ui-dialog-titlebar ul.primary {
-  float: right;
-}
-
-.ui-dialog-titlebar ul.primary li {
+.ui-dialog-titlebar ul.primary li, .ui-dialog-titlebar ul.horizontal-tabs-panes li {
   background: transparent url(tab_inactive_rt.png) no-repeat top right;
-  padding: 6px 5px 3px 0px;
+  padding: 5px 5px 4px 0px;
 }
 
 .ui-dialog-titlebar ul.primary li a,
 .ui-dialog-titlebar ul.primary li a.active,
 .ui-dialog-titlebar ul.primary li a:active,
 .ui-dialog-titlebar ul.primary li a:visited,
-.ui-dialog-titlebar ul.primary li a:hover {
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a.active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a:active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a:visited {
   background: transparent url(tab_inactive_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
-  padding: 8px 5px 5px 15px;
+  padding: 5px 5px 5px 10px;
 }
 
-.ui-dialog-titlebar ul.primary li.active {
+.ui-dialog-titlebar ul.primary li.active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active,
+.ui-dialog-titlebar ul.primary li:hover,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li:hover {
   background: transparent url(tab_active_rt.png) no-repeat center right;
 }
 
@@ -89,15 +91,16 @@
 .ui-dialog-titlebar ul.primary li.active a.active,
 .ui-dialog-titlebar ul.primary li.active a:active,
 .ui-dialog-titlebar ul.primary li.active a:visited,
-.ui-dialog-titlebar ul.primary li.active a:hover {
+.ui-dialog-titlebar ul.primary li a:hover,
+.ui-dialog-titlebar ul.primary li.active a:hover,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a.active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a:active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a:visited,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a:hover,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a:hover {
   background: transparent url(tab_active_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
   padding: 5px 5px 5px 10px;
-}
-
-.ui-dialog-titlebar ul.primary a:hover {
-  background: none;
-  color: #000;
-  font-weight: bold;
 }
