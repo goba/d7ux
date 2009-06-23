@@ -173,7 +173,12 @@ Drupal.behaviors.nodeSwitchType = {
 
         // Make the request to Drupal, which will return the node form as plain
         // HTML.
-        $.get(Drupal.settings.basePath + 'node/form/js/' + nodeType.replace(/_/g, '-'), {}, function(newForm) {
+        var path = 'node/form/js/' + nodeType.replace(/_/g, '-');
+        if (location.href.indexOf('?q=') != -1) {
+          path = '?q=' + path;
+        }
+        path = Drupal.settings.basePath + path;
+        $.get(path, {}, function(newForm) {
           // Replace the old form with the new form and attach behaviors to the
           // new form. We need to attach behaviors before changing the value of
           // elements, because some elements may have behaviors that will react
