@@ -23,6 +23,10 @@ function d7uxoverlay_init() {
       $module_path = drupal_get_path('module', 'd7uxoverlay');
       drupal_add_css($module_path .'/d7uxoverlay.css');
       drupal_add_js($module_path .'/d7uxoverlay.js');
+      // If on a node page, add this info to alter the header.
+      if ($node = menu_get_object()) {
+        drupal_add_js(array('d7uxoverlay' => array('nodeEdit' => url('node/' . $node->nid . '/edit'))), array('type' => 'setting'));
+      }
     }
   }
 }

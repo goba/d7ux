@@ -3,6 +3,12 @@
 Drupal.behaviors.d7uxOverlay = {
   attach: function(context) {
     
+    // If on a node page, alter the Edit link with a link to
+    // directly edit this node. 
+    if (Drupal.settings.d7uxoverlay && Drupal.settings.d7uxoverlay.nodeEdit) {
+      $('a#admin-link-admin-content-node').attr('href', Drupal.settings.d7uxoverlay.nodeEdit);
+    }
+    
     // Attach on the .popups class, so we are
     // interchangeable with the popups module 
     // implementation for testing purposes.
