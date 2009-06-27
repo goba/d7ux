@@ -381,7 +381,7 @@ function theme_form_builder_field_palette($fields, $groups, $form_type, $form_id
   $output .= '<div id="form-builder-field-palette">';
   foreach ($lists as $group => $list) {
     unset($list['#weight']);
-    $output .= theme('item_list', $list, (count($lists) > 1) ? $groups[$group]['title'] : t('Add a field'), 'ul', array('class' => 'form-builder-fields clear-block'));
+    $output .= theme('item_list', $list, (count($lists) > 1) ? $groups[$group]['title'] : t('Add a field'), 'ul', array('class' => 'form-builder-fields clearfix'));
   }
   $output .= '</div>';
 

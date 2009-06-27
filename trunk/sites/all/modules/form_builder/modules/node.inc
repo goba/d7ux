@@ -743,7 +743,7 @@ function node_get_form_settings($node_type, $field = NULL, $reset = FALSE) {
     }
 
     // Get settings from the node type table.
-    $type = node_get_types('type', $node_type);
+    $type = node_type_get_type($node_type);
     $form_settings[$node_type]['title']['enabled'] = $type->has_title ? TRUE : FALSE;
     $form_settings[$node_type]['title']['label'] = isset($type->title_label) ? $type->title_label : '';
     $form_settings[$node_type]['body_field']['enabled'] = $type->has_body ? TRUE : FALSE;
@@ -789,7 +789,7 @@ function node_set_form_settings($node_type, $field, $module, $settings) {
 
   // Special cases for node type settings.
   if ($field == 'body_field') {
-    $type = node_get_types('type', $node_type);
+    $type = node_type_get_type($node_type);
     $type->has_body = $settings['enabled'];
     $type->body_label = $settings['label'];
     $type->min_word_count = $settings['min_word_count'];
@@ -798,7 +798,7 @@ function node_set_form_settings($node_type, $field, $module, $settings) {
     menu_rebuild();
   }
   if ($field == 'title') {
-    $type = node_get_types('type', $node_type);
+    $type = node_type_get_type($node_type);
     $type->has_title = $settings['enabled'];
     $type->title_label = $settings['label'];
     node_type_save($type);
