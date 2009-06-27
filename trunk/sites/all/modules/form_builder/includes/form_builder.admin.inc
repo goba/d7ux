@@ -485,10 +485,10 @@ function form_builder_field_configure($form_state, $form_type, $form_id, $elemen
     }
   }
 
-  $form['#form_type'] = $form_type;
-  $form['#form_id'] = $form_id;
-  $form['#element_id'] = $element_id;
-  $form['#element'] = $element;
+  $form['#_edit_form_type'] = $form_type;
+  $form['#_edit_form_id'] = $form_id;
+  $form['#_edit_element_id'] = $element_id;
+  $form['#_edit_element'] = $element;
 
   $form['form_builder_submit'] = array(
     '#type' => 'submit',
@@ -541,10 +541,10 @@ function theme_form_builder_field_configure($form) {
 }
 
 function form_builder_field_configure_submit(&$form, &$form_state) {
-  $form_type = $form['#form_type'];
-  $form_id = $form['#form_id'];
-  $element_id = $form['#element_id'];
-  $element = $form['#element'];
+  $form_type = $form['#_edit_form_type'];
+  $form_id = $form['#_edit_form_id'];
+  $element_id = $form['#_edit_element_id'];
+  $element = $form['#_edit_element'];
 
   // Allow each element to do any necessary submission handling.
   foreach (form_builder_get_element_properties($form_type, $element['#form_builder']['element_type']) as $property => $property_settings) {
@@ -559,7 +559,7 @@ function form_builder_field_configure_submit(&$form, &$form_state) {
 
   // Allow the element to be updated in a hard-coded fashion by altering the
   // $form['#element'] item. Using this approach skips the property check.
-  $element = $form['#element'];
+  $element = $form['#_edit_element'];
 
   // Update the field according to the settings in $form_state['values'].
   $saveable = form_builder_get_saveable_properties($form_type, $element);
@@ -600,9 +600,9 @@ function form_builder_field_remove($form_state, $form_type, $form_id, $element_i
   $element = form_builder_cache_field_load($form_type, $form_id, $element_id);
 
   $form = array();
-  $form['#form_type'] = $form_type;
-  $form['#form_id'] = $form_id;
-  $form['#element_id'] = $element_id;
+  $form['#_edit_form_type'] = $form_type;
+  $form['#_edit_form_id'] = $form_id;
+  $form['#_edit_element_id'] = $element_id;
 
   $quesion = t('Remove the field %title?', array('%title' => $element['#title']));
   $path = isset($_GET['destination']) ? $_GET['destination'] : NULL;
@@ -613,9 +613,9 @@ function form_builder_field_remove($form_state, $form_type, $form_id, $element_i
 }
 
 function form_builder_field_remove_submit(&$form, &$form_state) {
-  $form_type = $form['#form_type'];
-  $form_id = $form['#form_id'];
-  $element_id = $form['#element_id'];
+  $form_type = $form['#_edit_form_type'];
+  $form_id = $form['#_edit_form_id'];
+  $element_id = $form['#_edit_element_id'];
 
   // Update the form builder cache.
   form_builder_cache_field_delete($form_type, $form_id, $element_id);
