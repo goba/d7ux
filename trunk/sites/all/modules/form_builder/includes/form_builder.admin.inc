@@ -256,11 +256,12 @@ function theme_form_builder_preview($form) {
   global $theme;
 
   jquery_ui_add(array('ui.draggable', 'ui.droppable', 'ui.sortable'));
-  drupal_add_js('misc/jquery.form.js');
+  drupal_add_js('misc/jquery.form.js', array('weight' => JS_LIBRARY));
   drupal_add_js(drupal_get_path('module', 'form_builder') .'/form_builder.js');
   // TODO: This JS file should be loaded dynamically as needed.
   drupal_add_js(drupal_get_path('module', 'options_element') .'/options_element.js');
   drupal_add_js('misc/tabledrag.js');
+  drupal_add_js('misc/form.js', array('weight' => JS_LIBRARY + 1));
   drupal_add_js('misc/collapse.js');
   drupal_add_js(array('formBuilder' => array('emptyFieldset' => theme('form_builder_empty_fieldset'))), 'setting');
   drupal_add_css(drupal_get_path('module', 'form_builder') .'/form_builder.css');
