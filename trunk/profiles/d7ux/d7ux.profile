@@ -13,7 +13,7 @@ function d7ux_profile_modules() {
     // Extra core modules.
     // ...
     // Extra contrib modules.
-    'jquery_ui', 'modalframe',
+    'modalframe',
     // Custom modules.
     'admin', 'd7uxoverlay'
   );
