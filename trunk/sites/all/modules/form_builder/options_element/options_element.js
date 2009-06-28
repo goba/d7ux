@@ -1,7 +1,7 @@
 // $Id: options_element.js,v 1.8 2009/01/13 03:39:56 quicksketch Exp $
 
 (function($) {
-        
+
 /**
  * @file
  * Add JavaScript behaviors for the "options" form element type.
@@ -39,7 +39,7 @@ Drupal.optionsElement = function(element) {
   this.keyChangeWarning = Drupal.t('Custom keys have been specified in this list. Removing these custom keys may change way data is stored. Are you sure you wish to remove these custom keys?');
 
   // Setup new DOM elements containing the actual options widget.
-  this.optionsElement = $('<div></div>').get(0); // Temporary DOM object. 
+  this.optionsElement = $('<div></div>').get(0); // Temporary DOM object.
   this.optionsToggleElement = $(Drupal.theme('optionsElementToggle')).get(0);
 
   // Add the options widget and toggle elements to the page.
@@ -116,7 +116,7 @@ Drupal.optionsElement.prototype.updateWidgetElements = function () {
         limit: 0,
         relationship: 'self',
         source: 'option-depth',
-        target: 'option-depth',
+        target: 'option-depth'
       }
     }
   };
@@ -130,7 +130,7 @@ Drupal.optionsElement.prototype.updateWidgetElements = function () {
         limit: 1,
         relationship: 'parent',
         source: 'option-key',
-        target: 'option-parent',
+        target: 'option-parent'
       }
     };
   }

@@ -275,7 +275,7 @@ Drupal.formBuilder.removeHover = function() {
 
 /**
  * Click handler for fields.
- * 
+ *
  * Note this is applied to both the entire field and to the labels within the
  * field, as they have special browser behavior that needs to be overridden.
  */
@@ -326,7 +326,7 @@ Drupal.formBuilder.editField = function() {
       type: 'GET',
       dataType: 'json',
       data: 'js=1',
-      success: Drupal.formBuilder.displayForm,
+      success: Drupal.formBuilder.displayForm
     });
   };
 
@@ -389,7 +389,7 @@ Drupal.formBuilder.elementChange = function() {
   if (!Drupal.formBuilder.updatingElement) {
     $(this).parents('form:first').ajaxSubmit({
       success: Drupal.formBuilder.updateElement,
-      dataType: 'json',
+      dataType: 'json'
     });
   }
 
@@ -552,7 +552,7 @@ Drupal.formBuilder.stopDrag = function(e, ui){
       type: 'GET',
       dataType: 'json',
       data: 'js=1&element_id=' + name,
-      success: Drupal.formBuilder.addElement,
+      success: Drupal.formBuilder.addElement
     });
 
     $(element).replaceWith($ajaxPlaceholder);
