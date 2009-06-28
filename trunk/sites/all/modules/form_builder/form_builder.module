@@ -371,3 +371,10 @@ function form_builder_registry_files_alter(&$files, $module_cache) {
     $files[$file->filepath]['module'] = $file->name;
   }
 }
+
+/**
+ * Implement hook_flush_caches().
+ */
+function form_builder_flush_caches() {
+  return array('cache_form_builder');
+}

@@ -43,7 +43,7 @@ function form_builder_requirements($phase) {
 function form_builder_schema() {
   $schema = array();
 
-  $schema['form_builder_cache'] = array(
+  $schema['cache_form_builder'] = array(
     'fields' => array(
       'sid' => array(
         'type' => 'varchar',
@@ -80,4 +80,13 @@ function form_builder_schema() {
 
 
   return $schema;
+}
+
+/**
+ * Rename the cache table so that it's coherent.
+ */
+function form_builder_update_1() {
+  $ret = array();
+  db_rename_table($ret, 'form_builder_cache', 'cache_form_builder');
+  return $ret;
 }
