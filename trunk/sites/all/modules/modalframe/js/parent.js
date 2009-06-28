@@ -52,7 +52,7 @@ Drupal.modalFrame.create = function() {
   // Note: We use scrolling="yes" for IE as a workaround to yet another IE bug
   // where the horizontal scrollbar is always rendered no matter how wide the
   // iframe element is defined.
-  self.iframe.$element = $('<iframe id="modalframe-element" name="modalframe-element"'+ ($.browser.msie ? ' scrolling="yes"' : '') +'/>');
+  self.iframe.$element = $('<iframe id="modalframe-element" frameborder="0" name="modalframe-element"'+ ($.browser.msie ? ' scrolling="yes"' : '') +'/>');
   self.iframe.$container = $('<div id="modalframe-container"/>').append(self.iframe.$element);
   $('body').append(self.iframe.$container);
 
@@ -476,7 +476,7 @@ Drupal.modalFrame.computeCenterPosition = function($element, elementSize) {
   var position = {
     left: Math.max(0, parseInt(($window.width() - elementSize.width) / 2)),
     // d7ux: do not hide it behind header toolbar
-    top: headerHeight = $('#admin-toolbar').height() + 20, //; Math.max(0, parseInt(($window.height() - elementSize.height) / 2))
+    top: headerHeight = $('#admin-toolbar').height() + 20 //; Math.max(0, parseInt(($window.height() - elementSize.height) / 2))
   };
   if ($element.css('position') != 'fixed') {
     var $document = $(document);
@@ -521,7 +521,7 @@ Drupal.modalFrame.resize = function(size) {
 
       // Update the dialog size so that UI internals are aware of the change.
       self.iframe.$container.dialog('option', {width: dialogSize.width, height: dialogSize.height});
-      
+
       // d7ux: Keep the overlay grow or shrink with the dialog.
       $('.ui-widget-overlay').height($(document).height());
     }
