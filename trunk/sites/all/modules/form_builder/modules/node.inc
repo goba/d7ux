@@ -418,7 +418,7 @@ function node_form_builder_load($form_type, $form_id) {
     $form['#node_generic_fields'] = array();
     foreach (element_children($form) as $key) {
       $element = $form[$key];
-      if (!isset($element['#form_builder']) && (!empty($element['#tree']) || (isset($element['#type']) && !in_array($element['#type'], array('value', 'hidden', 'markup', 'token', 'button', 'submit'))))) {
+      if (!isset($element['#form_builder']) && (!empty($element['#tree']) || (isset($element['#type']) && !in_array($element['#type'], array('value', 'hidden', 'markup', 'token', 'button', 'submit', 'vertical_tabs', 'horizontal_tabs'))))) {
         $form[$key]['#form_builder'] = array(
           'element_id' => $key,
           'element_type' => 'generic_field',
