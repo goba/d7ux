@@ -160,8 +160,8 @@ function form_builder_preview(&$form_state, $form, $form_type, $form_id) {
   // Save the original form theming so that we can call it later.
   if (!empty($form['#theme'])) {
     $form['#theme-original'] = $form['#theme'];
-    $form['#theme'] = 'form_builder_preview';
   }
+  $form['#theme'] = 'form_builder_preview';
 
   return $form;
 }
@@ -301,9 +301,7 @@ function theme_form_builder_preview($form) {
 
   // Reset the original form theming, but allow form_builder implementations to
   // alter the form output.
-  if (!empty($form['#theme-original'])) {
-    $form['#theme'] = $form['#theme-original'];
-  }
+  $form['#theme'] = isset($form['#theme-original']) ? $form['#theme-original'] : NULL;
 
   $output .= drupal_render($form);
   $output .= '</div>';
