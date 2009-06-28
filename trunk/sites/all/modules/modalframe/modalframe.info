@@ -2,6 +2,5 @@
 name = Modal Frame API
 description = Provides an API to render an iframe within a modal dialog based on the jQuery UI Dialog plugin.
 package = User interface
-dependencies[] = jquery_ui
 core = 7.x
 files[] = modalframe.module

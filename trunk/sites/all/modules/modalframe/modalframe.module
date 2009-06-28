@@ -205,7 +205,11 @@ function modalframe_parent_js() {
   }
   $processed = TRUE;
 
-  jquery_ui_add(array('ui.dialog'/*, 'ui.draggable'*/));
+  // Add required jQuery UI elements.
+  drupal_add_js('misc/ui/ui.core.js', array('weight' => JS_LIBRARY + 5));
+  drupal_add_js('misc/ui/ui.dialog.js', array('weight' => JS_LIBRARY + 6));
+  //drupal_add_js('misc/ui/ui.draggable.js', array('weight' => JS_LIBRARY + 6));
+
   $module_path = drupal_get_path('module', 'modalframe');
   drupal_add_css($module_path .'/css/parent.css');
   drupal_add_js($module_path .'/js/parent.js');
@@ -229,7 +233,7 @@ function modalframe_child_js() {
 
   // This is required to get access to jQuery UI extensions to jQuery itself,
   // such as the ':focusable' and ':tabbable' selectors.
-  jquery_ui_add(array('ui.core'));
+  drupal_add_js('misc/ui/ui.core.js', array('weight' => JS_LIBRARY + 5));
 
   // Add javascript and stylesheets to the child page.
   $module_path = drupal_get_path('module', 'modalframe');

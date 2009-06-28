@@ -258,7 +258,12 @@ function form_builder_positions_submit(&$form, &$form_state) {
 function theme_form_builder_preview($form) {
   global $theme;
 
-  jquery_ui_add(array('ui.draggable', 'ui.droppable', 'ui.sortable'));
+  // Add required jQuery UI elements.
+  drupal_add_js('misc/ui/ui.core.js', array('weight' => JS_LIBRARY + 5));
+  drupal_add_js('misc/ui/ui.draggable.js', array('weight' => JS_LIBRARY + 6));
+  drupal_add_js('misc/ui/ui.droppable.js', array('weight' => JS_LIBRARY + 7));
+  drupal_add_js('misc/ui/ui.sortable.js', array('weight' => JS_LIBRARY + 8));
+
   drupal_add_js('misc/jquery.form.js', array('weight' => JS_LIBRARY));
   drupal_add_js(drupal_get_path('module', 'form_builder') .'/form_builder.js');
   // TODO: This JS file should be loaded dynamically as needed.
