@@ -69,34 +69,3 @@ function form_builder_node_form_alter(&$form, &$form_state, $form_id) {
     node_node_form_alter($form, $form_state, $form_id);
   }
 }
-
-/**
- * Implementation of hook_theme_registry_alter().
- */
-function form_builder_node_theme_registry_alter(&$theme_registry) {
-  if ($theme_registry['node_form']['function'] == 'theme_node_form') {
-    $theme_registry['node_form']['function'] = 'theme_form_builder_node_form';
-  }
-}
-
-/**
- * Theme function for the node form that doesn't have hard-coded rendering.
- */
-function theme_form_builder_node_form($form) {
-  $output = "\n<div class=\"node-form\">\n";
-
-  $buttons = drupal_render($form['buttons']);
-
-  // Everything gets rendered here except the submit buttons.
-  $output .= "  <div class=\"standard\">\n";
-  $output .= drupal_render($form);
-  $output .= "  </div>\n";
-
-  // The submit buttons.
-  $output .= $buttons;
-
-  $output .= "</div>\n";
-
-  return $output;
-
-}

@@ -109,7 +109,7 @@ function form_builder_configure_page($form_type, $form_id, $element_id) {
         'errors' => form_get_errors(),
         'messages' => theme('status_messages'),
       );
-  
+
       drupal_json($data);
       exit();
     }
@@ -156,6 +156,9 @@ function form_builder_preview(&$form_state, $form, $form_type, $form_id) {
 
   // Add a pre_render to the entire form itself.
   $form['#pre_render'][] = 'form_builder_pre_render_form';
+
+  // Save the original form theming so that we can call it later.
+  $form['#theme-original'] = $form['#theme'];
   $form['#theme'] = 'form_builder_preview';
 
   return $form;
@@ -288,7 +291,12 @@ function theme_form_builder_preview($form) {
   }
   $output .= '<div id="form-builder">';
   $output .= '<h3>' . t('Form preview') . '</h3>';
-  $output .= drupal_render_children($form);
+
+  // Reset the original form theming, but allow form_builder implementations to
+  // alter the form output.
+  $form['#theme'] = $form['#theme-original'];
+
+  $output .= drupal_render($form);
   $output .= '</div>';
   $output .= '</div>';
   return $output;
@@ -453,6 +461,7 @@ function form_builder_preview_prepare(&$form, $form_type, $form_id, $parent_id =
       $form[$key]['#form_builder']['form_type'] = $form_type;
       $form[$key]['#form_builder']['form_id'] = $form_id;
       $form[$key]['#form_builder']['parent_id'] = $parent_id;
+
       $parent_id = $form[$key]['#form_builder']['element_id'];
     }
 
@@ -531,7 +540,7 @@ function theme_form_builder_field_configure($form) {
           '#attributes' => array('class' => 'form-builder-group'),
         );
       }
-  
+
       $form[$group .'_property_group'][$key] = $form[$key];
       unset($form[$key]);
     }
@@ -649,7 +658,7 @@ function form_builder_field_render($form_type, $form_id, $element_id, $wrapper =
 
   // Get only the element wanted and render it.
   $element = form_builder_get_element($form, $element_id);
-  
+
   $content = drupal_render($element);
 
   $prefix = isset($element['#prefix']) ? $element['#prefix'] : '';
@@ -659,7 +668,7 @@ function form_builder_field_render($form_type, $form_id, $element_id, $wrapper =
     $prefix .= theme('form_builder_element_prefix', $element);
     $suffix .= theme('form_builder_element_suffix', $element);
   }
-  
+
   return $suffix . $content . $suffix;
 }
 
