@@ -92,7 +92,7 @@ function node_form_builder_save_form($form_state, $type, $review = FALSE) {
 
       $form['buttons']['cancel'] = array(
         '#type' => 'markup',
-        '#value' => l('Cancel', 'admin/content/node-type/' . str_replace('_', '-', $type->type) . '/fields'),
+        '#value' => l('Cancel', 'admin/build/node-type/' . str_replace('_', '-', $type->type) . '/fields'),
       );
 
       $form['reviewed'] = array(
@@ -131,7 +131,7 @@ function node_form_builder_save_form_submit(&$form, &$form_state) {
   $type = $form_state['values']['type'];
 
   if (!isset($form_state['values']['reviewed'])) {
-    $form_state['redirect'] = 'admin/content/node-type/' . str_replace('_', '-', $type->type) .'/fields/confirm';
+    $form_state['redirect'] = 'admin/build/node-type/' . str_replace('_', '-', $type->type) .'/fields/confirm';
     return;
   }
 
@@ -149,7 +149,7 @@ function node_form_builder_save_form_submit(&$form, &$form_state) {
   }
 
   drupal_set_message(t('The changes to the %type content type form have been saved.', array('%type' => $type->name)));
-  $form_state['redirect'] = 'admin/content/node-type/' . str_replace('_', '-', $type->type);
+  $form_state['redirect'] = 'admin/build/node-type/' . str_replace('_', '-', $type->type);
 
 }
 
