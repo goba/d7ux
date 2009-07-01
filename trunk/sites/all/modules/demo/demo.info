@@ -1,0 +1,8 @@
+; $Id: demo.info,v 1.8 2009/03/13 13:59:59 sun Exp $
+name = Demo Site
+description = Create snapshots and reset the site for demonstration or testing purposes.
+package = Development
+core = 7.x
+files[] = demo.module
+files[] = demo.admin.inc
+files[] = database_mysql_dump.inc
