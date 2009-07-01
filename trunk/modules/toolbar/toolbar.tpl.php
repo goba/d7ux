@@ -16,7 +16,7 @@
  * @see template_preprocess_admin_toolbar()
  */
 ?>
-<div id="admin-toolbar" class="clearfix">
+<div id="toolbar" class="clearfix">
   <div class="admin-menu clearfix">
     <span class="toggle <?php if (!$collapsed) print 'toggle-active' ?>"><?php print t('Show shortcuts') ?></span>
     <?php print $user_menu ?>

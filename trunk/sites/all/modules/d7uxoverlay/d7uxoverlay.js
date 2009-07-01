@@ -9,15 +9,13 @@ Drupal.behaviors.d7uxOverlay = {
       $('a#admin-link-admin-content-node-edit').attr('href', Drupal.settings.d7uxoverlay.nodeEdit);
     }
     
-    // Attach on the .popups class, so we are
-    // interchangeable with the popups module 
-    // implementation for testing purposes.
-    $('a.popups:not(.popups-processed)').addClass('popups-processed').click(function() {
+    // Attach on the .in-overlay class.
+    $('a.in-overlay:not(.overlay-processed)').addClass('overlay-processed').click(function() {
 
       // Remove the active class from where it was, and add 
       // the active class to this link, so the button keeps 
       // highlighting where we are. 
-      $('#admin-toolbar a').each(function() { $(this).removeClass('active'); });
+      $('#toolbar a').each(function() { $(this).removeClass('active'); });
       $(this).addClass('active');
       
       // Append d7uxmodalframe variable, so the server side can pick up
@@ -33,7 +31,7 @@ Drupal.behaviors.d7uxOverlay = {
       }
     
       // There is no modal frame, we should open a new one.
-      var headerHeight = $('#admin-toolbar').height();
+      var headerHeight = $('#toolbar').height();
       var modalOptions = {
         url: linkURL,
         autoResize: false,
@@ -41,13 +39,13 @@ Drupal.behaviors.d7uxOverlay = {
         width: $(window).width() - 40,
         height: $(window).height() - 40 - headerHeight,
         // Remove active class from all header buttons.
-        onSubmit: function() { $('#admin-toolbar a').each(function() { $(this).removeClass('active'); }); }
+        onSubmit: function() { $('#toolbar a').each(function() { $(this).removeClass('active'); }); }
       };
       Drupal.modalFrame.open(modalOptions);
     
       // Set position and styling to let the admin header work.
       $('.modalframe').css('top', headerHeight + 20);
-      $('#admin-toolbar').css('z-index', 2000);
+      $('#toolbar').css('z-index', 2000);
 
       // Prevent default action of the link click event.
       return false;

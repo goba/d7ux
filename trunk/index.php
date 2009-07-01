@@ -1,6 +1,6 @@
 <?php
 // $Id: index.php,v 1.98 2009/02/08 20:27:51 webchick Exp $
-
+ini_set('display_errors', TRUE);
 /**
  * @file
  * The PHP page that serves all page requests on a Drupal installation.
