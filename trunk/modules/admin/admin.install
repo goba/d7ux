@@ -2,18 +2,29 @@
 // $Id$
 
 /**
- * Implement hook_install().
+ * @file
+ * Installation functions for admin toolbar.
+ */
+
+/**
+ * Implementation of hook_install().
  */
 function admin_install() {
   $t = get_t();
-  $query = db_insert('menu_custom')->fields(array('menu_name', 'title', 'description'));
-  $query->values(array('menu_name' => 'admin', 'title' => $t('Admin'), 'description' => $t('The <em>Admin</em> menu contains commonly used links for administrative tasks.')))->execute();
+  $query = db_insert('menu_custom')->fields(
+    array('menu_name', 'title', 'description')
+  );
+  $query->values(array(
+    'menu_name' => 'admin',
+    'title' => $t('Admin'),
+    'description' => $t('The <em>Admin</em> menu contains commonly used links for administrative tasks.')
+  ))->execute();
 }
 
 /**
- * Implement hook_enable().
+ * Implementation of hook_enable().
  *
- * Add starter convenience links to the admin menu.
+ * Add starter convenience shortcuts to the admin menu.
  */
 function admin_enable() {
   menu_rebuild();

@@ -1,7 +1,11 @@
 /* $Id$ */
 
-body.admin-toolbar { padding-top:30px; }
-body.admin-toolbar-links { padding-top:80px; }
+body.admin-toolbar {
+  padding-top:30px;
+}
+body.admin-toolbar-shortcuts {
+  padding-top:80px;
+}
 
 /**
  * Aggressive resets so we can achieve a consistent look in
@@ -18,7 +22,7 @@ div#admin-toolbar * {
   line-height:inherit;
   text-align:left;
   list-style:none;
-  }
+}
 
 /**
  * Base styles
@@ -34,9 +38,11 @@ div#admin-toolbar {
   top:0px;
 
   z-index:100;
-  }
+}
 
-div#admin-toolbar .collapsed { display:none; }  
+div#admin-toolbar .collapsed {
+  display:none;
+}  
 
 div#admin-toolbar div.shadow {
   position:absolute;
@@ -46,15 +52,17 @@ div#admin-toolbar div.shadow {
 
   height:15px;
   background:url(sprite.png) 0px -85px repeat-x;
-  }
+}
 
 div#admin-toolbar a {
   text-decoration:none;
   color:#fff;
-  }
+}
 
 div#admin-toolbar ul li,
-div#admin-toolbar ul li a { float:left; }
+div#admin-toolbar ul li a {
+  float:left;
+}
 
 /**
  * First level menus
@@ -67,17 +75,17 @@ div#admin-toolbar div.admin-menu {
 
   overflow:hidden;
   position:relative;
-  }
+}
 
 div#admin-toolbar div.admin-menu #admin-toolbar-user {
   position:absolute;
   right:35px;
-  }
+}
 
 div#admin-toolbar div.admin-menu #admin-toolbar-menu {
   position:absolute;
   left:10px;
-  }
+}
 
 div#admin-toolbar div.admin-menu span.toggle {
   position:absolute;
@@ -90,59 +98,61 @@ div#admin-toolbar div.admin-menu span.toggle {
 
   width:25px;
   height:25px;
-  }
+}
 
-div#admin-toolbar div.admin-menu span.toggle-active { background-position: -25px -60px; }
+div#admin-toolbar div.admin-menu span.toggle-active {
+  background-position: -25px -60px;
+}
 
 div#admin-toolbar div.admin-menu ul li a {
   -moz-border-radius:10px;
   -webkit-border-radius:10px;
   padding:0px 10px;
-  }
+}
 
 div#admin-toolbar div.admin-menu ul li a:hover {
   background:#444;
-  }
+}
 
 div#admin-toolbar div.admin-menu ul li a.active:hover,
 div#admin-toolbar div.admin-menu ul li a.active {
   text-shadow:#333 0px 1px 0px;
   background:url(sprite.png) 0px 0px repeat-x;
-  }
+}
 
 /**
  * Second level menus
  */
-div#admin-toolbar div.admin-links {
+div#admin-toolbar div.admin-shortcuts {
   position:relative;
   padding:0px 10px;
-  }
+}
 
-div#admin-toolbar div.admin-links ul {
+div#admin-toolbar div.admin-shortcuts ul {
   padding:5px 0px;
   height:40px;
   line-height:30px;
   overflow:hidden;
   float:left;
-  }
+}
 
-div#admin-toolbar div.admin-links ul li a {
+div#admin-toolbar div.admin-shortcuts ul li a {
   -moz-border-radius:5px;
   -webkit-border-radius:5px;
   padding:5px 10px 5px 5px;
   margin-right:5px;
-  }
+}
 
-div#admin-toolbar div.admin-links ul li a:hover {
+div#admin-toolbar div.admin-shortcuts ul li a:hover {
   background:#555;
-  }
+}
 
-div#admin-toolbar div.admin-links ul li a.active:hover,
-div#admin-toolbar div.admin-links ul li a.active {
+div#admin-toolbar div.admin-shortcuts ul li a.active:hover,
+div#admin-toolbar div.admin-shortcuts ul li a.active {
   background:url(sprite.png) 0px -20px repeat-x;
-  }
+}
 
-div#admin-toolbar div.admin-links span.icon {
+div#admin-toolbar div.admin-shortcuts span.icon {
   float:left;
 
   background:#444;
@@ -152,7 +162,7 @@ div#admin-toolbar div.admin-links span.icon {
 
   -moz-border-radius:5px;
   -webkit-border-radius:5px;
-  }
+}
 
 /**
  * IE 6 Fixes.
@@ -162,8 +172,14 @@ div#admin-toolbar div.admin-links span.icon {
  * positioning.
  */
 * html body.admin-toolbar,
-* html body.admin-toolbar-links { padding-top:0px; }
+* html body.admin-toolbar-shortcuts {
+  padding-top:0px;
+}
 
-* html div#admin-toolbar { position:static; }
+* html div#admin-toolbar {
+  position:static;
+}
 
-* html div#admin-toolbar div.shadow { display:none; }
+* html div#admin-toolbar div.shadow {
+  display:none;
+}

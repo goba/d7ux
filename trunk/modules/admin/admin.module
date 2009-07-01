@@ -2,15 +2,9 @@
 // $Id$
 
 /**
- * Implementation of hook_init().
+ * @file
+ * Administration toolbar for quick access to top level administration items.
  */
-function admin_init() {
-  if (admin_is_enabled('admin toolbar') || admin_is_enabled('admin inline') || arg(0) == 'admin') {
-    $path = drupal_get_path('module', 'admin');
-    drupal_add_js($path .'/admin_toolbar.js');
-    drupal_add_css($path .'/admin_toolbar.css');
-  }
-}
 
 /**
  * Implementation of hook_perm().
@@ -18,8 +12,8 @@ function admin_init() {
 function admin_perm() {
   return array(
     'admin toolbar' => array(
-      'title' => t('Use admin toolbar'),
-      'description' => t('Access the persistent administration toolbar at the top of each page.'),
+      'title' => t('Use administration toolbar'),
+      'description' => t('Access the persistent administration toolbar on each page.'),
     ),
   );
 }
@@ -27,46 +21,34 @@ function admin_perm() {
 /**
  * Implementation of hook_theme().
  */
-function admin_theme($cache, $type, $theme, $path) {
+function admin_theme($existing, $type, $theme, $path) {
   $items = array();
   $items['admin_toolbar'] = array(
     'arguments' => array('admin_toolbar' => array()),
     'template' => 'admin-toolbar',
     'path' => drupal_get_path('module', 'admin'),
-    'file' => 'admin.theme.inc',
   );
   return $items;
 }
 
 /**
- * Wrapper to check whether various admin features are accessible to the
- * current user and compatible with the current theme.
- */
-function admin_is_enabled($op = 'admin toolbar') {
-  if (user_access($op)) {
-    global $theme_info;
-    // If the theme does not specify some flag for this feature, assume it is compatible.
-    if (!isset($theme_info->info['admin'][$op]) || (isset($theme_info->info['admin'][$op]) && !empty($theme_info->info['admin'][$op]))) {
-      return TRUE;
-    }
-  }
-  return FALSE;
-}
-
-/**
  * Implementation of hook_page_alter().
+ * 
+ * Add admin toolbar to the page_top region automaticaly.
  */
 function admin_page_alter(&$page) {
-  if (admin_is_enabled('admin toolbar')) {
+  if (user_access('admin toolbar')) {
     $page['page_top']['admin_toolbar'] = admin_toolbar();
   }
 }
 
 /**
  * Implementation of hook_preprocess_page().
+ *
+ * Add some page classes, so global page theming can adjust to the toolbar.
  */
 function admin_preprocess_page(&$vars) {
-  if (admin_is_enabled('admin toolbar')) {
+  if (user_access('admin toolbar')) {
     $vars['classes_array'][] = 'admin-toolbar';
     if (empty($vars['page']['admin']['admin_toolbar']['collapsed'])) {
       $vars['classes_array'][] = 'admin-toolbar-links';
@@ -75,24 +57,20 @@ function admin_preprocess_page(&$vars) {
 }
 
 /**
- * Helper for returning a selectively flattened version of the admin menu.
- */
-function admin_get_menu_tree($method = 'all', $reset = FALSE) {
-  $tree = ($method == 'all') ? menu_tree_all_data('management') : menu_tree_page_data('management');
-  foreach ($tree as $k => $item) {
-    if ($item['link']['link_path'] == 'admin' && !empty($item['below'])) {
-      unset($tree[$k]);
-      $tree = array_merge($tree, $item['below']);
-    }
-  }
-  return $tree;
-}
-
-/**
  * Build the admin menu as a structured array ready for drupal_render().
  */
 function admin_toolbar() {
-  $output = array('#theme' => 'admin_toolbar');
+  $module_path = drupal_get_path('module', 'admin');
+  $output = array(
+    '#theme' => 'admin_toolbar',
+    '#attached_js' => array(
+      $module_path . '/admin_toolbar.js',
+      array('data' => 'misc/jquery.cookies.js', 'weight' => JS_LIBRARY + 2),
+    ),
+    '#attached_css' => array(
+      $module_path . '/admin_toolbar.css',
+    ),
+  );
 
   // Retrieve the admin menu from the database.
   $tree = admin_get_menu_tree();
@@ -106,7 +84,7 @@ function admin_toolbar() {
       'title' => t('Hello <strong>!username</strong>', array('!username' => check_plain($user->name))),
       'href' => 'user',
       'html' => TRUE,
-      'attributes' => array('class' => 'popups'),
+      'attributes' => array('class' => 'to-overlay'),
     ),
     'logout' => array(
       'title' => t('Logout'),
@@ -115,10 +93,10 @@ function admin_toolbar() {
   );
   $output['user_menu'] = $user_menu;
 
-  // Add convenience admin links
-  $admin_links = menu_tree_all_data('admin');
-  $admin_links = admin_menu_navigation_links($admin_links);
-  $output['admin_links'] = $admin_links;
+  // Add convenience shortcut links.
+  $admin_shortcuts = menu_tree_all_data('admin');
+  $admin_shortcuts = admin_menu_navigation_links($admin_shortcuts);
+  $output['admin_shortcuts'] = $admin_shortcuts;
 
   // Set the default toolbar state to expanded.
   $output['collapsed'] = FALSE;
@@ -126,26 +104,51 @@ function admin_toolbar() {
 }
 
 /**
+ * Get only the top level items below the 'admin' path.
+ */
+function admin_get_menu_tree() {
+  $tree = menu_tree_all_data('management');
+  foreach ($tree as $k => $item) {
+    if ($item['link']['link_path'] == 'admin' && !empty($item['below'])) {
+      // Only take items right below the 'admin' path. All other
+      // management items are discarded.
+      $tree = $item['below'];
+      break;
+    }
+  }
+  foreach ($tree as $k => $item) {
+    // Get rid of subitems to have a leaner data structure.
+    unset($tree[$k]['below']);
+  }
+  return $tree;
+}
+
+/**
  * Generate a links array from a menu tree array.
+ *
+ * Based on menu_navigation_links() with some admin toolbar specific changes.
  */
 function admin_menu_navigation_links($tree) {
   $links = array();
   foreach ($tree as $item) {
     if (!$item['link']['hidden']) {
       $class = '';
+      // Make sure we have a path specific ID in place, so
+      // we can attach icons and behaviors to the items.
       $id = str_replace('/', '-', $item['link']['href']);
 
       $l = $item['link']['localized_options'];
       $l['href'] = $item['link']['href'];
-      $l['title'] = "<span class='icon'></span>". $item['link']['title'];
-      $l['attributes'] = array('id' => 'admin-link-'. $id, 'class' => 'popups');
+      // Add icon placeholder.
+      $l['title'] = '<span class="icon"></span>' . $item['link']['title'];
+      // Add admin link ID and to-overlay class for the overlay.
+      $l['attributes'] = array('id' => 'admin-link-' . $id, 'class' => 'to-overlay');
       $l['html'] = TRUE;
 
-      $class = ' path-'. $id;
+      $class = ' path-' . $id;
       if (admin_in_active_trail($item['link']['href'])) {
         $class .= ' active-trail';
       }
-      // Keyed with the unique mlid to generate classes in theme_links().
       $links['menu-'. $item['link']['mlid'] . $class] = $l;
     }
   }
@@ -153,9 +156,10 @@ function admin_menu_navigation_links($tree) {
 }
 
 /**
- * Checks whether an item is in the active trail. Useful when using
- * a menu generated by menu_tree_all_data() which does not set the
- * 'in_active_trail' flag on items.
+ * Checks whether an item is in the active trail.
+ *
+ * Useful when using a menu generated by menu_tree_all_data() which does 
+ * not set the 'in_active_trail' flag on items.
  */
 function admin_in_active_trail($path) {
   $active_paths = &drupal_static(__FUNCTION__);
@@ -171,4 +175,14 @@ function admin_in_active_trail($path) {
     }
   }
   return in_array($path, $active_paths);
+}
+
+/**
+ * Preprocessor for theme('admin_toolbar').
+ */
+function template_preprocess_admin_toolbar(&$vars) {
+  $vars['user_menu'] = theme('links', $vars['admin_toolbar']['user_menu'], array('id' => 'admin-toolbar-user'));
+  $vars['admin_menu'] = theme('links', $vars['admin_toolbar']['admin_menu'], array('id' => 'admin-toolbar-menu'));
+  $vars['admin_shortcuts'] = theme('links', $vars['admin_toolbar']['admin_shortcuts'], array('id' => 'admin-toolbar-shortcuts'));
+  $vars['collapsed'] = $vars['admin_toolbar']['collapsed'];
 }

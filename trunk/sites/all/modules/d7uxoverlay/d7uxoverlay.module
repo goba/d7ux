@@ -10,7 +10,7 @@
  */
 function d7uxoverlay_init() {
   // Only act if the admin toolbar "is enabled" (user has access).
-  if (admin_is_enabled('admin toolbar')) {
+  if (user_access('admin toolbar')) {
     if (!empty($_GET['d7uxmodalframe'])) {
       // d7uxmodalframe marks modal frames.
       global $custom_theme;
@@ -35,7 +35,7 @@ function d7uxoverlay_init() {
  * Implementation of hook_form_alter().
  */
 function d7uxoverlay_form_alter(&$form, $form_state, $form_id) {
-  if (admin_is_enabled('admin toolbar') && !empty($_GET['d7uxmodalframe'])) {
+  if (user_access('admin toolbar') && !empty($_GET['d7uxmodalframe'])) {
     $form['#submit'][] = 'd7uxoverlay_form_submit';
   }
 }

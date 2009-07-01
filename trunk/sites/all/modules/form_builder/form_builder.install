@@ -6,6 +6,10 @@
  */
 function form_builder_install() {
   drupal_install_schema('form_builder');
+  db_query('DELETE FROM {registry_file}');
+  db_query('DELETE FROM {registry}');
+  db_query('DELETE FROM {cache_registry}');
+  registry_rebuild();
 }
 
 /**
