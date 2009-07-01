@@ -1,5 +1,5 @@
 <?php
-// $Id: taxonomy.admin.inc,v 1.56 2009/06/27 19:49:07 dries Exp $
+// $Id: taxonomy.admin.inc,v 1.61 2009/06/30 17:23:12 webchick Exp $
 
 /**
  * @file
@@ -82,8 +82,9 @@ function theme_taxonomy_overview_vocabularies($form) {
       $rows[] = array('data' => $row, 'class' => 'draggable');
     }
   }
+
   if (empty($rows)) {
-    $rows[] = array(array('data' => t('No vocabularies available.'), 'colspan' => '5'));
+    $rows[] = array(array('data' => t('No vocabularies available. <a href="@link">Add vocabulary</a>.', array('@link' => url('admin/content/taxonomy/add'))), 'colspan' => '5'));
   }
 
   $header = array(t('Vocabulary name'), t('Content types'));
@@ -126,10 +127,9 @@ function taxonomy_form_vocabulary(&$form_state, $edit = array()) {
   }
   $form['name'] = array(
     '#type' => 'textfield',
-    '#title' => t('Vocabulary name'),
+    '#title' => t('Name'),
     '#default_value' => $edit['name'],
     '#maxlength' => 255,
-    '#description' => t('The name for this vocabulary, e.g., <em>"Tags"</em>.'),
     '#required' => TRUE,
     '#field_suffix' => ' <small id="vocabulary-name-suffix">&nbsp;</small>',
   );
@@ -152,14 +152,12 @@ function taxonomy_form_vocabulary(&$form_state, $edit = array()) {
     '#type' => 'textfield',
     '#title' => t('Description'),
     '#default_value' => $edit['description'],
-    '#description' => t('Description of the vocabulary; can be used by modules.'),
   );
   $form['nodes'] = array(
     '#type' => 'checkboxes',
-    '#title' => t('Content types'),
+    '#title' => t('Apply to content types'),
     '#default_value' => $edit['nodes'],
     '#options' => array_map('check_plain', node_type_get_names()),
-    '#description' => t('Select content types to categorize using this vocabulary.'),
   );
   $form['settings'] = array(
     '#type' => 'fieldset',
@@ -453,7 +451,7 @@ function taxonomy_overview_terms(&$form_state, $vocabulary) {
   $form['#page_entries'] = $page_entries;
   $form['#back_peddle'] = $back_peddle;
   $form['#forward_peddle'] = $forward_peddle;
-  $form['#empty_text'] = t('No terms available.');
+  $form['#empty_text'] = t('No terms available. <a href="@link">Add term</a>.', array('@link' => url('admin/build/taxonomy/' . $vocabulary->vid . '/add')));
 
   if (!$vocabulary->tags && $vocabulary->hierarchy < 2 && count($tree) > 1) {
     $form['submit'] = array(
@@ -710,7 +708,6 @@ function taxonomy_form_term(&$form_state, $vocabulary, $edit = array()) {
     '#title' => t('Term name'),
     '#default_value' => $edit['name'],
     '#maxlength' => 255,
-    '#description' => t('The name of this term.'),
     '#required' => TRUE);
   $form['identification']['description'] = array(
     '#type' => 'textarea',
@@ -754,7 +751,7 @@ function taxonomy_form_term(&$form_state, $vocabulary, $edit = array()) {
     '#type' => 'textarea',
     '#title' => t('Synonyms'),
     '#default_value' => implode("\n", taxonomy_get_synonyms($edit['tid'])),
-    '#description' => t('Synonyms of this term, one synonym per line.'));
+    '#description' => t('One synonym per line. Text input term selection widgets will show terms whose synonyms match the entered value as suggestions.'));
   $form['advanced']['weight'] = array(
     '#type' => 'textfield',
     '#title' => t('Weight'),

@@ -369,7 +369,7 @@ Drupal.modalFrame.bindChild = function(iFrameWindow, isClosing) {
     if (typeof tabs != 'undefined') {
       $('.ui-dialog-titlebar').append($(tabs).remove().get(0));
       if ($(tabs).is('.primary')) {
-        $(tabs).find('a').addClass('popups');
+        $(tabs).find('a').addClass('to-overlay');
         Drupal.attachBehaviors($(tabs));
       }
     }
