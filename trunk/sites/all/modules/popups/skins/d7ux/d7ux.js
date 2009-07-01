@@ -29,7 +29,7 @@ Drupal.behaviors.d7uxOverlay = {
       var $popup = popup.$popup();
       var popupWidth = $popup.width();
       var windowWidth = Popups.windowWidth();
-      var headerHeight = $('#admin-toolbar').height();
+      var headerHeight = $('#toolbar').height();
       var windowHeight = Popups.windowHeight();
       var titleHeight = $('#' + popup.id + ' .popups-title').height();
 

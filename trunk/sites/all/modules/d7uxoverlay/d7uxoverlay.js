@@ -9,8 +9,8 @@ Drupal.behaviors.d7uxOverlay = {
       $('a#admin-link-admin-content-node-edit').attr('href', Drupal.settings.d7uxoverlay.nodeEdit);
     }
     
-    // Attach on the .in-overlay class.
-    $('a.in-overlay:not(.overlay-processed)').addClass('overlay-processed').click(function() {
+    // Attach on the .to-overlay class.
+    $('a.to-overlay:not(.overlay-processed)').addClass('overlay-processed').click(function() {
 
       // Remove the active class from where it was, and add 
       // the active class to this link, so the button keeps 

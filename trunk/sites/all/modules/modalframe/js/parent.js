@@ -476,7 +476,7 @@ Drupal.modalFrame.computeCenterPosition = function($element, elementSize) {
   var position = {
     left: Math.max(0, parseInt(($window.width() - elementSize.width) / 2)),
     // d7ux: do not hide it behind header toolbar
-    top: headerHeight = $('#admin-toolbar').height() + 20 //; Math.max(0, parseInt(($window.height() - elementSize.height) / 2))
+    top: headerHeight = $('#toolbar').height() + 20 //; Math.max(0, parseInt(($window.height() - elementSize.height) / 2))
   };
   if ($element.css('position') != 'fixed') {
     var $document = $(document);
