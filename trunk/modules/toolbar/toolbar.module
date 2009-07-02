@@ -49,9 +49,6 @@ function toolbar_page_alter(&$page) {
 function toolbar_preprocess_page(&$vars) {
   if (user_access('access toolbar')) {
     $vars['classes_array'][] = 'toolbar';
-    if (empty($vars['page']['admin']['toolbar']['collapsed'])) {
-      $vars['classes_array'][] = 'toolbar-shortcuts';
-    }
   }
 }
 
@@ -75,29 +72,38 @@ function toolbar_build() {
 
   // Retrieve the admin menu from the database.
   $links = toolbar_menu_navigation_links(toolbar_get_menu_tree());
-  $build['admin_menu'] = $links;
+  $build['toolbar_menu'] = array(
+    '#theme' => 'links',
+    '#links' => $links,
+    '#attributes' => array('id' => 'toolbar-menu'),
+  );
 
   // Add logout & user account links
-  $build['user_menu'] = array(
-    'account' => array(
-      'title' => t('Hello <strong>@username</strong>', array('@username' => $user->name)),
-      'href' => 'user',
-      'html' => TRUE,
+  $build['toolbar_user'] = array(
+    '#theme' => 'links',
+    '#links' => array(
+      'account' => array(
+        'title' => t('Hello <strong>@username</strong>', array('@username' => $user->name)),
+        'href' => 'user',
+        'html' => TRUE,
+      ),
+      'logout' => array(
+        'title' => t('Logout'),
+        'href' => 'user/logout',
+      ),
     ),
-    'logout' => array(
-      'title' => t('Logout'),
-      'href' => 'user/logout',
-    ),
+    '#attributes' => array('id' => 'toolbar-user'),
   );
 
   // Add convenience shortcut links.
   $shortcuts = menu_tree_all_data('admin_shortcuts');
   $shortcuts = toolbar_menu_navigation_links($shortcuts);
-  $build['admin_shortcuts'] = $shortcuts;
+  $build['toolbar_shortcuts'] = array(
+    '#theme' => 'links',
+    '#links' => $shortcuts,
+    '#attributes' => array('id' => 'toolbar-shortcuts'),
+  );
 
-  // Set the default toolbar state to expanded. The Javascript will
-  // override this based on cookies.
-  $build['collapsed'] = FALSE;
   return $build;
 }
 
@@ -141,7 +147,7 @@ function toolbar_menu_navigation_links($tree) {
       // Add icon placeholder.
       $link['title'] = '<span class="icon"></span>' . $item['link']['title'];
       // Add admin link ID and to-overlay class for the overlay.
-      $link['attributes'] = array('id' => 'admin-link-' . $id, 'class' => 'to-overlay');
+      $link['attributes'] = array('id' => 'toolbar-link-' . $id, 'class' => 'to-overlay');
       $link['html'] = TRUE;
 
       $class = ' path-' . $id;
@@ -177,14 +183,4 @@ function toolbar_in_active_trail($path) {
     }
   }
   return in_array($path, $active_paths);
-}
-
-/**
- * Preprocessor for theme('toolbar').
- */
-function template_preprocess_toolbar(&$vars) {
-  $vars['user_menu'] = theme('links', $vars['toolbar']['user_menu'], array('id' => 'toolbar-user'));
-  $vars['admin_menu'] = theme('links', $vars['toolbar']['admin_menu'], array('id' => 'toolbar-menu'));
-  $vars['admin_shortcuts'] = theme('links', $vars['toolbar']['admin_shortcuts'], array('id' => 'toolbar-shortcuts'));
-  $vars['collapsed'] = $vars['toolbar']['collapsed'];
 }

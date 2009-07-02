@@ -65,7 +65,7 @@ div#toolbar ul li a {
 /**
  * Administration menu.
  */
-div#toolbar div.admin-menu {
+div#toolbar div.toolbar-menu {
   background: url(toolbar.png) 0 -20px repeat-x;
   height: 25px;
   line-height: 20px;
@@ -74,17 +74,17 @@ div#toolbar div.admin-menu {
   position: relative;
 }
 
-div#toolbar div.admin-menu #toolbar-user {
+div#toolbar div.toolbar-menu #toolbar-user {
   position: absolute;
   right: 35px;
 }
 
-div#toolbar div.admin-menu #toolbar-menu {
+div#toolbar div.toolbar-menu #toolbar-menu {
   position: absolute;
   left: 10px;
 }
 
-div#toolbar div.admin-menu span.toggle {
+div#toolbar div.toolbar-menu span.toggle {
   position: absolute;
   right: 10px;
   cursor: pointer;
@@ -95,22 +95,22 @@ div#toolbar div.admin-menu span.toggle {
   height: 25px;
 }
 
-div#toolbar div.admin-menu span.toggle-active {
+div#toolbar div.toolbar-menu span.toggle-active {
   background-position:  -25px -60px;
 }
 
-div#toolbar div.admin-menu ul li a {
+div#toolbar div.toolbar-menu ul li a {
   -moz-border-radius: 10px;
   -webkit-border-radius: 10px;
   padding: 0 10px;
 }
 
-div#toolbar div.admin-menu ul li a:hover {
+div#toolbar div.toolbar-menu ul li a:hover {
   background: #444;
 }
 
-div#toolbar div.admin-menu ul li a.active:hover,
-div#toolbar div.admin-menu ul li a.active {
+div#toolbar div.toolbar-menu ul li a.active:hover,
+div#toolbar div.toolbar-menu ul li a.active {
   text-shadow: #333 0 1px 0;
   background: url(toolbar.png) 0 0 repeat-x;
 }
@@ -118,12 +118,12 @@ div#toolbar div.admin-menu ul li a.active {
 /**
  * Administration shortcuts.
  */
-div#toolbar div.admin-shortcuts {
+div#toolbar div.toolbar-shortcuts {
   position: relative;
   padding: 0 10px;
 }
 
-div#toolbar div.admin-shortcuts ul {
+div#toolbar div.toolbar-shortcuts ul {
   padding: 5px 0;
   height: 40px;
   line-height: 30px;
@@ -131,23 +131,23 @@ div#toolbar div.admin-shortcuts ul {
   float: left;
 }
 
-div#toolbar div.admin-shortcuts ul li a {
+div#toolbar div.toolbar-shortcuts ul li a {
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
   padding: 5px 10px 5px 5px;
   margin-right: 5px;
 }
 
-div#toolbar div.admin-shortcuts ul li a:hover {
+div#toolbar div.toolbar-shortcuts ul li a:hover {
   background: #555;
 }
 
-div#toolbar div.admin-shortcuts ul li a.active:hover,
-div#toolbar div.admin-shortcuts ul li a.active {
+div#toolbar div.toolbar-shortcuts ul li a.active:hover,
+div#toolbar div.toolbar-shortcuts ul li a.active {
   background: url(toolbar.png) 0 -20px repeat-x;
 }
 
-div#toolbar div.admin-shortcuts span.icon {
+div#toolbar div.toolbar-shortcuts span.icon {
   float: left;
   background: #444;
   width: 30px;

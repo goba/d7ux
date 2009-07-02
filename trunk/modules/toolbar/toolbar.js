@@ -50,7 +50,7 @@ Drupal.admin.toolbar.init = function() {
  * Collapse the admin toolbar.
  */
 Drupal.admin.toolbar.collapse = function() {
-  $('#toolbar div.admin-shortcuts').addClass('collapsed');
+  $('#toolbar div.toolbar-shortcuts').addClass('collapsed');
   $('#toolbar span.toggle').removeClass('toggle-active');
   $('body').removeClass('toolbar-shortcuts');
   $.cookie(
@@ -64,7 +64,7 @@ Drupal.admin.toolbar.collapse = function() {
  * Expand the admin toolbar.
  */
 Drupal.admin.toolbar.expand = function() {
-  $('#toolbar div.admin-shortcuts').removeClass('collapsed');
+  $('#toolbar div.toolbar-shortcuts').removeClass('collapsed');
   $('#toolbar span.toggle').addClass('toggle-active');
   $('body').addClass('toolbar-shortcuts');
   $.cookie(
@@ -78,7 +78,7 @@ Drupal.admin.toolbar.expand = function() {
  * Toggle the admin toolbar.
  */
 Drupal.admin.toolbar.toggle = function() {
-  if ($('#toolbar div.admin-shortcuts').is('.collapsed')) {
+  if ($('#toolbar div.toolbar-shortcuts').is('.collapsed')) {
     Drupal.admin.toolbar.expand();
   }
   else {
