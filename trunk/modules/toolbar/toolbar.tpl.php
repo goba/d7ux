@@ -6,9 +6,9 @@
  * Default template for admin toolbar.
  *
  * Available variables:
- * - $toolbar_user: User account / logout links.
- * - $toolbar_menu: Top level management menu links.
- * - $toolbar_shortcuts: Convenience shortcuts.
+ * - $toolbar['toolbar_user']: User account / logout links.
+ * - $toolbar['toolbar_menu']: Top level management menu links.
+ * - $toolbar['toolbar_shortcuts']: Convenience shortcuts.
  *
  * @see template_preprocess()
  * @see template_preprocess_admin_toolbar()
