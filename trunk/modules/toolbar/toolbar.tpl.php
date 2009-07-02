@@ -17,12 +17,12 @@
 <div id="toolbar" class="clearfix">
   <div class="toolbar-menu clearfix">
     <span class="toggle toggle-active"><?php print t('Show shortcuts'); ?></span>
-    <?php print render($toolbar_user); ?>
-    <?php print render($toolbar_menu); ?>
+    <?php print render($toolbar['toolbar_user']); ?>
+    <?php print render($toolbar['toolbar_menu']); ?>
   </div>
 
   <div class="toolbar-shortcuts clearfix">
-    <?php print render($toolbar_shortcuts); ?>
+    <?php print render($toolbar['toolbar_shortcuts']); ?>
   </div>
 
   <div class="shadow"></div>
