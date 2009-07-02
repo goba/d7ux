@@ -63,7 +63,7 @@ div#toolbar ul li a {
 }
 
 /**
- * First level menus.
+ * Administration menu.
  */
 div#toolbar div.admin-menu {
   background: url(toolbar.png) 0 -20px repeat-x;
@@ -116,7 +116,7 @@ div#toolbar div.admin-menu ul li a.active {
 }
 
 /**
- * Second level menus.
+ * Administration shortcuts.
  */
 div#toolbar div.admin-shortcuts {
   position: relative;

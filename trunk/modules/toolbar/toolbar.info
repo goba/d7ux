@@ -1,5 +1,5 @@
 ; $Id$
-name = Admininstration toolbar
+name = Administration toolbar
 description = Toolbar exposing the top level administration menu items
 core = 7.x
 package = Core

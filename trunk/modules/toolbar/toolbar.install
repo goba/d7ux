@@ -22,17 +22,8 @@ function toolbar_install() {
     'title' => $t('Administration shortcuts'),
     'description' => $t('The <em>Admininstration shortcuts</em> menu contains commonly used links for administrative tasks.')
   ))->execute();
-}
 
-/**
- * Implementation of hook_enable().
- *
- * Add starter convenience shortcuts to the admin menu.
- *
- * @todo
- *   Implement role based shortcut bars. 
- */
-function toolbar_enable() {
+  // Add starter convenience shortcuts.
   menu_rebuild();
   $items = array(
     'node/add' => 'Add',
@@ -55,8 +46,7 @@ function toolbar_enable() {
     $menu_link = db_query("SELECT mlid FROM {menu_links} WHERE link_path = :path AND menu_name = :menu_name", array(
       ':path' => $link['link_path'],
       ':menu_name' => $link['menu_name']
-    ))
-    ->fetchField();
+    ))->fetchField();
     if (!$menu_link) {
       menu_link_save($link);
     }
@@ -64,5 +54,4 @@ function toolbar_enable() {
     // Increment weight so items can be displayed in desired order.
     $weight++;
   }
-  menu_cache_clear_all();
 }

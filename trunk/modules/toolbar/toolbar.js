@@ -25,7 +25,7 @@ Drupal.behaviors.admin = {
 };
 
 /**
- * Initialize cautiously to avoid collisions with other modules (admin_menu).
+ * Initialize cautiously to avoid collisions with other modules.
  */
 Drupal.admin = Drupal.admin || {};
 Drupal.admin.toolbar = Drupal.admin.toolbar || {};
