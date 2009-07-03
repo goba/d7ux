@@ -29,7 +29,7 @@ div#toolbar * {
  * Base styles.
  */
 div#toolbar {
-  font: normal 11px/20px "Lucida Grande",Verdana,sans-serif;
+  font: normal 11px/20px "Lucida Grande", Verdana, sans-serif;
   background: #666;
   color: #ccc;
   position: fixed;

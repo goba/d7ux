@@ -136,17 +136,6 @@ function d7ux_profile_tasks(&$task, $url) {
     ),
     array(
       'module' => 'system',
-      'delta' => 'management',
-      'theme' => 'garland',
-      'status' => 1,
-      'weight' => 1,
-      'region' => 'left',
-      'pages' => '',
-      'cache' => -1,
-      'custom' => 0,
-    ),
-    array(
-      'module' => 'system',
       'delta' => 'powered-by',
       'theme' => 'garland',
       'status' => 1,

@@ -7,7 +7,7 @@
 Drupal.behaviors.admin = {
   attach: function() {
 
-    // Set the intial state of the toolbar
+    // Set the intial state of the toolbar.
     $('#toolbar:not(.processed)').each(function() {
       Drupal.admin.toolbar.init();
       $(this).addClass('processed');

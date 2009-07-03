@@ -120,9 +120,9 @@ function toolbar_get_menu_tree() {
       break;
     }
   }
-  foreach ($tree as $k => $item) {
+  foreach ($tree as $key => $item) {
     // Get rid of subitems to have a leaner data structure.
-    unset($tree[$k]['below']);
+    unset($tree[$key]['below']);
   }
   return $tree;
 }
@@ -136,7 +136,7 @@ function toolbar_get_menu_tree() {
 function toolbar_menu_navigation_links($tree) {
   $links = array();
   foreach ($tree as $item) {
-    if (!$item['link']['hidden']) {
+    if (!$item['link']['hidden'] && $item['link']['access']) {
       $class = '';
       // Make sure we have a path specific ID in place, so we can attach icons
       // and behaviors to the items.
@@ -172,7 +172,7 @@ function toolbar_menu_navigation_links($tree) {
 function toolbar_in_active_trail($path) {
   $active_paths = &drupal_static(__FUNCTION__);
 
-  // Gather active paths
+  // Gather active paths.
   if (!isset($active_paths)) {
     $active_paths = array();
     $trail = menu_get_active_trail();

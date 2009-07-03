@@ -14,14 +14,13 @@
  */
 function toolbar_install() {
   $t = get_t();
-  $query = db_insert('menu_custom')->fields(
-    array('menu_name', 'title', 'description')
-  );
-  $query->values(array(
-    'menu_name' => 'admin_shortcuts',
-    'title' => $t('Administration shortcuts'),
-    'description' => $t('The <em>Admininstration shortcuts</em> menu contains commonly used links for administrative tasks.')
-  ))->execute();
+  $query = db_insert('menu_custom')
+    ->fields(array(
+      'menu_name' => 'admin_shortcuts',
+      'title' => $t('Administration shortcuts'),
+      'description' => $t('The <em>Admininstration shortcuts</em> menu contains commonly used links for administrative tasks.')
+    ))
+    ->execute();
 
   // Add starter convenience shortcuts.
   menu_rebuild();
@@ -46,7 +45,8 @@ function toolbar_install() {
     $menu_link = db_query("SELECT mlid FROM {menu_links} WHERE link_path = :path AND menu_name = :menu_name", array(
       ':path' => $link['link_path'],
       ':menu_name' => $link['menu_name']
-    ))->fetchField();
+    ))
+    ->fetchField();
     if (!$menu_link) {
       menu_link_save($link);
     }
