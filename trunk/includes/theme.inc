@@ -1713,7 +1713,7 @@ function theme_more_link($url, $title) {
  */
 function theme_closure($main = 0) {
   $footer = module_invoke_all('footer', $main);
-  return implode("\n", $footer) . drupal_get_js('footer');
+  return drupal_render($footer) . drupal_get_js('footer');
 }
 
 /**
