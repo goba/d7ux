@@ -1,7 +1,0 @@
-name = D7UX overlay look
-description = D7UX overlay look for modal frame API.
-package = User interface
-dependencies[] = modalframe
-dependencies[] = toolbar
-core = 7.x
-files[] = d7uxoverlay.module

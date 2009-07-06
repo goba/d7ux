@@ -85,3 +85,111 @@
   background: transparent url(../images/gradient-horizontal.png) repeat-y scroll right center;
   padding-right: 15px;
 }
+
+/**
+ * Customizations 
+ */
+.ui-widget-overlay {
+  background-color: #000 !important;
+  opacity: 0.8 !important;
+}
+
+.ui-dialog {
+  padding-right: 30px;
+}
+
+.overlay {
+  border: none !important;
+  background-color: transparent !important;
+}
+
+.overlay .ui-dialog-titlebar {
+  background-color: transparent !important;
+  border: none !important;
+  cursor: auto;
+}
+.overlay .ui-dialog-titlebar {
+  cursor: normal !important;
+  height: 2em !important;
+}
+.overlay .ui-dialog-title {
+  color: #fff !important;
+  font-size: 1.2em !important;
+}
+
+.overlay .ui-dialog-titlebar-close {
+  right: -29px;
+  top: 22px;
+  background: #fff;
+  padding: 5px 1px 2px 3px;
+  border-radius: 0 15px 15px 0;
+  -moz-border-radius: 0 15px 15px 0;
+  /* Safari 4 only understand it this way */
+  -webkit-border-top-right-radius: 13px;
+  -webkit-border-bottom-right-radius: 13px;
+}
+
+.overlay .ui-dialog-titlebar-close span {
+  background: #fff url(../images/close.png) no-repeat 0 0;
+  display: block;
+  text-indent: 1000px;
+  width: 16px;
+  height: 16px;
+}
+
+.ui-dialog-titlebar ul.horizontal-tabs-panes, .ui-dialog-titlebar ul.primary {
+  float: right;
+  border-bottom: none;
+  margin: 0;
+  padding: 0.5em 0 0;
+  line-height: normal;
+}
+
+.ui-dialog-titlebar ul.horizontal-tabs-panes li {
+  display: inline;
+  list-style: none;
+}
+
+.ui-dialog-titlebar ul.primary li, .ui-dialog-titlebar ul.horizontal-tabs-panes li {
+  background: transparent url(../images/tab_inactive_rt.png) no-repeat top right;
+  padding: 5px 5px 4px 0px;
+}
+
+.ui-dialog-titlebar ul.primary li a,
+.ui-dialog-titlebar ul.primary li a.active,
+.ui-dialog-titlebar ul.primary li a:active,
+.ui-dialog-titlebar ul.primary li a:visited,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a.active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a:active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a:visited {
+  background: transparent url(../images/tab_inactive_lt.png) no-repeat;
+  color: #000;
+  font-weight: bold;
+  padding: 5px 5px 5px 10px;
+}
+
+.ui-dialog-titlebar ul.primary li.active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active,
+.ui-dialog-titlebar ul.primary li:hover,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li:hover {
+  background: transparent url(../images/tab_active_rt.png) no-repeat center right;
+}
+
+.ui-dialog-titlebar ul.primary li.active a,
+.ui-dialog-titlebar ul.primary li.active a.active,
+.ui-dialog-titlebar ul.primary li.active a:active,
+.ui-dialog-titlebar ul.primary li.active a:visited,
+.ui-dialog-titlebar ul.primary li a:hover,
+.ui-dialog-titlebar ul.primary li.active a:hover,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a.active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a:active,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a:visited,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li a:hover,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li.active a:hover {
+  background: transparent url(../images/tab_active_lt.png) no-repeat;
+  color: #000;
+  font-weight: bold;
+  padding: 5px 5px 5px 10px;
+}

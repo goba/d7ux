@@ -7,6 +7,61 @@
  */
 
 /**
+ * Implementation of hook_init().
+ */
+function overlay_init() {
+  // Only act if the admin toolbar "is enabled" (user has access).
+  if (user_access('admin toolbar')) {
+    if (!empty($_GET['render']) && ($_GET['render'] == 'overlay')) {
+      // d7uxoverlay marks modal frames.
+      global $custom_theme;
+      $custom_theme = 'overlay';
+      overlay_child_js();
+    }
+    else {
+      // Otherwise add overlay parent code and our behavior.
+      overlay_parent_js();
+      $module_path = drupal_get_path('module', 'd7uxoverlay');
+      drupal_add_css($module_path .'/overlay.css');
+      drupal_add_js($module_path .'/overlay.js');
+      // If on a node page, add this info to alter the header.
+      if ($node = menu_get_object()) {
+        drupal_add_js(array('overlay' => array('nodeEdit' => url('node/' . $node->nid . '/edit'))), array('type' => 'setting'));
+      }
+    }
+  }
+}
+
+/**
+ * Extra form submission handler.
+ *
+ * For cases when we need to keep the form in the modal frame.
+ /
+function overlay_form_submit($form, &$form_state) {
+  if (is_array($form_state['redirect'])) {
+    if (!empty($form_state['redirect'][1])) {
+      if (is_array($form_state['redirect'][1])) {
+        // Query is an array, add our marker as a key.
+        $form_state['redirect'][1]['d7uxoverlay'] = 1;
+      }
+      else {
+        // Query is not an array, add our marker as string.
+        $form_state['redirect'][1] .= '&d7uxoverlay=1';
+      }
+    }
+    else {
+      // Empty or is not set, but parent is array. Add array.
+      $form_state['redirect'][1] = array('d7uxoverlay' => 1);
+    }
+  }
+  elseif (!isset($form_state['redirect']) || ($form_state['redirect'] !== FALSE && $form_state['redirect'] !== NULL)) {
+    // Not an array. Save the path value and add our own marker.
+    $form_state['redirect'] = array(!empty($form_state['redirect']) ? $form_state['redirect'] : $_GET['q'], array('d7uxoverlay' => 1));
+  }
+}
+*/
+
+/**
  * Implementation of hook_theme_registry_alter().
  *
  * Prepend our module path to the theme registry entry for theme('page').
@@ -118,6 +173,9 @@ function overlay_form_alter(&$form, $form_state, $form_id) {
     $form['#after_build'] = array();
   }
   $form['#after_build'][] = 'overlay_form_after_build';
+  /*if (user_access('admin toolbar') && !empty($_GET['render']) && ($_GET['render'] == 'overlay')) {
+    $form['#submit'][] = 'overlay_form_submit';
+  }*/
 }
 
 /**

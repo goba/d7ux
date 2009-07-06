@@ -95,7 +95,7 @@ Drupal.overlayChild.behaviors.parseLinks = function(context) {
     }
     if (href.indexOf('http') != 0 && href.indexOf('https') != 0) {
       // Keep internal linked pages in the overlay.
-      href += (href.indexOf('?') > -1 ? '&' : '?') + 'd7uxoverlay=1';
+      href += (href.indexOf('?') > -1 ? '&' : '?') + 'render=overlay';
       $(this).attr('href', href);
     }
     else {
@@ -107,7 +107,7 @@ Drupal.overlayChild.behaviors.parseLinks = function(context) {
     var action = $(this).attr('action');
     if (action.indexOf('http') != 0 && action.indexOf('https') != 0) {
       // Keep internal forms in the overlay.
-      action += (action.indexOf('?') > -1 ? '&' : '?') + 'd7uxoverlay=1';
+      action += (action.indexOf('?') > -1 ? '&' : '?') + 'render=overlay';
       $(this).attr('action', action);
     }
     else {
