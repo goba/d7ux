@@ -5,7 +5,12 @@
   margin: 0;
   padding: 0;
 }
+
 .modalframe-page-content {
   margin: 0;
   padding: 1em;
+}
+
+.modalframe-page-wrapper {
+  opacity: 0;
 }

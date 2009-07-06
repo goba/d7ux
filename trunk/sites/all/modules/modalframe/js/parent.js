@@ -524,6 +524,7 @@ Drupal.modalFrame.resize = function(size) {
 
       // d7ux: Keep the overlay grow or shrink with the dialog.
       $('.ui-widget-overlay').height($(document).height());
+      $(self.iframe.$element.get(0)).contents().find('.modalframe-page-wrapper').animate({opacity:1}, 'slow');
     }
   });
 };
