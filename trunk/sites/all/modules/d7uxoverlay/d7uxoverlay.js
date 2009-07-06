@@ -18,15 +18,15 @@ Drupal.behaviors.d7uxOverlay = {
       $('#toolbar a').each(function() { $(this).removeClass('active'); });
       $(this).addClass('active');
       
-      // Append d7uxmodalframe variable, so the server side can pick up
+      // Append d7uxoverlay variable, so the server side can pick up
       // this marker and add child modal frame code to the page if needed.
       var linkURL = $(this).attr('href');
-      linkURL += (linkURL.indexOf('?') > -1 ? '&' : '?') + 'd7uxmodalframe=1';
+      linkURL += (linkURL.indexOf('?') > -1 ? '&' : '?') + 'd7uxoverlay=1';
     
       // If the modal frame is already open, replace the loaded
       // document with this new one.
-      if (Drupal.modalFrame.isOpen) {
-        Drupal.modalFrame.load(linkURL);
+      if (Drupal.overlay.isOpen) {
+        Drupal.overlay.load(linkURL);
         return false;
       }
     
@@ -41,10 +41,10 @@ Drupal.behaviors.d7uxOverlay = {
         // Remove active class from all header buttons.
         onSubmit: function() { $('#toolbar a').each(function() { $(this).removeClass('active'); }); }
       };
-      Drupal.modalFrame.open(modalOptions);
+      Drupal.overlay.open(modalOptions);
     
       // Set position and styling to let the admin header work.
-      $('.modalframe').css('top', headerHeight + 20);
+      $('.overlay').css('top', headerHeight + 20);
       $('#toolbar').css('z-index', 2000);
 
       // Prevent default action of the link click event.

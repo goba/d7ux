@@ -1,0 +1,16 @@
+/* $Id$ */
+
+.overlay-page-wrapper,
+.overlay-page-container {
+  margin: 0;
+  padding: 0;
+}
+
+.overlay-page-content {
+  margin: 0;
+  padding: 1em;
+}
+
+.overlay-page-wrapper {
+  opacity: 0;
+}

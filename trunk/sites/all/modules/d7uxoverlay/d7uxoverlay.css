@@ -7,26 +7,26 @@
   padding-right: 30px;
 }
 
-.modalframe {
+.overlay {
   border: none !important;
   background-color: transparent !important;
 }
 
-.modalframe .ui-dialog-titlebar {
+.overlay .ui-dialog-titlebar {
   background-color: transparent !important;
   border: none !important;
   cursor: auto;
 }
-.modalframe .ui-dialog-titlebar {
+.overlay .ui-dialog-titlebar {
   cursor: normal !important;
   height: 2em !important;
 }
-.modalframe .ui-dialog-title {
+.overlay .ui-dialog-title {
   color: #fff !important;
   font-size: 1.2em !important;
 }
 
-.modalframe .ui-dialog-titlebar-close {
+.overlay .ui-dialog-titlebar-close {
   right: -29px;
   top: 22px;
   background: #fff;
@@ -38,7 +38,7 @@
   -webkit-border-bottom-right-radius: 13px;
 }
 
-.modalframe .ui-dialog-titlebar-close span {
+.overlay .ui-dialog-titlebar-close span {
   background: #fff url(close.png) no-repeat 0 0;
   display: block;
   text-indent: 1000px;

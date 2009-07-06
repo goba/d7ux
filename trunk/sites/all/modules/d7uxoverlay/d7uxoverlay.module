@@ -11,15 +11,15 @@
 function d7uxoverlay_init() {
   // Only act if the admin toolbar "is enabled" (user has access).
   if (user_access('admin toolbar')) {
-    if (!empty($_GET['d7uxmodalframe'])) {
-      // d7uxmodalframe marks modal frames.
+    if (!empty($_GET['d7uxoverlay'])) {
+      // d7uxoverlay marks modal frames.
       global $custom_theme;
       $custom_theme = 'overlay';
-      modalframe_child_js();
+      overlay_child_js();
     }
     else {
-      // Otherwise add modalframe parent code and our behavior.
-      modalframe_parent_js();
+      // Otherwise add overlay parent code and our behavior.
+      overlay_parent_js();
       $module_path = drupal_get_path('module', 'd7uxoverlay');
       drupal_add_css($module_path .'/d7uxoverlay.css');
       drupal_add_js($module_path .'/d7uxoverlay.js');
@@ -35,7 +35,7 @@ function d7uxoverlay_init() {
  * Implementation of hook_form_alter().
  */
 function d7uxoverlay_form_alter(&$form, $form_state, $form_id) {
-  if (user_access('admin toolbar') && !empty($_GET['d7uxmodalframe'])) {
+  if (user_access('admin toolbar') && !empty($_GET['d7uxoverlay'])) {
     $form['#submit'][] = 'd7uxoverlay_form_submit';
   }
 }
@@ -50,20 +50,20 @@ function d7uxoverlay_form_submit($form, &$form_state) {
     if (!empty($form_state['redirect'][1])) {
       if (is_array($form_state['redirect'][1])) {
         // Query is an array, add our marker as a key.
-        $form_state['redirect'][1]['d7uxmodalframe'] = 1;
+        $form_state['redirect'][1]['d7uxoverlay'] = 1;
       }
       else {
         // Query is not an array, add our marker as string.
-        $form_state['redirect'][1] .= '&d7uxmodalframe=1';
+        $form_state['redirect'][1] .= '&d7uxoverlay=1';
       }
     }
     else {
       // Empty or is not set, but parent is array. Add array.
-      $form_state['redirect'][1] = array('d7uxmodalframe' => 1);
+      $form_state['redirect'][1] = array('d7uxoverlay' => 1);
     }
   }
   elseif (!isset($form_state['redirect']) || ($form_state['redirect'] !== FALSE && $form_state['redirect'] !== NULL)) {
     // Not an array. Save the path value and add our own marker.
-    $form_state['redirect'] = array(!empty($form_state['redirect']) ? $form_state['redirect'] : $_GET['q'], array('d7uxmodalframe' => 1));
+    $form_state['redirect'] = array(!empty($form_state['redirect']) ? $form_state['redirect'] : $_GET['q'], array('d7uxoverlay' => 1));
   }
 }

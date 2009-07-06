@@ -13,7 +13,7 @@ function d7ux_profile_modules() {
     // Extra core modules.
     // ...
     // Extra contrib modules.
-    'modalframe',
+    'overlay',
     // Custom modules.
     'toolbar', 'd7uxoverlay'
   );
