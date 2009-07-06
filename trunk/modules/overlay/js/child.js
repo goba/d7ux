@@ -3,7 +3,7 @@
 (function ($) {
 
 /**
- * Modal Frame object for child windows.
+ * Overlay object for child windows.
  */
 Drupal.overlayChild = Drupal.overlayChild || {
   processed: false,
@@ -39,7 +39,7 @@ Drupal.overlayChild.attachBehavior = function(context) {
 
   // If a form has been submitted successfully, then the server side script
   // may have decided to tell us the parent window to close the popup dialog.
-  if (settings.closeModal) {
+  if (settings.closeOverlay) {
     parent.Drupal.overlay.bindChild(window, true);
     // Close the child window from a separate thread because the current
     // one is busy processing Drupal behaviors.
@@ -94,7 +94,7 @@ Drupal.overlayChild.behaviors.parseLinks = function(context) {
       return;
     }
     if (href.indexOf('http') != 0 && href.indexOf('https') != 0) {
-      // Keep internal linked pages in the modal frame.
+      // Keep internal linked pages in the overlay.
       href += (href.indexOf('?') > -1 ? '&' : '?') + 'd7uxoverlay=1';
       $(this).attr('href', href);
     }
@@ -106,7 +106,7 @@ Drupal.overlayChild.behaviors.parseLinks = function(context) {
     // Obtain the action attribute of the form.
     var action = $(this).attr('action');
     if (action.indexOf('http') != 0 && action.indexOf('https') != 0) {
-      // Keep internal forms in the modal frame.
+      // Keep internal forms in the overlay.
       action += (action.indexOf('?') > -1 ? '&' : '?') + 'd7uxoverlay=1';
       $(this).attr('action', action);
     }

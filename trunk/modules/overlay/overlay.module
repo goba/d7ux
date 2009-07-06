@@ -11,7 +11,7 @@
  *
  * Prepend our module path to the theme registry entry for theme('page').
  *
- * When we need to render a modal frame, overlay_child_js() defines the
+ * When we need to render an overlay, overlay_child_js() defines the
  * variable $GLOBALS['overlay_page_template']. Then, when theme('page') is
  * executed, Drupal invokes all template preprocess functions related to the
  * page template. When overlay_preprocess_page() is invoked, it looks for
@@ -83,7 +83,7 @@ function overlay_preprocess_page(&$variables) {
  * Implementation of hook_form_alter().
  *
  * The main goal of this function is to set $form_state['redirect'] to FALSE
- * when a submitted form performs a request to close the modal dialog where
+ * when a submitted form performs a request to close the overlay where
  * it's been processed.
  *
  * A few notes on the workflow we're using here:
@@ -102,7 +102,7 @@ function overlay_preprocess_page(&$variables) {
  *   this is kind of low level technique, which is not often used by contributed
  *   modules, and chances are that our submit handler is executed after all
  *   potential places from where overlay_close_dialog() can be used by a
- *   external module using the "Modal Frame API". Also, this way our module does
+ *   external module using the "Overlay API". Also, this way our module does
  *   not depend on the order module hooks are being invoked by Drupal.
  *
  * @see overlay_close_dialog()
@@ -143,7 +143,7 @@ function overlay_form_after_build($form, &$form_state) {
     // which is something we can also alter from here, luckly. :)
     // Rememeber: our goal here is set $form_state['redirect'] is set to FALSE
     // if the API overlay_close_dialog() has been invoked. That's because we
-    // want to tell the parent window to close the modal frame.
+    // want to tell the parent window to close the overlay.
     if (!empty($form_state['submit_handlers']) && !in_array('overlay_form_submit', $form_state['submit_handlers'])) {
       $form_state['submit_handlers'][] = 'overlay_form_submit';
     }
@@ -175,7 +175,7 @@ function overlay_form_after_build_recursive(&$elements, &$form_state) {
 /**
  * Generic form submit handler.
  *
- * When we are requested to close a modal dialog, we don't want Form API to
+ * When we are requested to close an overlay, we don't want Form API to
  * perform any redirection once the submitted form has been processed.
  *
  * When $form_state['redirect'] is set to FALSE, then Form API will simply
@@ -207,7 +207,6 @@ function overlay_parent_js() {
   // Add required jQuery UI elements.
   drupal_add_js('misc/ui/ui.core.js', array('weight' => JS_LIBRARY + 5));
   drupal_add_js('misc/ui/ui.dialog.js', array('weight' => JS_LIBRARY + 6));
-  //drupal_add_js('misc/ui/ui.draggable.js', array('weight' => JS_LIBRARY + 6));
 
   $module_path = drupal_get_path('module', 'overlay');
   drupal_add_css($module_path .'/css/parent.css');
@@ -227,8 +226,8 @@ function overlay_child_js() {
   }
   $processed = TRUE;
 
-  // Disable admin_menu, which is something child windows don't need.
-  module_invoke('admin_menu', 'suppress');
+  // Disable admin toolbar, which is something child windows don't need.
+  module_invoke('toolbar', 'suppress', TRUE);
 
   // This is required to get access to jQuery UI extensions to jQuery itself,
   // such as the ':focusable' and ':tabbable' selectors.
@@ -238,11 +237,8 @@ function overlay_child_js() {
   $module_path = drupal_get_path('module', 'overlay');
   drupal_add_css($module_path .'/css/child.css');
   drupal_add_js($module_path .'/js/child.js');
-  if (module_exists('onbeforeunload')) {
-    onbeforeunload_add_js();
-  }
 
-  // Tell Drupal's theme system to use the Modal Frame template.
+  // Tell Drupal's theme system to use the overlay template.
   $GLOBALS['overlay_page_template'] = TRUE;
 }
 
@@ -250,7 +246,7 @@ function overlay_child_js() {
  * API: Close a client side dialog.
  *
  * This function should be used on form submit handlers to trigger the
- * action that will close the modal frame on the client side.
+ * action that will close the overlay on the client side.
  *
  * @param $args
  *   An optional array of arguments that will be forwarded to the client
@@ -264,16 +260,16 @@ function overlay_close_dialog($args = NULL) {
     return;
   }
 
-  // Build the javascript settings that will close the modal frame on the
+  // Build the javascript settings that will close the overlay on the
   // client side.
   $child_js_settings = array(
-    'closeModal' => 1,
+    'closeOverlay' => 1,
     'statusMessages' => theme('status_messages'),
     'args' => (isset($args) && is_array($args) ? $args : array()),
   );
   drupal_add_js(array('overlayChild' => $child_js_settings), 'setting');
 
-  // Tell Drupal's Form API that we are requested to close the modal dialog,
+  // Tell Drupal's Form API that we are requested to close the overlay,
   // so we do not wish to perform redirections after submitted form has been
   // processed.
   $GLOBALS['overlay_close_dialog'] = TRUE;

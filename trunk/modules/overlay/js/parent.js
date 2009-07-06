@@ -3,7 +3,7 @@
 (function ($) {
 
 /**
- * Modal Frame object for parent windows.
+ * Overlay object for parent windows.
  */
 Drupal.overlay = Drupal.overlay || {
   dirtyFormsWarning: Drupal.t('Your changes will be lost if you close this popup now.'),
@@ -13,17 +13,17 @@ Drupal.overlay = Drupal.overlay || {
 };
 
 /**
- * Open a modal frame.
+ * Open an overlay.
  */
 Drupal.overlay.open = function(options) {
   var self = this;
 
-  // Just one modal is allowed.
+  // Just one overlay is allowed.
   if (self.isOpen || $('#overlay-container').size()) {
     return false;
   }
 
-  // Build modal frame options structure.
+  // Build overlay frame options structure.
   self.options = {
     url: options.url,
     width: options.width,
@@ -44,7 +44,7 @@ Drupal.overlay.open = function(options) {
 };
 
 /**
- * Create the modal dialog.
+ * Create the overlay.
  */
 Drupal.overlay.create = function() {
   var self = this;
@@ -206,7 +206,7 @@ Drupal.overlay.canClose = function() {
 };
 
 /**
- * Close the modal frame.
+ * Close the overlay.
  */
 Drupal.overlay.close = function(args, statusMessages) {
   var self = this;
@@ -280,12 +280,12 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
     // size and disable the options autoFit and/or autoResize.
     self.iframe.documentSize = {width: $iFrameDocument.width(), height: $iFrameWindow('body').height() + 25};
 
-    // Adjust modal dialog to fit the iframe content?
+    // Adjust overlay to fit the iframe content?
     if (self.options.autoFit) {
       self.resize(self.iframe.documentSize);
     }
 
-    // Try to enhance keyboard based navigation of the modal dialog.
+    // Try to enhance keyboard based navigation of the overlay.
     // Logic inspired by the open() method in ui.dialog.js, and
     // http://wiki.codetalks.org/wiki/index.php/Docs/Keyboard_navigable_JS_widgets
 
@@ -386,7 +386,7 @@ Drupal.overlay.unbindChild = function(iFrameWindow) {
   // on the child document.
   iFrameWindow.jQuery(iFrameWindow.document).unbind('keydown.overlay-event');
 
-  // Change the modal dialog title.
+  // Change the overlay title.
   $('.overlay .ui-dialog-title').html(Drupal.t('Please, wait...'));
 
   // Hide the iframe element.
@@ -431,7 +431,7 @@ Drupal.overlay.sanitizeSize = function(size) {
 };
 
 /**
- * Fix the position of the modal frame.
+ * Fix the position of the overlay.
  *
  * Possible alternative to position:'fixed' for IE6:
  * @see http://www.howtocreate.co.uk/fixedPosition.html
@@ -487,7 +487,7 @@ Drupal.overlay.computeCenterPosition = function($element, elementSize) {
 };
 
 /**
- * Resize modal frame.
+ * Resize overlay.
  */
 Drupal.overlay.resize = function(size) {
   var self = this;
