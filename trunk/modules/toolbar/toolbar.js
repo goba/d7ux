@@ -1,4 +1,4 @@
-// $Id$
+// $Id: toolbar.js,v 1.1 2009/07/04 05:37:30 dries Exp $
 (function ($) {
 
 /**
