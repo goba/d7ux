@@ -249,7 +249,9 @@ function overlay_form_submit($form, &$form_state) {
  * @ingroup overlay_api
  */
 function overlay_parent_js() {
+  global $base_path;
   static $processed;
+
   // Make sure external resources are not included more than once.
   if (isset($processed)) {
     return;
@@ -263,8 +265,9 @@ function overlay_parent_js() {
   drupal_add_js('misc/ui/ui.dialog.js', array('weight' => JS_LIBRARY + 6));
 
   $module_path = drupal_get_path('module', 'overlay');
-  drupal_add_css($module_path .'/overlay-parent.css');
-  drupal_add_js($module_path .'/overlay-parent.js');
+  drupal_add_css($module_path . '/overlay-parent.css');
+  drupal_add_js($module_path . '/overlay-parent.js');
+  drupal_add_js(array('overlay' => array('shadowPath' => $base_path . drupal_get_path('module', 'overlay') . '/images/ovrly-shdw-bt-lt.png')), array('type' => 'setting'));
 }
 
 /**

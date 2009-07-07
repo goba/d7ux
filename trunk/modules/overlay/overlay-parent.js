@@ -2,45 +2,46 @@
 
 (function ($) {
 
-Drupal.behaviors.d7uxOverlay = {
+Drupal.behaviors.keepOverlay = {
   attach: function(context) {
     
     // Attach on the .to-overlay class.
     $('a.to-overlay:not(.overlay-processed)').addClass('overlay-processed').click(function() {
 
-      // Remove the active class from where it was, and add 
-      // the active class to this link, so the button keeps 
-      // highlighting where we are. 
+      // Remove the active class from where it was, and add the active class to
+      // this link, so the button keeps highlighting where we are.
+      
+      // @todo: People say if we don't mark the active item, they will not
+      // expect the lower bar to be context sensitive.
       $('#toolbar a').each(function() { $(this).removeClass('active'); });
       $(this).addClass('active');
       
-      // Append d7uxoverlay variable, so the server side can pick up
-      // this marker and add child modal frame code to the page if needed.
+      // Append render variable, so the server side can choose the right 
+      // rendering and add child modal frame code to the page if needed.
       var linkURL = $(this).attr('href');
       linkURL += (linkURL.indexOf('?') > -1 ? '&' : '?') + 'render=overlay';
     
-      // If the modal frame is already open, replace the loaded
-      // document with this new one.
+      // If the modal frame is already open, replace the loaded document with
+      // this new one. Keeps browser history.
       if (Drupal.overlay.isOpen) {
         Drupal.overlay.load(linkURL);
         return false;
       }
     
-      // There is no modal frame, we should open a new one.
-      var headerHeight = $('#toolbar').height();
-      var modalOptions = {
+      // There is overlay opened yet, we should open a new one.
+      var toolbarHeight = $('#toolbar').height();
+      var overlayOptions = {
         url: linkURL,
-        autoResize: false,
         //autoFit: false,
         width: $(window).width() - 40,
-        height: $(window).height() - 40 - headerHeight,
+        height: $(window).height() - 40 - toolbarHeight,
         // Remove active class from all header buttons.
-        onSubmit: function() { $('#toolbar a').each(function() { $(this).removeClass('active'); }); }
+        onOverlayClose: function() { $('#toolbar a').each(function() { $(this).removeClass('active'); }); }
       };
-      Drupal.overlay.open(modalOptions);
+      Drupal.overlay.open(overlayOptions);
     
-      // Set position and styling to let the admin header work.
-      $('.overlay').css('top', headerHeight + 20);
+      // Set position and styling to let the admin toolbar work.
+      $('.overlay').css('top', toolbarHeight + 20);
       $('#toolbar').css('z-index', 2000);
 
       // Prevent default action of the link click event.
@@ -76,9 +77,8 @@ Drupal.overlay.open = function(options) {
     width: options.width,
     height: options.height,
     autoFit: (options.autoFit == undefined || options.autoFit ? true : false),
-    autoResize: (options.autoResize ? true : false),
     draggable: (options.draggable == undefined || options.draggable ? true : false),
-    onSubmit: options.onSubmit
+    onOverlayClose: options.onOverlayClose
   };
 
   // Create the dialog and related DOM elements.
@@ -160,20 +160,6 @@ Drupal.overlay.create = function() {
         self.load(self.options.url);
       });
 
-      // Enable auto resize feature?
-      if (self.options.autoResize) {
-        var $window = $(window), currentWindowSize = {width: $window.width(), height: $window.height()};
-        $window.bind('resize.overlay-event', function() {
-          if (self.isOpen && self.isObject(self.iframe.documentSize)) {
-            var newWindowSize = {width: $window.width(), height: $window.height()};
-            if (Math.abs(currentWindowSize.width - newWindowSize.width) > 5 || Math.abs(currentWindowSize.height - newWindowSize.height) > 5) {
-              currentWindowSize = newWindowSize;
-              self.resize(self.iframe.documentSize);
-            }
-          }
-        });
-      }
-
       self.isOpen = true;
     },
     beforeclose: function() {
@@ -187,9 +173,6 @@ Drupal.overlay.create = function() {
       return false;
     },
     close: function() {
-      if (self.options.autoResize) {
-        $(window).unbind('resize.overlay-event');
-      }
       $(document).unbind('keydown.overlay-event');
       $('.overlay .ui-dialog-titlebar-close').unbind('keydown.overlay-event');
       self.fixPosition($('.overlay'), false);
@@ -272,8 +255,8 @@ Drupal.overlay.close = function(args, statusMessages) {
     }
     self.beforeCloseEnabled = true;
     self.iframe.$container.dialog('close');
-    if ($.isFunction(self.options.onSubmit)) {
-      self.options.onSubmit(args, statusMessages);
+    if ($.isFunction(self.options.onOverlayClose)) {
+      self.options.onOverlayClose(args, statusMessages);
     }
   }
   if (!self.isObject(self.iframe.$element) || !self.iframe.$element.size() || !self.iframe.$element.is(':visible')) {
@@ -324,7 +307,7 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
     // seem to be perfect. Note though, that the size of the iframe itself
     // may affect the size of the child document, specially on fluid layouts.
     // If you get in trouble, then I would suggest to choose a known dialog
-    // size and disable the options autoFit and/or autoResize.
+    // size and disable the option autoFit.
     self.iframe.documentSize = {width: $iFrameDocument.width(), height: $iFrameWindow('body').height() + 25};
 
     // Adjust overlay to fit the iframe content?
@@ -407,7 +390,7 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
     });
 
     if (!$('#overlay-container').find('div.shadow').size()) {
-      $('#overlay-container').append('<div class="shadow"/>');
+      $('#overlay-container').append('<div class="shadow"><img src="' + Drupal.settings.overlay.shadowPath + '" alt="" /></div>');
     }
 
     var tabs = $iFrameDocument.find('ul.horizontal-tabs-panes, ul.primary').get(0);

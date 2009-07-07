@@ -4,35 +4,38 @@
  * jQuery UI Dialog classes.
  */
 .overlay {
-  color: #000000;
-  background-color: #ffffff;
-  border: 2px solid #1b5084;
+  color: #000;
+  padding-right: 30px;
 }
 .overlay .ui-dialog-titlebar {
   position: relative;
-  cursor: move;
-  height: 26px;
-  background-color: #336699;
-  border: 1px solid #6694c6;
+  height: 2em;
   white-space: nowrap;
 }
 .overlay .ui-dialog-title {
   display: block;
   position: absolute;
-  top: 0; left: 0;
+  top: 0;
+  left: 0;
   margin: 0.2em 0.5em;
   padding: 0;
-  color: #d9d9d9;
+  color: #fff;
+  font-size: 1.2em;
 }
 .overlay .ui-dialog-titlebar-close {
   display: block;
   position: absolute;
-  top: 0; right: 0;
-  margin: 2px 2px 2px 0.5em;
-  padding: 0;
+  right: -24px;
+  top: 24px;
+  margin: 0;
+  padding: 5px 1px 0 0;
   width: 23px;
   height: 20px;
-  background: url(images/close.gif) no-repeat 0 0;
+  background: #fff url(images/close.png) no-repeat 1px 5px;
+  border-radius: 0 15px 15px 0;
+  -moz-border-radius: 0 15px 15px 0;
+  -webkit-border-top-right-radius: 13px;
+  -webkit-border-bottom-right-radius: 13px;
 }
 .overlay .ui-dialog-titlebar a.ui-state-hover,
 .overlay .ui-dialog-titlebar a.ui-state-focus {
@@ -53,91 +56,43 @@
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background-color: #aaaaaa;
-  opacity: 0.4;
-  filter: alpha(opacity=40);
+  background-color: #000;
+  opacity: 0.8;
+  filter: alpha(opacity=80);
 }
 
 /**
- * Dialog content.
+ * Overlay content and shadows.
  */
 #overlay-container {
   margin: 0;
   padding: 0;
   background: url(images/loading.gif) no-repeat 50% 50%;
 }
+#overlay-container div.shadow {
+  height: 15px;
+  background: transparent url(images/gradient-vertical.png) repeat-x scroll 0 0;
+  margin: -6px 0 0 -15px;
+}
+#overlay-container div.shadow img {
+  margin-left: -15px;
+}
 #overlay-element {
   margin: 0;
   padding: 0;
   border: none;
 }
-
-/**
- * Shadows.
- */
-#overlay-container div.shadow {
-  height: 15px;
-  background: transparent url(images/gradient-vertical.png) repeat-x scroll 0 0;
-  margin-top: -6px;
-}
-
 #overlay-container {
-  background: transparent url(images/gradient-horizontal.png) repeat-y scroll right center;
+  /* @todo: needs to be its own container. */
+  /*background: transparent url(images/gradient-horizontal.png) repeat-y scroll right center;*/
   padding-right: 15px;
 }
 
 /**
- * Customizations 
+ * Tabs on the overlay.
  */
-.ui-widget-overlay {
-  background-color: #000 !important;
-  opacity: 0.8 !important;
-}
-
-.ui-dialog {
-  padding-right: 30px;
-}
-
-.overlay {
-  border: none !important;
-  background-color: transparent !important;
-}
-
-.overlay .ui-dialog-titlebar {
-  background-color: transparent !important;
-  border: none !important;
-  cursor: auto;
-}
-.overlay .ui-dialog-titlebar {
-  cursor: normal !important;
-  height: 2em !important;
-}
-.overlay .ui-dialog-title {
-  color: #fff !important;
-  font-size: 1.2em !important;
-}
-
-.overlay .ui-dialog-titlebar-close {
-  right: -29px;
-  top: 22px;
-  background: #fff;
-  padding: 5px 1px 2px 3px;
-  border-radius: 0 15px 15px 0;
-  -moz-border-radius: 0 15px 15px 0;
-  /* Safari 4 only understand it this way */
-  -webkit-border-top-right-radius: 13px;
-  -webkit-border-bottom-right-radius: 13px;
-}
-
-.overlay .ui-dialog-titlebar-close span {
-  background: #fff url(images/close.png) no-repeat 0 0;
-  display: block;
-  text-indent: 1000px;
-  width: 16px;
-  height: 16px;
-}
-
-.ui-dialog-titlebar ul.horizontal-tabs-panes, .ui-dialog-titlebar ul.primary {
+.ui-dialog-titlebar ul.horizontal-tabs-panes,
+.ui-dialog-titlebar ul.primary {
   float: right;
   border-bottom: none;
   margin: 0;
@@ -150,7 +105,8 @@
   list-style: none;
 }
 
-.ui-dialog-titlebar ul.primary li, .ui-dialog-titlebar ul.horizontal-tabs-panes li {
+.ui-dialog-titlebar ul.primary li,
+.ui-dialog-titlebar ul.horizontal-tabs-panes li {
   background: transparent url(images/tab_inactive_rt.png) no-repeat top right;
   padding: 5px 5px 4px 0px;
 }
