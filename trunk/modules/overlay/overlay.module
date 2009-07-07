@@ -15,19 +15,13 @@ function overlay_init() {
     if (!empty($_GET['render']) && ($_GET['render'] == 'overlay')) {
       // d7uxoverlay marks modal frames.
       global $custom_theme;
+      // @todo: rename overlay theme to avoid naming conflict.
       $custom_theme = 'overlay';
       overlay_child_js();
     }
     else {
       // Otherwise add overlay parent code and our behavior.
       overlay_parent_js();
-      $module_path = drupal_get_path('module', 'd7uxoverlay');
-      drupal_add_css($module_path .'/overlay.css');
-      drupal_add_js($module_path .'/overlay.js');
-      // If on a node page, add this info to alter the header.
-      if ($node = menu_get_object()) {
-        drupal_add_js(array('overlay' => array('nodeEdit' => url('node/' . $node->nid . '/edit'))), array('type' => 'setting'));
-      }
     }
   }
 }
@@ -262,13 +256,15 @@ function overlay_parent_js() {
   }
   $processed = TRUE;
 
-  // Add required jQuery UI elements.
+  // Add required jQuery UI elements. Note that we don't use
+  // drupal_add_library() here, since we have no use for the CSS files added
+  // by the library.
   drupal_add_js('misc/ui/ui.core.js', array('weight' => JS_LIBRARY + 5));
   drupal_add_js('misc/ui/ui.dialog.js', array('weight' => JS_LIBRARY + 6));
 
   $module_path = drupal_get_path('module', 'overlay');
-  drupal_add_css($module_path .'/css/parent.css');
-  drupal_add_js($module_path .'/js/parent.js');
+  drupal_add_css($module_path .'/overlay-parent.css');
+  drupal_add_js($module_path .'/overlay-parent.js');
 }
 
 /**
@@ -288,13 +284,14 @@ function overlay_child_js() {
   module_invoke('toolbar', 'suppress', TRUE);
 
   // This is required to get access to jQuery UI extensions to jQuery itself,
-  // such as the ':focusable' and ':tabbable' selectors.
+  // such as the ':focusable' and ':tabbable' selectors. No need for the whole
+  // library, so not using drupal_add_library().
   drupal_add_js('misc/ui/ui.core.js', array('weight' => JS_LIBRARY + 5));
 
   // Add javascript and stylesheets to the child page.
   $module_path = drupal_get_path('module', 'overlay');
-  drupal_add_css($module_path .'/css/child.css');
-  drupal_add_js($module_path .'/js/child.js');
+  drupal_add_css($module_path .'/overlay-child.css');
+  drupal_add_js($module_path .'/overlay-child.js');
 
   // Tell Drupal's theme system to use the overlay template.
   $GLOBALS['overlay_page_template'] = TRUE;

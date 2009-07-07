@@ -32,7 +32,7 @@
   padding: 0;
   width: 23px;
   height: 20px;
-  background: url(../images/close.gif) no-repeat 0 0;
+  background: url(images/close.gif) no-repeat 0 0;
 }
 .overlay .ui-dialog-titlebar a.ui-state-hover,
 .overlay .ui-dialog-titlebar a.ui-state-focus {
@@ -64,7 +64,7 @@
 #overlay-container {
   margin: 0;
   padding: 0;
-  background: url(../images/loading.gif) no-repeat 50% 50%;
+  background: url(images/loading.gif) no-repeat 50% 50%;
 }
 #overlay-element {
   margin: 0;
@@ -77,12 +77,12 @@
  */
 #overlay-container div.shadow {
   height: 15px;
-  background: transparent url(../images/gradient-vertical.png) repeat-x scroll 0 0;
+  background: transparent url(images/gradient-vertical.png) repeat-x scroll 0 0;
   margin-top: -6px;
 }
 
 #overlay-container {
-  background: transparent url(../images/gradient-horizontal.png) repeat-y scroll right center;
+  background: transparent url(images/gradient-horizontal.png) repeat-y scroll right center;
   padding-right: 15px;
 }
 
@@ -130,7 +130,7 @@
 }
 
 .overlay .ui-dialog-titlebar-close span {
-  background: #fff url(../images/close.png) no-repeat 0 0;
+  background: #fff url(images/close.png) no-repeat 0 0;
   display: block;
   text-indent: 1000px;
   width: 16px;
@@ -151,7 +151,7 @@
 }
 
 .ui-dialog-titlebar ul.primary li, .ui-dialog-titlebar ul.horizontal-tabs-panes li {
-  background: transparent url(../images/tab_inactive_rt.png) no-repeat top right;
+  background: transparent url(images/tab_inactive_rt.png) no-repeat top right;
   padding: 5px 5px 4px 0px;
 }
 
@@ -163,7 +163,7 @@
 .ui-dialog-titlebar ul.horizontal-tabs-panes li a.active,
 .ui-dialog-titlebar ul.horizontal-tabs-panes li a:active,
 .ui-dialog-titlebar ul.horizontal-tabs-panes li a:visited {
-  background: transparent url(../images/tab_inactive_lt.png) no-repeat;
+  background: transparent url(images/tab_inactive_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
   padding: 5px 5px 5px 10px;
@@ -173,7 +173,7 @@
 .ui-dialog-titlebar ul.horizontal-tabs-panes li.active,
 .ui-dialog-titlebar ul.primary li:hover,
 .ui-dialog-titlebar ul.horizontal-tabs-panes li:hover {
-  background: transparent url(../images/tab_active_rt.png) no-repeat center right;
+  background: transparent url(images/tab_active_rt.png) no-repeat center right;
 }
 
 .ui-dialog-titlebar ul.primary li.active a,
@@ -188,7 +188,7 @@
 .ui-dialog-titlebar ul.horizontal-tabs-panes li.active a:visited,
 .ui-dialog-titlebar ul.horizontal-tabs-panes li a:hover,
 .ui-dialog-titlebar ul.horizontal-tabs-panes li.active a:hover {
-  background: transparent url(../images/tab_active_lt.png) no-repeat;
+  background: transparent url(images/tab_active_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
   padding: 5px 5px 5px 10px;
