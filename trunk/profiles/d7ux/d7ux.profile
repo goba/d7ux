@@ -159,7 +159,7 @@ function d7ux_profile_tasks(&$task, $url) {
     array(
       'module' => 'system',
       'delta' => 'main',
-      'theme' => 'overlay',
+      'theme' => 'slate',
       'status' => 1,
       'weight' => 0,
       'region' => 'content',
@@ -255,8 +255,14 @@ function d7ux_profile_tasks(&$task, $url) {
   // Set popups to unskinned.
   variable_set('popups_skin', 'D7ux');
   
-  // Enable the overlay theme (quick and ugly).
-  db_query("UPDATE {system} SET status = 1 WHERE name = 'overlay'");
+  // Enable the admin theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', 'slate')
+    ->execute();
+  variable_set('admin_theme', 'slate');
+  variable_set('node_admin_theme', '1');
 }
 
 /**
