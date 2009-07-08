@@ -368,6 +368,9 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
         $(tabs).find('a').addClass('to-overlay');
         Drupal.attachBehaviors($(tabs));
       }
+      // Remove any classes from the list element to avoid theme styles 
+      // clashing with our styling.
+      $(tabs).removeAttr('class');
     }
   });
 };
