@@ -9,8 +9,9 @@
 }
 .overlay .ui-dialog-titlebar {
   position: relative;
-  height: 2em;
+  height: 30px;
   white-space: nowrap;
+  z-index: 2;
 }
 .overlay .ui-dialog-title {
   display: block;
@@ -20,13 +21,13 @@
   margin: 0.2em 0.5em;
   padding: 0;
   color: #fff;
-  font-size: 1.2em;
+  font-size: 20px;
 }
 .overlay .ui-dialog-titlebar-close {
   display: block;
   position: absolute;
   right: -24px;
-  top: 24px;
+  top: 30px;
   margin: 0;
   padding: 5px 1px 0 0;
   width: 23px;
@@ -63,14 +64,14 @@
 #overlay-container {
   margin: 0;
   padding: 0;
-  background: url(images/loading.gif) no-repeat 50% 50%;
+  background: #fff url(images/loading.gif) no-repeat 50% 50%;
 }
-#overlay-container div.shadow {
+#overlay-container div.overlay-shadow-bottom {
   height: 15px;
   background: transparent url(images/gradient-vertical.png) repeat-x scroll 0 0;
   margin: -6px 0 0 -15px;
 }
-#overlay-container div.shadow img {
+#overlay-container div.overlay-shadow-bottom img {
   margin-left: -15px;
 }
 #overlay-element {
@@ -78,10 +79,14 @@
   padding: 0;
   border: none;
 }
-#overlay-container {
-  /* @todo: needs to be its own container. */
-  /*background: transparent url(images/gradient-horizontal.png) repeat-y scroll right center;*/
-  padding-right: 15px;
+#overlay-container div.overlay-shadow-right {
+  position: absolute;
+  top: 26px;
+  right: 15px;
+  width: 15px;
+  height: 100%;
+  background: transparent url(images/gradient-horizontal.png) repeat-y scroll right center;
+  z-index: 1;
 }
 
 /**
@@ -92,8 +97,10 @@
   float: right;
   border-bottom: none;
   margin: 0;
-  padding: 0.5em 0 0;
+  padding: 10px 0 0;
   line-height: normal;
+  text-transform: uppercase;
+  font-size: 12px;
 }
 
 .ui-dialog-titlebar ul.horizontal-tabs-panes li {
@@ -104,7 +111,7 @@
 .ui-dialog-titlebar ul.primary li,
 .ui-dialog-titlebar ul.horizontal-tabs-panes li {
   background: transparent url(images/tab_inactive_rt.png) no-repeat top right;
-  padding: 5px 5px 4px 0px;
+  padding: 7px 8px 5px 0;
 }
 
 .ui-dialog-titlebar ul.primary li a,
@@ -118,7 +125,7 @@
   background: transparent url(images/tab_inactive_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
-  padding: 5px 5px 5px 10px;
+  padding: 7px 15px 5px 20px;
 }
 
 .ui-dialog-titlebar ul.primary li.active,
@@ -143,5 +150,5 @@
   background: transparent url(images/tab_active_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
-  padding: 5px 5px 5px 10px;
+  padding: 7px 15px 5px 20px;
 }

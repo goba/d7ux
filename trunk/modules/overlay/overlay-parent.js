@@ -99,6 +99,7 @@ Drupal.overlay.create = function() {
   // iframe element is defined.
   self.iframe.$element = $('<iframe id="overlay-element" frameborder="0" name="overlay-element"'+ ($.browser.msie ? ' scrolling="yes"' : '') +'/>');
   self.iframe.$container = $('<div id="overlay-container"/>').append(self.iframe.$element);
+  self.iframe.$element.after('<div class="overlay-shadow-right"/>').after('<div class="overlay-shadow-bottom"><img src="' + Drupal.settings.overlay.shadowPath + '" alt="" /></div>');
   $('body').append(self.iframe.$container);
 
   self.iframe.$container.dialog({
@@ -130,7 +131,6 @@ Drupal.overlay.create = function() {
       // Compute frame size and dialog position based on dialog size.
       var frameSize = $.extend({}, dialogSize);
       frameSize.height -= $('.overlay .ui-dialog-titlebar').outerHeight(true);
-      dialogSize.height += 15;
       var dialogPosition = self.computePosition($('.overlay'), dialogSize);
 
       // Adjust size of the iframe element and container.
@@ -141,7 +141,7 @@ Drupal.overlay.create = function() {
       // Update the dialog size so that UI internals are aware of the change.
       self.iframe.$container.dialog('option', {width: dialogSize.width, height: dialogSize.height});
 
-      // Hide the dialog, center it on the viewport and then fade it in with
+      // Hide the dialog, position it on the viewport and then fade it in with
       // the frame hidden until the child document is loaded.
       self.iframe.$element.hide();
       $('.overlay').hide().css({top: dialogPosition.top, left: dialogPosition.left});
@@ -358,10 +358,6 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
         return false;
       }
     });
-
-    if (!$('#overlay-container').find('div.shadow').size()) {
-      $('#overlay-container').append('<div class="shadow"><img src="' + Drupal.settings.overlay.shadowPath + '" alt="" /></div>');
-    }
 
     var tabs = $iFrameDocument.find('ul.horizontal-tabs-panes, ul.primary').get(0);
 
