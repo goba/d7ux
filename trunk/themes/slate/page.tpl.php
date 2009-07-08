@@ -9,7 +9,7 @@
     <!--[if lt IE 7]><?php print $ie_styles ?><![endif]-->
     <title><?php print $head_title ?></title>
   </head>
-  <body class='admin'>
+  <body class="<?php print $classes;?>">
 
   <?php if (!empty($admin)): ?><?php print $admin; ?><?php endif; ?>
 
