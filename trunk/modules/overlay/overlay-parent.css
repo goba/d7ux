@@ -105,11 +105,12 @@
 .ui-dialog-titlebar ul li {
   display: inline;
   list-style: none;
+  margin-left: 1px;
 }
 
 .ui-dialog-titlebar ul li {
   background: transparent url(images/tab_inactive_rt.png) no-repeat top right;
-  padding: 7px 8px 5px 0;
+  padding: 5px 8px 7px 0;
 }
 
 .ui-dialog-titlebar ul li a,
@@ -119,7 +120,7 @@
   background: transparent url(images/tab_inactive_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
-  padding: 7px 15px 5px 20px;
+  padding: 5px 15px 7px 20px;
 }
 
 .ui-dialog-titlebar ul li.active,
@@ -127,6 +128,7 @@
   background: transparent url(images/tab_active_rt.png) no-repeat center right;
 }
 
+.ui-dialog-titlebar ul li:hover a,
 .ui-dialog-titlebar ul li.active a,
 .ui-dialog-titlebar ul li.active a.active,
 .ui-dialog-titlebar ul li.active a:active,
@@ -136,5 +138,6 @@
   background: transparent url(images/tab_active_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
-  padding: 7px 15px 5px 20px;
+  text-decoration: none;
+  padding: 5px 15px 7px 20px;
 }
