@@ -874,3 +874,14 @@ div.admin-options div.form-item {
   padding: 0px;
   border: 0px;
 }
+
+/* Overlay theming */
+body.overlay #branding,
+body.overlay #page-title,
+body.overlay #page #left,
+body.overlay #page #footer {
+  display: none;
+}
+body.overlay #page {
+  padding: 0;
+}
