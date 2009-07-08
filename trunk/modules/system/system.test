@@ -451,9 +451,8 @@ class AdminOverviewTestCase extends DrupalWebTestCase {
 
     $this->drupalGet('admin');
 
-    // Make sure menu items with children are displayed.
-    $this->assertLink(t('Administer'));
-    $this->assertLink(t('Content management'));
+    // Make sure the only accessible menu item is displayed.
+    $this->assertLink(t('Content'));
 
     // Make sure menu items without children are hidden.
     $this->assertNoLink(t('Site configuration'));
