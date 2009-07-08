@@ -554,7 +554,7 @@ Drupal.overlay.resize = function(size) {
 
       // d7ux: Keep the overlay grow or shrink with the dialog.
       $('.ui-widget-overlay').height($(document).height());
-      $(self.iframe.$element.get(0)).contents().find('.overlay-page-wrapper').animate({opacity:1}, 'slow');
+      $(self.iframe.$element.get(0)).contents().find('body.overlay').animate({opacity:1}, 'slow');
     }
   });
 };

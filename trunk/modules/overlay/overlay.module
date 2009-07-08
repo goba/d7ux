@@ -20,13 +20,18 @@ define('OVERLAY_CHILD', 1);
  * Implementation of hook_init().
  */
 function overlay_init() {
+  global $custom_theme;
+
   // Only act if the admin toolbar "is enabled" (user has access).
   if (user_access('admin toolbar')) {
     if (!empty($_GET['render']) && ($_GET['render'] == 'overlay')) {
-      // d7uxoverlay marks modal frames.
-      global $custom_theme;
-      // @todo: rename overlay theme to avoid naming conflict.
-      $custom_theme = 'slate';
+      $admin_theme = variable_get('admin_theme', 0);
+      if ($custom_theme != $admin_theme) {
+        // If system module did not switch the theme yet (ie. this is not an 
+        // admin page per say), we should switch the theme here.
+        $custom_theme = $admin_theme; 
+        drupal_add_css(drupal_get_path('module', 'system') . '/admin.css');
+      }
       overlay_mode(OVERLAY_CHILD);
     }
     else {
