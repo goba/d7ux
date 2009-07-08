@@ -37,10 +37,6 @@
   -webkit-border-top-right-radius: 13px;
   -webkit-border-bottom-right-radius: 13px;
 }
-.overlay .ui-dialog-titlebar a.ui-state-hover,
-.overlay .ui-dialog-titlebar a.ui-state-focus {
-  background-position: 0 -20px;
-}
 .overlay .ui-dialog-titlebar-close span {
   display: none;
 }
