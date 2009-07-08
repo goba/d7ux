@@ -54,7 +54,6 @@ Drupal.behaviors.keepOverlay = {
  * Overlay object for parent windows.
  */
 Drupal.overlay = Drupal.overlay || {
-  dirtyFormsWarning: Drupal.t('Your changes will be lost if you close this popup now.'),
   options: {},
   iframe: { $container: null, $element: null },
   isOpen: false
@@ -77,7 +76,6 @@ Drupal.overlay.open = function(options) {
     width: options.width,
     height: options.height,
     autoFit: (options.autoFit == undefined || options.autoFit ? true : false),
-    draggable: (options.draggable == undefined || options.draggable ? true : false),
     onOverlayClose: options.onOverlayClose
   };
 
@@ -107,7 +105,6 @@ Drupal.overlay.create = function() {
     modal: true,
     autoOpen: false,
     closeOnEscape: true,
-    draggable: self.options.draggable,
     resizable: false,
     title: Drupal.t('Loading...'),
     dialogClass: 'overlay',
@@ -124,15 +121,8 @@ Drupal.overlay.create = function() {
       $('.overlay .ui-dialog-titlebar-close:not(.overlay-processed)').addClass('overlay-processed')
         .attr('href', 'javascript:void(0)')
         .attr('title', Drupal.t('Close'))
-        .unbind('click').bind('click', function() { try { self.close(false); } catch(e) {}; return false; });
-
-      // Adjust titlebar.
-      if (!self.options.draggable) {
-        $('.overlay .ui-dialog-titlebar').css('cursor', 'default');
-      }
-
-      // Fix dialog position on the viewport.
-      self.fixPosition($('.overlay'), true);
+        .unbind('click')
+        .bind('click', function() { try { self.close(false); } catch(e) {}; return false; });
 
       // Compute initial dialog size.
       var dialogSize = self.sanitizeSize({width: self.options.width, height: self.options.height});
@@ -141,7 +131,7 @@ Drupal.overlay.create = function() {
       var frameSize = $.extend({}, dialogSize);
       frameSize.height -= $('.overlay .ui-dialog-titlebar').outerHeight(true);
       dialogSize.height += 15;
-      var dialogPosition = self.computeCenterPosition($('.overlay'), dialogSize);
+      var dialogPosition = self.computePosition($('.overlay'), dialogSize);
 
       // Adjust size of the iframe element and container.
       $('.overlay').width(dialogSize.width).height(dialogSize.height);
@@ -175,7 +165,6 @@ Drupal.overlay.create = function() {
     close: function() {
       $(document).unbind('keydown.overlay-event');
       $('.overlay .ui-dialog-titlebar-close').unbind('keydown.overlay-event');
-      self.fixPosition($('.overlay'), false);
       try {
         self.iframe.$element.remove();
         self.iframe.$container.dialog('destroy').remove();
@@ -217,20 +206,6 @@ Drupal.overlay.canClose = function() {
   var self = this;
   if (!self.isOpen) {
     return false;
-  }
-  if (self.isObject(self.iframe.Drupal)) {
-    // Prompt user for confirmation to close dialog if child window has
-    // dirty forms.
-    if (self.isObject(self.iframe.Drupal.dirtyForms)) {
-      if (self.iframe.Drupal.dirtyForms.isDirty() && !confirm(self.dirtyFormsWarning)) {
-        return false;
-      }
-      self.iframe.Drupal.dirtyForms.warning = null;
-    }
-    // Disable onBeforeUnload behaviors on child window.
-    if (self.isObject(self.iframe.Drupal.onBeforeUnload)) {
-      self.iframe.Drupal.onBeforeUnload.disable();
-    }
   }
   return true;
 };
@@ -282,11 +257,6 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
   // We are done if the child window is closing.
   if (isClosing) {
     return;
-  }
-
-  // Update the dirty forms warning on the child window.
-  if (self.isObject(self.iframe.Drupal.dirtyForms)) {
-    self.iframe.Drupal.dirtyForms.warning = self.dirtyFormsWarning;
   }
 
   // Update the dialog title with the child window title.
@@ -450,9 +420,9 @@ Drupal.overlay.sanitizeSize = function(size) {
   if (typeof size.height != 'number') {
     height = maxHeight;
   }
-  // d7ux: do not maximise in maxheight
-  else if (size.height < minHeight /*|| size.height > maxHeight*/) {
-    height = Math.min(maxHeight, Math.max(minHeight, size.height));
+  else if (size.height < minHeight) {
+    // Do not consider maxHeight, only set up to be at least the minimal height.
+    height = Math.max(minHeight, size.height);
   }
   else {
     height = size.height;
@@ -461,53 +431,20 @@ Drupal.overlay.sanitizeSize = function(size) {
 };
 
 /**
- * Fix the position of the overlay.
- *
- * Possible alternative to position:'fixed' for IE6:
- * @see http://www.howtocreate.co.uk/fixedPosition.html
+ * Compute position to center horizontally and on viewport top vertically.
  */
-Drupal.overlay.fixPosition = function($element, isOpen) {
-  // d7ux: do not make it fixed.
-  return;
+Drupal.overlay.computePosition = function($element, elementSize) {
   var $window = $(window);
-  if ($.browser.msie && parseInt($.browser.version) <= 6) {
-    // IE6 does not support position:'fixed'.
-    // Lock the window scrollBar instead.
-    if (isOpen) {
-      var yPos = $window.scrollTop();
-      var xPos = $window.scrollLeft();
-      $window.bind('scroll.overlay-event', function() {
-        window.scrollTo(xPos, yPos);
-        // Default browser action cannot be prevented here.
-      });
-    }
-    else {
-      $window.unbind('scroll.overlay-event');
-    }
-  }
-  else {
-    // Use CSS to do it on other browsers.
-    if (isOpen) {
-      var offset = $element.offset();
-      $element.css({
-        left: (offset.left - $window.scrollLeft()),
-        top: (offset.top - $window.scrollTop()),
-        position: 'fixed'
-      });
-    }
-  }
-};
-
-/**
- * Compute position to center an element with the given size.
- */
-Drupal.overlay.computeCenterPosition = function($element, elementSize) {
-  var $window = $(window);
+  // Consider the possibly displayed admin toolbar.
+  var $toolbar = $('#toolbar');
+  var toolbarHeight = $toolbar ? $toolbar.height() : 0;
   var position = {
     left: Math.max(0, parseInt(($window.width() - elementSize.width) / 2)),
-    // d7ux: do not hide it behind header toolbar
-    top: headerHeight = $('#toolbar').height() + 20 //; Math.max(0, parseInt(($window.height() - elementSize.height) / 2))
+    top: toolbarHeight + 20
   };
+  // @todo: this helps when the toolbar moves with the page, since otherwise
+  // we might open a screen which does not show on the viewport. It is not
+  // nice however, when one scrolls up top again and the overlay is not there.
   if ($element.css('position') != 'fixed') {
     var $document = $(document);
     position.left += $document.scrollLeft();
@@ -535,8 +472,8 @@ Drupal.overlay.resize = function(size) {
   //}
   dialogSize.height += 15;
 
-  // Compute dialog position centered on viewport.
-  var dialogPosition = self.computeCenterPosition($('.overlay'), dialogSize);
+  // Compute dialog position on viewport.
+  var dialogPosition = self.computePosition($('.overlay'), dialogSize);
 
   var animationOptions = $.extend(dialogSize, dialogPosition);
 
