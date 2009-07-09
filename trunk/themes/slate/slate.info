@@ -1,6 +1,6 @@
 ; $Id$
 name = Slate
-description = A simple two-column, tableless, fluid width administration theme.
+description = A simple one-column, tableless, fluid width administration theme.
 core = 7.x
 version = VERSION
 engine = phptemplate
@@ -10,7 +10,6 @@ stylesheets[all][] = vertical-tabs.css
 scripts[] = theme.js
 ; Enable the all default regions except the right sidebar, which Slate does not
 ; support.
-regions[left] = Left sidebar
 regions[content] = Content
 regions[header] = Header
 regions[footer] = Footer
@@ -18,4 +17,3 @@ regions[highlight] = Highlighted content
 regions[help] = Help
 regions[page_top] = Page top
 features[] = name
-features[] = search

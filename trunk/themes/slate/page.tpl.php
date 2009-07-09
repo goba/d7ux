@@ -9,7 +9,7 @@
     <!--[if lt IE 7]><?php print $ie_styles ?><![endif]-->
     <title><?php print $head_title ?></title>
   </head>
-  <body class="<?php print $classes;?>">
+  <body class="<?php print $classes; ?>">
 
   <?php if (!empty($admin)): ?><?php print $admin; ?><?php endif; ?>
 
@@ -32,29 +32,16 @@
     </div>
   <?php endif; ?>
 
-  <div id="branding" class="clearfix reverse limiter">
+  <div id="branding" class="clearfix reverse">
     <?php if ($site_name): ?><h1 class="site-name"><?php print $site_name; ?></h1><?php endif; ?>
-    <?php if ($breadcrumb): ?><?php print $breadcrumb; ?><?php endif; ?>
-    <?php if ($search_box): ?><div class="block block-theme"><?php print $search_box; ?></div><?php endif; ?>
+    <?php if (!empty($secondary_nav)): ?><?php print l(t('Expand'), $_GET['q'], array('attributes' => array('class' => 'subnav-toggle'))) ?><?php endif; ?>
+    <?php if ($title): ?><h2 class="page-title"><?php print $title ?></h2><?php endif; ?>
+    <?php if ($primary_local_tasks): ?><ul class="tabs primary"><?php print $primary_local_tasks ?></ul><?php endif; ?>
     <?php if ($help): ?><?php print l(t('Need help?'), 'admin/help', array('attributes' => array('class' => 'help-toggle'))); ?><?php endif; ?>
   </div>
 
-  <?php if ($title): ?>
-    <div id="page-title" class="clearfix limiter reverse">
-      <?php if (!empty($secondary_nav)): ?><?php print l(t('Expand'), $_GET['q'], array('attributes' => array('class' => 'subnav-toggle'))) ?><?php endif; ?>
-      <h2 class="page-title"><?php print $title ?></h2>
-      <?php if ($primary_local_tasks): ?><ul class="tabs primary"><?php print $primary_local_tasks ?></ul><?php endif; ?>
-    </div>
-  <?php endif; ?>
-
-  <div id='page'>
-
-    <div id="left" class="reverse clearfix">
-      <?php if (!empty($secondary_nav)): ?><div id="secondary-links"><?php print $secondary_nav; ?></div><?php endif; ?>
-      <?php if ($secondary_local_tasks): ?><ul class="tabs secondary"><?php print $secondary_local_tasks; ?></ul><?php endif; ?>
-      <?php if (!empty($primary_nav)): ?><div id="primary-links"><?php print $primary_nav; ?></div><?php endif; ?>
-      <?php print $left; ?>
-    </div>
+  <div id="page">
+    <?php if ($secondary_local_tasks): ?><ul class="tabs secondary"><?php print $secondary_local_tasks; ?></ul><?php endif; ?>
 
     <div id="content" class="clearfix">
       <?php if ($show_messages && $messages): ?>
