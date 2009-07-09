@@ -366,6 +366,7 @@ ul.secondary li.active a.active {
   min-height: 180px;
   padding: 20px;
   background: #fff;
+  color: #333;
 }
 
 #content ul.menu li,
