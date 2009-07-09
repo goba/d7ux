@@ -34,7 +34,6 @@
 
   <div id="branding" class="clearfix reverse">
     <?php if ($site_name): ?><h1 class="site-name"><?php print $site_name; ?></h1><?php endif; ?>
-    <?php if (!empty($secondary_nav)): ?><?php print l(t('Expand'), $_GET['q'], array('attributes' => array('class' => 'subnav-toggle'))) ?><?php endif; ?>
     <?php if ($title): ?><h2 class="page-title"><?php print $title ?></h2><?php endif; ?>
     <?php if ($primary_local_tasks): ?><ul class="tabs primary"><?php print $primary_local_tasks ?></ul><?php endif; ?>
     <?php if ($help): ?><?php print l(t('Need help?'), 'admin/help', array('attributes' => array('class' => 'help-toggle'))); ?><?php endif; ?>
