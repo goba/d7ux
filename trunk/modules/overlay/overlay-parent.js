@@ -278,7 +278,7 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
     // may affect the size of the child document, specially on fluid layouts.
     // If you get in trouble, then I would suggest to choose a known dialog
     // size and disable the option autoFit.
-    self.iframe.documentSize = {width: $iFrameDocument.width(), height: $iFrameWindow('body').height() + 25};
+    self.iframe.documentSize = {width: $iFrameDocument.width(), height: $iFrameWindow('body').height() };
 
     // Adjust overlay to fit the iframe content?
     if (self.options.autoFit) {

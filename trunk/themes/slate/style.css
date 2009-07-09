@@ -836,6 +836,9 @@ div.admin-options div.form-item {
 }
 
 /* Overlay theming */
+body.overlay {
+  background: #fff;
+}
 body.overlay #branding,
 body.overlay #page-title,
 body.overlay #page #left,
@@ -845,4 +848,5 @@ body.overlay #page #footer {
 
 body.overlay #page {
   margin: 0;
+  padding: 0;
 }
