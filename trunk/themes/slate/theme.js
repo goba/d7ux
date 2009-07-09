@@ -13,15 +13,6 @@ Drupal.behaviors.slate = {
       });
     });
 
-    // Toggle help
-    $('a.subnav-toggle:not(.processed)').each(function() {
-      $(this).addClass('processed').click(function() {
-        $(this).toggleClass('subnav-expanded');
-        $('#secondary-links').toggle();
-        return false;
-      });
-    });
-
     // Fieldset
     $('div.fieldset:not(.processed)').each(function() {
       $(this).addClass('processed');
