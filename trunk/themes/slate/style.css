@@ -3,9 +3,9 @@
 /**
  * Generic elements
  */
-body.admin {
-  color: #333;
-  background: #333 url(images/page.png) 0px 0px repeat-y;
+body {
+  color: #fff;
+  background: #333;
   font-style: normal;
   line-height: 20px;
   font-size: 0.8em;
@@ -610,7 +610,6 @@ html.js fieldset.collapsible .fieldset-wrapper {
 div.form-item {
   padding: 9px;
   margin: 0px 0px 10px;
-  border: 1px solid #ccc;
 }
 
 .filter-wrapper div.form-item,
@@ -629,7 +628,6 @@ fieldset div.form-item {
 div.form-item label {
   margin: 0px;
   padding: 0px;
-  font-weight: normal;
 }
 
 form label,
