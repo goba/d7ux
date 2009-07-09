@@ -13,7 +13,7 @@ body {
 }
 
 a {
-  color: #05a;
+  color: #0074BD;
   text-decoration: none;
 }
 
@@ -447,14 +447,15 @@ table {
   width: 100%;
   font-size: 12px;
   margin: 0px 0px 10px;
+  border: 1px solid #BEBFB9;
+  border-top: 0;
 }
 
 table.system-status-report th,
 table td,
 table th {
   vertical-align: middle;
-  border: 1px solid #ddd;
-  padding: 5px;
+  padding: 8px 5px 8px 10px;
 }
 
 table.system-status-report th {
@@ -477,22 +478,47 @@ table.system-status-report tr.error > * {
   background-color: #fdd;
 }
 
-table th {
-  font-size: 9px;
-  text-transform: uppercase;
-  background: #eee;
+tr.even, tr.odd {
+  border-width: 0 1px 0 1px;
+  border-style: solid;
+  border-color: #BEBFB9;
+  background: #F3F4EE;
 }
 
-table tr.odd td {
+tr.odd {
   background: #fff;
 }
 
+table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  background: #E1E2DC;
+  font-weight: normal;
+  border-width: 0 1px 1px 1px;
+  border-style: solid;
+  border-color: #BEBFB9;
+  padding: 3px 3px 3px 10px;
+}
+
+table th.active {
+  background: #BDBEB9;
+}
+
+table th a {
+  display: block;
+}
+
+table th.active img {
+  float: right;
+  margin-top: 3px;
+}
+
 table td.active {
-  background: #e4f0f8;
+  background: #E9E9DD;
 }
 
 table tr.odd td.active {
-  background: #ecf8fc;
+  background: #F3F4EE;
 }
 
 table tr.selected td.active,
@@ -501,60 +527,30 @@ table tr.selected td {
   border-color: #eeb;
 }
 
-/**
- * Pagers.
- */
-#content div.item-list ul.pager {
-  position: relative;
-  height: 28px;
-  background: #f8f8f8;
-  border: 1px solid #ccc;
-  padding-right: 80px;
-}
-
-#content ul.pager li,
-#content ul.pager li a {
-  float: left;
-}
-
-#content ul.pager li.pager-ellipsis,
-#content ul.pager li.pager-current,
-#content ul.pager li a {
-  color: #666;
-  font-weight: normal;
-  padding: 4px 10px;
-}
-
-#content ul.pager li {
-  border-right: 1px solid #ccc;
-}
-
-#content ul.pager li.pager-current {
-  background: #fff;
-}
-
-#content ul.pager li.pager-first a,
-#content ul.pager li.pager-previous a,
-#content ul.pager li.pager-next a,
-#content ul.pager li.pager-last a {
-  font-size: 12px;
-  font-weight: bold;
-  width: 79px;
-  padding: 4px 0px;
-  text-align: center;
-  background: #eee;
-}
-
-#content ul.pager li.pager-next,
-#content ul.pager li.pager-last {
-  border-left: 1px solid #ccc;
-  border-right: 0px;
+/* Pager */
+.short-pager {
   float: right;
+  margin-top: 2em;
 }
 
-#content ul.pager li a:hover {
-  background: #999;
-  color: #fff;
+.short-pager div {
+  display: inline;
+  margin-left: 1em;
+}
+
+.short-pager .short-pager-total {
+  font-size: 0.8em;
+  color: #5D5D5D;
+}
+
+.short-pager .short-pager-prev {
+  background: url(images/arrow-prev.png) no-repeat center left;
+  padding-left: 10px;
+}
+
+.short-pager .short-pager-next {
+  background: url(images/arrow-next.png) no-repeat center right;
+  padding-right: 10px;
 }
 
 /* This whole portion is to accommodate the correct order of next/last pager links. */
