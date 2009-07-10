@@ -458,19 +458,12 @@ Drupal.overlay.resize = function(size) {
   var self = this;
 
   // Compute frame and dialog size based on requested document size.
-  var maxSize = self.sanitizeSize({}), titleBarHeight = $('.overlay .ui-dialog-titlebar').outerHeight(true);
-  var frameSize = self.sanitizeSize(size), dialogSize = $.extend({}, frameSize);
-  // d7ux: do not maximize height in Window height.
-  //if ((dialogSize.height + titleBarHeight) <= maxSize.height) {
-    dialogSize.height += titleBarHeight;
-  //}
-  //else {
-  //  dialogSize.height = maxSize.height;
-  //  frameSize.height = dialogSize.height - titleBarHeight;
-  //}
-  dialogSize.height += 15;
+  var titleBarHeight = $('.overlay .ui-dialog-titlebar').outerHeight(true);
+  var frameSize = self.sanitizeSize(size); 
+  var dialogSize = $.extend({}, frameSize);
+  dialogSize.height += titleBarHeight + 15;
 
-  // Compute dialog position on viewport.
+  // Compute position on viewport.
   var dialogPosition = self.computePosition($('.overlay'), dialogSize);
 
   var animationOptions = $.extend(dialogSize, dialogPosition);
@@ -487,8 +480,10 @@ Drupal.overlay.resize = function(size) {
       // Update the dialog size so that UI internals are aware of the change.
       self.iframe.$container.dialog('option', {width: dialogSize.width, height: dialogSize.height});
 
-      // d7ux: Keep the overlay grow or shrink with the dialog.
+      // Keep the dim background grow or shrink with the dialog.
       $('.ui-widget-overlay').height($(document).height());
+      
+      // Animate body opacity, so we fade in the page page as it loads in. 
       $(self.iframe.$element.get(0)).contents().find('body.overlay').animate({opacity:1}, 'slow');
     }
   });
