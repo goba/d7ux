@@ -416,7 +416,7 @@ ul.secondary li.active a.active {
 
 #content ul.node-type-list li {
   padding-left: 30px;
-  background: url(images/sprite.png) -380px -200px no-repeat;
+  background: url(images/list-item.png) no-repeat;
 }
 
 /**
