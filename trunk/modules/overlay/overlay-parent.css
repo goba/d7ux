@@ -130,23 +130,27 @@
   color: #000;
   font-weight: bold;
   padding: 4px 15px 7px 20px;
+  text-decoration: none;
 }
 
-.ui-dialog-titlebar ul li.active,
-.ui-dialog-titlebar ul li:hover {
+.ui-dialog-titlebar ul li.active {
   background: transparent url(images/tab_active_rt.png) no-repeat top right;
 }
 
-.ui-dialog-titlebar ul li:hover a,
 .ui-dialog-titlebar ul li.active a,
 .ui-dialog-titlebar ul li.active a.active,
 .ui-dialog-titlebar ul li.active a:active,
-.ui-dialog-titlebar ul li.active a:visited,
-.ui-dialog-titlebar ul li a:hover,
-.ui-dialog-titlebar ul li.active a:hover {
+.ui-dialog-titlebar ul li.active a:visited {
   background: transparent url(images/tab_active_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
-  text-decoration: none;
   padding: 4px 15px 7px 20px;
+}
+
+.ui-dialog-titlebar ul li a:hover {
+  color: #fff;
+}
+
+.ui-dialog-titlebar ul li.active a:hover {
+  color: #000;
 }
