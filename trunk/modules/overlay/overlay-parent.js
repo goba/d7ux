@@ -9,12 +9,12 @@ Drupal.behaviors.keepOverlay = {
     $('a.to-overlay:not(.overlay-processed)').addClass('overlay-processed').click(function() {
 
       // Remove the active class from where it was, and add the active class to
-      // this link, so the button keeps highlighting where we are.
-
-      // @todo: People say if we don't mark the active item, they will not
-      // expect the lower bar to be context sensitive.
+      // this link, so the button keeps highlighting where we are. Only
+      // highlight active items in the shortcuts bar.
       $('#toolbar a').each(function() { $(this).removeClass('active'); });
-      $(this).addClass('active');
+      if ($(this).parents('div.toolbar-shortcuts').length) {
+        $(this).addClass('active');
+      }
 
       // Append render variable, so the server side can choose the right
       // rendering and add child modal frame code to the page if needed.
