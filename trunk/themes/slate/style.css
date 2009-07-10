@@ -17,17 +17,6 @@ a {
   text-decoration: none;
 }
 
-.reverse {
-  color: #ccc;
-}
-.reverse a {
-  color: #fff;
-}
-
-.limiter {
-  padding: 0px 20px 0px 180px;
-}
-
 div.box, p {
   margin: 0px 0px 20px;
 }
@@ -70,6 +59,7 @@ legend {
   height: 30px;
   padding-top: 10px;
   position: relative;
+  margin-top: 10px;
 }
 
 #branding div.breadcrumb {
@@ -169,7 +159,6 @@ div.breadcrumb a {
 #branding h2.page-title {
   color: #fff;
   padding-bottom: 10px;
-  letter-spacing: -1px;
   font-size: 18px;
   font-weight: normal;
   float: left;
@@ -192,12 +181,11 @@ ul.primary {
   border-bottom: none;
   margin: 0;
   margin-bottom: -10px;
-  padding: 4px 0 0;
+  padding: 2px 0 0 8px;
   line-height: 30px;
   text-transform: uppercase;
   font-size: 12px;
-  margin-right: 8%;
-  padding-left: 8px;
+  margin-right: 10%;
 }
 
 ul.primary li {

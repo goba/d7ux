@@ -25,7 +25,7 @@
     </div>
   <?php endif; ?>
 
-  <div id="branding" class="clearfix reverse">
+  <div id="branding" class="clearfix">
     <?php if ($title): ?><h2 class="page-title"><?php print $title ?></h2><?php endif; ?>
     <?php if ($primary_local_tasks): ?><ul class="tabs primary"><?php print $primary_local_tasks ?></ul><?php endif; ?>
   </div>
