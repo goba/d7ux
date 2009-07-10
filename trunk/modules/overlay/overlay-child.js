@@ -11,7 +11,8 @@ Drupal.overlayChild = Drupal.overlayChild || {
 };
 
 /**
- * Drupal behavior.
+ * Use a Drupal behavior to attach the child dialog behavior so that it will be
+ * automatically attached to new content.
  */
 Drupal.behaviors.overlayChild = {
   attach: function(context) {

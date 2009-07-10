@@ -4,42 +4,41 @@
 
 Drupal.behaviors.keepOverlay = {
   attach: function(context) {
-    
+
     // Attach on the .to-overlay class.
     $('a.to-overlay:not(.overlay-processed)').addClass('overlay-processed').click(function() {
 
       // Remove the active class from where it was, and add the active class to
       // this link, so the button keeps highlighting where we are.
-      
+
       // @todo: People say if we don't mark the active item, they will not
       // expect the lower bar to be context sensitive.
       $('#toolbar a').each(function() { $(this).removeClass('active'); });
       $(this).addClass('active');
-      
-      // Append render variable, so the server side can choose the right 
+
+      // Append render variable, so the server side can choose the right
       // rendering and add child modal frame code to the page if needed.
       var linkURL = $(this).attr('href');
       linkURL += (linkURL.indexOf('?') > -1 ? '&' : '?') + 'render=overlay';
-    
+
       // If the modal frame is already open, replace the loaded document with
       // this new one. Keeps browser history.
       if (Drupal.overlay.isOpen) {
         Drupal.overlay.load(linkURL);
         return false;
       }
-    
+
       // There is overlay opened yet, we should open a new one.
       var toolbarHeight = $('#toolbar').height();
       var overlayOptions = {
         url: linkURL,
-        //autoFit: false,
         width: $(window).width() - 40,
         height: $(window).height() - 40 - toolbarHeight,
         // Remove active class from all header buttons.
         onOverlayClose: function() { $('#toolbar a').each(function() { $(this).removeClass('active'); }); }
       };
       Drupal.overlay.open(overlayOptions);
-    
+
       // Set position and styling to let the admin toolbar work.
       $('.overlay').css('top', toolbarHeight + 20);
       $('#toolbar').css('z-index', 2000);
@@ -75,7 +74,7 @@ Drupal.overlay.open = function(options) {
     url: options.url,
     width: options.width,
     height: options.height,
-    autoFit: (options.autoFit == undefined || options.autoFit ? true : false),
+    autoFit: (options.autoFit == undefined || options.autoFit),
     onOverlayClose: options.onOverlayClose
   };
 
@@ -365,10 +364,10 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
     if (typeof tabs != 'undefined') {
       $('.ui-dialog-titlebar').append($(tabs).remove().get(0));
       if ($(tabs).is('.primary')) {
-        $(tabs).find('a').addClass('to-overlay');
+        $(tabs).find('a').addClass('to-overlay').removeClass('overlay-processed');
         Drupal.attachBehaviors($(tabs));
       }
-      // Remove any classes from the list element to avoid theme styles 
+      // Remove any classes from the list element to avoid theme styles
       // clashing with our styling.
       $(tabs).removeAttr('class');
     }

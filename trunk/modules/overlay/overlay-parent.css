@@ -105,7 +105,7 @@
   float: right;
   border-bottom: none;
   margin: 0 20px 0 0;
-  padding: 10px 0 0;
+  padding: 9px 0 0;
   line-height: normal;
   text-transform: uppercase;
   font-size: 12px;
@@ -119,7 +119,7 @@
 
 .ui-dialog-titlebar ul li {
   background: transparent url(images/tab_inactive_rt.png) no-repeat top right;
-  padding: 5px 8px 7px 0;
+  padding: 6px 8px 7px 0;
 }
 
 .ui-dialog-titlebar ul li a,
@@ -129,12 +129,12 @@
   background: transparent url(images/tab_inactive_lt.png) no-repeat;
   color: #000;
   font-weight: bold;
-  padding: 5px 15px 7px 20px;
+  padding: 6px 15px 7px 20px;
 }
 
 .ui-dialog-titlebar ul li.active,
 .ui-dialog-titlebar ul li:hover {
-  background: transparent url(images/tab_active_rt.png) no-repeat center right;
+  background: transparent url(images/tab_active_rt.png) no-repeat top right;
 }
 
 .ui-dialog-titlebar ul li:hover a,
@@ -148,5 +148,5 @@
   color: #000;
   font-weight: bold;
   text-decoration: none;
-  padding: 5px 15px 7px 20px;
+  padding: 6px 15px 7px 20px;
 }
