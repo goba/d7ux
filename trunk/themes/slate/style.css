@@ -5,7 +5,7 @@
  */
 body {
   color: #fff;
-  background: #333;
+  background: #222;
   font-style: normal;
   line-height: 20px;
   font-size: 0.8em;
@@ -69,9 +69,6 @@ legend {
   line-height: 30px;
   height: 30px;
   padding-top: 10px;
-  border-bottom: 1px solid #555;
-  margin-bottom: -1px;
-  background: #333;
   position: relative;
 }
 
@@ -120,49 +117,12 @@ div.breadcrumb a {
 /**
  * Help.
  */
-a.help-toggle {
-  float: right;
-  font-size: 12px;
-  background: #222;
-  margin: 5px 0px 0px;
-  padding: 0px 10px;
-  line-height: 20px;
-  white-space: nowrap;
-  -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
-}
-
-a.help-expanded {
-  background: #666;
-}
-
 #help {
-  background: #222;
-  display: none;
+  font-size: 0.8em;
 }
 
-#help div.help-label {
-  position: absolute;
-  left: 20px;
-  width: 140px;
-  padding: 20px 10px 5px;
-  border-bottom: 1px solid #333;
-  font-size: 12px;
-  background: #111;
-  color: #fff;
-}
-
-#help div.help-wrapper {
-  padding: 10px 20px;
-}
-
-#help a {
-  color: #8cf;
-}
-
-#help div.more-help-link,
 #help p {
-  margin: 10px 0px;
+  margin: 0 0 10px;
 }
 
 #help div.more-help-link {
@@ -325,7 +285,7 @@ ul.secondary li.active a.active {
 #footer {
   text-align: right;
   border-top: 1px solid #ccc;
-  padding: 19px 20px 40px;
+  padding: 5px;
   font-size: 12px;
 }
 

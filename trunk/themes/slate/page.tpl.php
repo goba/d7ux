@@ -13,13 +13,6 @@
 
   <?php if (!empty($admin)): ?><?php print $admin; ?><?php endif; ?>
 
-  <?php if ($help): ?>
-    <div id="help" class="reverse limiter">
-      <div class="help-label"><?php print t('Help') ?></div>
-      <div class="help-wrapper clearfix limiter"><?php print $help; ?></div>
-    </div>
-  <?php endif; ?>
-
   <?php if ($page_top): ?>
     <div id="page-top-region" class="clearfix">
       <?php print $page_top; ?>
@@ -35,7 +28,6 @@
   <div id="branding" class="clearfix reverse">
     <?php if ($title): ?><h2 class="page-title"><?php print $title ?></h2><?php endif; ?>
     <?php if ($primary_local_tasks): ?><ul class="tabs primary"><?php print $primary_local_tasks ?></ul><?php endif; ?>
-    <?php if ($help): ?><?php print l(t('Need help?'), 'admin/help', array('attributes' => array('class' => 'help-toggle'))); ?><?php endif; ?>
   </div>
 
   <div id="page">
@@ -46,6 +38,11 @@
         <div id="console" class="clearfix"><?php print $messages; ?></div>
       <?php endif; ?>
       <?php if ($highlight): ?><div id="highlight"><?php print $highlight ?></div><?php endif; ?>
+      <?php if ($help): ?>
+        <div id="help">
+          <?php print $help; ?>
+        </div>
+      <?php endif; ?>
       <?php print $content; ?>
     </div>
 
