@@ -8,12 +8,9 @@ stylesheets[screen][] = reset.css
 stylesheets[screen][] = style.css
 stylesheets[all][] = vertical-tabs.css
 scripts[] = theme.js
-; Enable the all default regions except the right sidebar, which Slate does not
-; support.
 regions[content] = Content
 regions[header] = Header
 regions[footer] = Footer
 regions[highlight] = Highlighted content
 regions[help] = Help
 regions[page_top] = Page top
-features[] = name
