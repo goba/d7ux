@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.119 2009/07/05 18:00:10 dries Exp $
+// $Id: drupal_web_test_case.php,v 1.125 2009/07/11 06:14:48 dries Exp $
 
 /**
  * Base class for Drupal tests.
@@ -135,6 +135,39 @@ abstract class DrupalTestCase {
     else {
       return FALSE;
     }
+  }
+
+  /**
+   * Make assertions from outside the test case.
+   *
+   * @see DrupalTestCase::assert()
+   */
+  public static function assertStatic($test_id, $test_class, $status, $message = '', $group = 'Other', array $caller = NULL) {
+    // Convert boolean status to string status.
+    if (is_bool($status)) {
+      $status = $status ? 'pass' : 'fail';
+    }
+
+    $caller += array(
+      'function' => t('N/A'),
+      'line' => -1,
+      'file' => t('N/A'),
+    );
+
+    $assertion = array(
+      'test_id' => $test_id,
+      'test_class' => $test_class,
+      'status' => $status,
+      'message' => $message,
+      'message_group' => $group,
+      'function' => $caller['function'],
+      'line' => $caller['line'],
+      'file' => $caller['file'],
+    );
+
+    db_insert('simpletest')
+      ->fields($assertion)
+      ->execute();
   }
 
   /**
@@ -343,9 +376,16 @@ abstract class DrupalTestCase {
    * Run all tests in this class.
    */
   public function run() {
+    // Initialize verbose debugging.
+    simpletest_verbose(NULL, file_directory_path());
+
     // HTTP auth settings (<username>:<password>) for the simpletest browser
     // when sending requests to the test site.
-    $this->httpauth_credentials = variable_get('simpletest_httpauth_credentials', NULL);
+    $username = variable_get('simpletest_username', NULL);
+    $password = variable_get('simpletest_password', NULL);
+    if ($username && $password) {
+      $this->httpauth_credentials = $username . ':' . $password;
+    }
 
     set_error_handler(array($this, 'errorHandler'));
     $methods = array();
@@ -873,7 +913,7 @@ class DrupalWebTestCase extends DrupalTestCase {
    *   TRUE or FALSE depending on whether the permissions are valid.
    */
   protected function checkPermissions(array $permissions, $reset = FALSE) {
-    static $available;
+    $available = &drupal_static(__FUNCTION__);
 
     if (!isset($available) || $reset) {
       $available = array_keys(module_invoke_all('permission'));
@@ -981,7 +1021,12 @@ class DrupalWebTestCase extends DrupalTestCase {
     $clean_url_original = variable_get('clean_url', 0);
 
     // Generate temporary prefixed database to ensure that tests have a clean starting point.
-    $db_prefix = Database::getConnection()->prefixTables('{simpletest' . mt_rand(1000, 1000000) . '}');
+    $db_prefix_new = Database::getConnection()->prefixTables('{simpletest' . mt_rand(1000, 1000000) . '}');
+    db_update('simpletest_test_id')
+      ->fields(array('last_prefix' => $db_prefix_new))
+      ->condition('test_id', $this->testId)
+      ->execute();
+    $db_prefix = $db_prefix_new;
 
     include_once DRUPAL_ROOT . '/includes/install.inc';
     drupal_install_system();
@@ -1038,10 +1083,14 @@ class DrupalWebTestCase extends DrupalTestCase {
     variable_set('smtp_library', drupal_get_path('module', 'simpletest') . '/drupal_web_test_case.php');
 
     // Use temporary files directory with the same prefix as database.
-    variable_set('file_directory_path', $this->originalFileDirectory . '/' . $db_prefix);
+    variable_set('file_directory_path', $this->originalFileDirectory . '/simpletest/' . substr($db_prefix, 10));
     $directory = file_directory_path();
     // Create the files directory.
     file_check_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+
+    // Log fatal errors.
+    ini_set('log_errors', 1);
+    ini_set('error_log', $directory . '/error.log');
 
     set_time_limit($this->timeLimit);
   }
@@ -1300,6 +1349,9 @@ class DrupalWebTestCase extends DrupalTestCase {
     if (($new = $this->checkForMetaRefresh())) {
       $out = $new;
     }
+    $this->verbose('GET request to: ' . $path .
+                   '<hr />Ending URL: ' . $this->getUrl() .
+                   '<hr />' . $out);
     return $out;
   }
 
@@ -1358,6 +1410,7 @@ class DrupalWebTestCase extends DrupalTestCase {
         // We post only if we managed to handle every field in edit and the
         // submit button matches.
         if (!$edit && $submit_matches) {
+          $post_array = $post;
           if ($upload) {
             // TODO: cURL handles file uploads for us, but the implementation
             // is broken. This is a less than elegant workaround. Alternatives
@@ -1386,6 +1439,10 @@ class DrupalWebTestCase extends DrupalTestCase {
           if (($new = $this->checkForMetaRefresh())) {
             $out = $new;
           }
+          $this->verbose('POST request to: ' . $path .
+                         '<hr />Ending URL: ' . $this->getUrl() .
+                         '<hr />Fields: ' . highlight_string('<?php ' . var_export($post_array, TRUE), TRUE) .
+                         '<hr />' . $out);
           return $out;
         }
       }
@@ -2355,6 +2412,22 @@ class DrupalWebTestCase extends DrupalTestCase {
     $email = end($captured_emails);
     return $this->assertTrue($email && isset($email[$name]) && $email[$name] == $value, $message, t('E-mail'));
   }
+
+  /**
+   * Log verbose message in a text file.
+   *
+   * The a link to the vebose message will be placed in the test results via
+   * as a passing assertion with the text '[verbose message]'.
+   *
+   * @param $message
+   *   The verbose message to be stored.
+   * @see simpletest_verbose()
+   */
+  protected function verbose($message) {
+    if ($id = simpletest_verbose($message)) {
+      $this->pass(l(t('Verbose message'), $this->originalFileDirectory . '/simpletest/verbose.html', array('fragment' => $id)), 'Debug');
+    }
+  }
 }
 
 /**
@@ -2371,4 +2444,49 @@ function drupal_mail_wrapper($message) {
   variable_set('simpletest_emails', $captured_emails);
 
   return TRUE;
+}
+
+/**
+ * Log verbose message in a text file.
+ *
+ * If verbose mode is enabled then page requests will be dumped to a file and
+ * presented on the test result screen. The messages will be placed in a file
+ * located in the simpletest directory in the original file system.
+ *
+ * @param $message
+ *   The verbose message to be stored.
+ * @param $original_file_directory
+ *   The original file directory, before it was changed for testing purposes.
+ * @return
+ *   The ID of the message to be placed in related assertion messages.
+ * @see DrupalTestCase->originalFileDirectory
+ * @see DrupalWebTestCase->verbose()
+ */
+function simpletest_verbose($message, $original_file_directory = NULL) {
+  static $file_directory = NULL, $id = 0;
+  $verbose = &drupal_static(__FUNCTION__);
+
+  // Will pass first time during setup phase, and when verbose is TRUE.
+  if (!isset($original_file_directory) && !$verbose) {
+    return FALSE;
+  }
+
+  if ($message && $file_directory) {
+    $message = '<hr /><a id="' . $id . '" href="#' . $id . '">ID #' . $id . '</a><hr />' . $message;
+    file_put_contents($file_directory . '/simpletest/verbose.html', $message, FILE_APPEND);
+    return $id++;
+  }
+
+  if ($original_file_directory) {
+    $file_directory = $original_file_directory;
+    $verbose = variable_get('simpletest_verbose', FALSE);
+
+    // Clear out the previous log.
+    $message = t('Starting verbose log at @time.', array('@time' => format_date(time()))) . "\n";
+    $directory = $file_directory . '/simpletest';
+    if (file_check_directory($directory, FILE_CREATE_DIRECTORY)) {
+      file_put_contents($directory . '/verbose.html', $message);
+    }
+  }
+  return FALSE;
 }

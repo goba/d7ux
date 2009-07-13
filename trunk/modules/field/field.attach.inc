@@ -1,16 +1,10 @@
 <?php
-// $Id: field.attach.inc,v 1.27 2009/06/28 01:00:42 webchick Exp $
+// $Id: field.attach.inc,v 1.31 2009/07/11 00:56:45 webchick Exp $
 
 /**
  * @file
  * Field attach API, allowing objects (nodes, users, ...) to be 'fieldable'.
  */
-
-// TODO D7 : consistency - do field_attach_functions return a value or alter in place ?
-
-// TODO D7 : consistency - some of these functions process individual fields
-// and others process the combined value of all fields.
-// Should all iteration through available fields be done here instead of in Field?
 
 /**
  * Exception thrown by field_attach_validate() on field validation errors.
@@ -364,7 +358,6 @@ function _field_invoke_multiple_default($op, $obj_type, $objects, &$a = NULL, &$
  * field_attach_view().
  */
 function field_attach_form($obj_type, $object, &$form, &$form_state) {
-  // TODO : something's not right here : do we alter the form or return a value ?
   $form += (array) _field_invoke_default('form', $obj_type, $object, $form, $form_state);
 
   // Let other modules make changes to the form.
@@ -382,8 +375,8 @@ function field_attach_form($obj_type, $object, &$form, &$form_state) {
  *   The type of $object; e.g. 'node' or 'user'.
  * @param $objects
  *   An array of objects for which to load fields, keyed by object id.
- *   Each object needs to have its 'bundle key', 'id key' and (if applicable)
- *   'revision key' filled.
+ *   Each object needs to have its 'bundle', 'id' and (if applicable)
+ *   'revision' keys filled.
  * @param $age
  *   FIELD_LOAD_CURRENT to load the most recent revision for all
  *   fields, or FIELD_LOAD_REVISION to load the version indicated by
@@ -485,8 +478,8 @@ function field_attach_load($obj_type, $objects, $age = FIELD_LOAD_CURRENT) {
  *   The type of $object; e.g. 'node' or 'user'.
  * @param $objects
  *   An array of objects for which to load fields, keyed by object id.
- *   Each object needs to have its 'bundle key', 'id key' and 'revision key'
- *   filled.
+ *   Each object needs to have its 'bundle', 'id' and (if applicable)
+ *   'revision' keys filled.
  * @returns
  *   On return, the objects in $objects are modified by having the
  *   appropriate set of fields added.
@@ -512,7 +505,6 @@ function field_attach_load_revision($obj_type, $objects) {
  */
 function field_attach_validate($obj_type, $object) {
   $errors = array();
-  _field_invoke_default('validate', $obj_type, $object, $errors);
   _field_invoke('validate', $obj_type, $object, $errors);
 
   // Let other modules validate the object.
@@ -546,8 +538,8 @@ function field_attach_validate($obj_type, $object) {
  * @param $obj_type
  *   The type of $object; e.g. 'node' or 'user'.
  * @param $object
- *   The object being submitted. The 'bundle key', 'id key' and (if applicable)
- *   'revision key' should be present. The actual field values will be read
+ *   The object being submitted. The 'bundle', 'id' and (if applicable)
+ *   'revision' keys should be present. The actual field values will be read
  *   from $form_state['values'].
  * @param $form
  *   The form structure.
@@ -578,8 +570,8 @@ function field_attach_form_validate($obj_type, $object, $form, &$form_state) {
  * @param $obj_type
  *   The type of $object; e.g. 'node' or 'user'.
  * @param $object
- *   The object being submitted. The 'bundle key', 'id key' and (if applicable)
- *   'revision key' should be present. The actual field values will be read
+ *   The object being submitted. The 'bundle', 'id' and (if applicable)
+ *   'revision' keys should be present. The actual field values will be read
  *   from $form_state['values'].
  * @param $form
  *   The form structure to fill in.
@@ -611,8 +603,6 @@ function field_attach_submit($obj_type, $object, $form, &$form_state) {
  *   The object with fields to process.
  */
 function field_attach_presave($obj_type, $object) {
-  // TODO : to my knowledge, no field module has any use for 'presave' on D6.
-  // should we keep this ?
   _field_invoke('presave', $obj_type, $object);
 
   // Let other modules act on presaving the object.
@@ -762,8 +752,8 @@ function field_attach_delete_revision($obj_type, $object) {
  *     - '=', '!=', '>', '>=', '<', '<=', 'STARTS_WITH', 'ENDS_WITH',
  *       'CONTAINS': these operators expect the value as a literal of the same
  *       type as the column,
- *     - 'IN': this operator expects the value as an array of literals of the
- *       same type as the column.
+ *     - 'IN', 'NOT IN': this operator expects the value as an array of
+ *       literals of the same type as the column.
  *     - 'BETWEEN': this operator expects the value as an array of two literals
  *       of the same type as the column.
  *     The operator can be ommitted, and will default to 'IN' if the value is
@@ -778,10 +768,18 @@ function field_attach_delete_revision($obj_type, $object) {
  *     array('value', 12, '>'),
  *   );
  *   @endcode
- * @param $result_format
- *   - FIELD_QUERY_RETURN_IDS (default): return the ids of the objects matching the
- *     conditions.
- *   - FIELD_QUERY_RETURN_VALUES: return the values for the field.
+ * @param $count
+ *   The number of results that is requested. This is only a
+ *   hint to the storage engine(s); callers should be prepared to
+ *   handle fewer or more results. Specify FIELD_QUERY_NO_LIMIT to retrieve
+ *   all available objects. This parameter has no default value so
+ *   callers must make an explicit choice to potentially retrieve an
+ *   enormous result set.
+ * @param &$cursor
+ *   An opaque cursor that allows a caller to iterate through multiple
+ *   result sets. On the first call, pass 0; the correct value to pass
+ *   on the next call will be written into $cursor on return. If NULL,
+ *   the first result set is returned and no next cursor is returned.
  * @param $age
  *   Internal use only. Use field_attach_query_revisions() instead of passing
  *   FIELD_LOAD_REVISION.
@@ -791,26 +789,24 @@ function field_attach_delete_revision($obj_type, $object) {
  *     object type and object revision id.
  * @return
  *   An array keyed by object type (e.g. 'node', 'user'...), then by object id
- *   or revision id (depending of the value of the $age parameter), and whose
- *   values depend on the $result_format parameter:
- *   - FIELD_QUERY_RETURN_IDS: the object id.
- *   - FIELD_QUERY_RETURN_VALUES: a pseudo-object with values for the
- *     $field_name field. This only includes values matching the conditions,
- *     and thus might not contain all actual values and actual delta sequence
- *     (although values oprder is preserved).
- *     The pseudo-objects only include properties that the Field API knows
- *     about: bundle, id, revision id, and field values (no node title, user
- *     name...).
+ *   or revision id (depending of the value of the $age parameter).
+ *   The values are pseudo-objects with the bundle, id, and revision
+ *   id fields filled in.
+ *
  *   Throws a FieldQueryException if the field's storage doesn't support the
  *   specified conditions.
  */
-function field_attach_query($field_name, $conditions, $result_format = FIELD_QUERY_RETURN_IDS, $age = FIELD_LOAD_CURRENT) {
+function field_attach_query($field_name, $conditions, $count, &$cursor = NULL, $age = FIELD_LOAD_CURRENT) {
+  if (!isset($cursor)) {
+    $cursor = 0;
+  }
+
   // Give a chance to 3rd party modules that bypass the storage engine to
   // handle the query.
   $skip_field = FALSE;
   foreach (module_implements('field_attach_pre_query') as $module) {
     $function = $module . '_field_attach_pre_query';
-    $results = $function($field_name, $conditions, $result_format, $age, $skip_field);
+    $results = $function($field_name, $conditions, $count, $cursor, $age, $skip_field);
     // Stop as soon as a module claims it handled the query.
     if ($skip_field) {
       break;
@@ -818,43 +814,7 @@ function field_attach_query($field_name, $conditions, $result_format = FIELD_QUE
   }
   // If the request hasn't been handled, let the storage engine handle it.
   if (!$skip_field) {
-    $results = module_invoke(variable_get('field_storage_module', 'field_sql_storage'), 'field_storage_query', $field_name, $conditions, $result_format, $age);
-  }
-
-  if ($result_format == FIELD_QUERY_RETURN_VALUES) {
-    foreach ($results as $obj_type => $pseudo_objects) {
-      if ($age == FIELD_LOAD_CURRENT) {
-        // Invoke hook_field_load().
-        $b = NULL;
-        _field_invoke_multiple('load', $obj_type, $pseudo_objects, $age, $b, array('field_name' => $field_name));
-
-        // Invoke hook_field_attach_load().
-        foreach (module_implements('field_attach_load') as $module) {
-          $function = $module . '_field_attach_load';
-          $function($obj_type, $pseudo_objects, $age);
-        }
-      }
-      else {
-        // The 'multiple' hooks expect an array of objects keyed by object id,
-        // and thus cannot be used directly when querying revisions. The hooks
-        // are therefore called on each object separately, which might cause
-        // performance issues when large numbers of revisions are retrieved.
-        foreach ($pseudo_objects as $vid => $pseudo_object) {
-          list($id) = field_attach_extract_ids($obj_type, $pseudo_object);
-          $objects = array($id => $pseudo_object);
-
-          // Invoke hook_field_load().
-          $b = NULL;
-          _field_invoke_multiple('load', $obj_type, $objects, $age, $b, array('field_name' => $field_name));
-
-          // Invoke hook_field_attach_load().
-          foreach (module_implements('field_attach_load') as $module) {
-            $function = $module . '_field_attach_load';
-            $function($obj_type, $objects, $age);
-          }
-        }
-      }
-    }
+    $results = module_invoke(variable_get('field_storage_module', 'field_sql_storage'), 'field_storage_query', $field_name, $conditions, $count, $cursor, $age);
   }
 
   return $results;
@@ -869,15 +829,22 @@ function field_attach_query($field_name, $conditions, $result_format = FIELD_QUE
  *   The name of the field to query.
  * @param $conditions
  *   See field_attach_query().
- * @param $result_format
- *   See field_attach_query().
- *   Note that the FIELD_QUERY_RETURN_VALUES option might cause performance
- *   issues with field_attach_query_revisions().
+ * @param $count
+ *   The number of results that is requested. This is only a
+ *   hint to the storage engine(s); callers should be prepared to
+ *   handle fewer or more results. Specify FIELD_QUERY_NO_LIMIT to retrieve
+ *   all available objects. This parameter has no default value so
+ *   callers must make an explicit choice to potentially retrieve an
+ *   enormous result set.
+ * @param &$cursor
+ *   An opaque cursor that allows a caller to iterate through multiple
+ *   result sets. On the first call, pass 0; the correct value to pass
+ *   on the next call will be written into $cursor on return.
  * @return
  *   See field_attach_query().
  */
-function field_attach_query_revisions($field_name, $conditions, $result_format = FIELD_QUERY_RETURN_IDS) {
-  return field_attach_query($field_name, $conditions, $result_format, FIELD_LOAD_REVISION);
+function field_attach_query_revisions($field_name, $conditions, $count, &$cursor = NULL) {
+  return field_attach_query($field_name, $conditions, $count, $cursor, FIELD_LOAD_REVISION);
 }
 
 /**
@@ -1016,17 +983,39 @@ function field_attach_delete_bundle($bundle) {
  *   2: bundle name of the object
  *   3: whether $obj_type's fields should be cached (TRUE/FALSE)
  */
-function field_attach_extract_ids($object_type, $object) {
+function field_attach_extract_ids($obj_type, $object) {
   // TODO D7 : prevent against broken 3rd party $node without 'type'.
-  $info = field_info_fieldable_types($object_type);
+  $info = field_info_fieldable_types($obj_type);
   // Objects being created might not have id/vid yet.
-  $id = isset($object->{$info['id key']}) ? $object->{$info['id key']} : NULL;
-  $vid = ($info['revision key'] && isset($object->{$info['revision key']})) ? $object->{$info['revision key']} : NULL;
+  $id = isset($object->{$info['object keys']['id']}) ? $object->{$info['object keys']['id']} : NULL;
+  $vid = ($info['object keys']['revision'] && isset($object->{$info['object keys']['revision']})) ? $object->{$info['object keys']['revision']} : NULL;
   // If no bundle key provided, then we assume a single bundle, named after the
   // type of the object.
-  $bundle = $info['bundle key'] ? $object->{$info['bundle key']} : $object_type;
+  $bundle = $info['object keys']['bundle'] ? $object->{$info['object keys']['bundle']} : $obj_type;
   $cacheable = $info['cacheable'];
   return array($id, $vid, $bundle, $cacheable);
+}
+
+/**
+ * Helper function to extract id, vid, and bundle name from an object.
+ *
+ * @param $obj_type
+ *   The type of $object; e.g. 'node' or 'user'.
+ * @param $bundle
+ *   The bundle object (or string if bundles for this object type do not exist
+ *   as standalone objects).
+ * @return
+ *   The bundle name.
+ */
+function field_attach_extract_bundle($obj_type, $bundle) {
+  if (is_string($bundle)) {
+    return $bundle;
+  }
+
+  $info = field_info_fieldable_types($obj_type);
+  if (is_object($bundle) && isset($info['bundle keys']['bundle']) && isset($bundle->{$info['bundle keys']['bundle']})) {
+    return $bundle->{$info['bundle keys']['bundle']};
+  }
 }
 
 /**
@@ -1048,12 +1037,12 @@ function field_attach_extract_ids($object_type, $object) {
 function field_attach_create_stub_object($obj_type, $ids) {
   $object = new stdClass();
   $info = field_info_fieldable_types($obj_type);
-  $object->{$info['id key']} = $ids[0];
-  if (isset($info['revision key']) && !is_null($ids[1])) {
-    $object->{$info['revision key']} = $ids[1];
+  $object->{$info['object keys']['id']} = $ids[0];
+  if (isset($info['object keys']['revision']) && !is_null($ids[1])) {
+    $object->{$info['object keys']['revision']} = $ids[1];
   }
-  if ($info['bundle key']) {
-    $object->{$info['bundle key']} = $ids[2];
+  if ($info['object keys']['bundle']) {
+    $object->{$info['object keys']['bundle']} = $ids[2];
   }
   return $object;
 }

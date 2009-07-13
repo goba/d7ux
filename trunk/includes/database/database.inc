@@ -1,5 +1,5 @@
 <?php
-// $Id: database.inc,v 1.59 2009/07/03 10:57:46 dries Exp $
+// $Id: database.inc,v 1.61 2009/07/13 07:27:14 dries Exp $
 
 /**
  * @file
@@ -225,7 +225,7 @@ abstract class DatabaseConnection extends PDO {
    *
    * @var boolean
    */
-  protected $willRollBack;
+  protected $willRollback;
 
   /**
    * The name of the Select class for this connection.
@@ -849,12 +849,12 @@ abstract class DatabaseConnection extends PDO {
    *
    * This method throws an exception if no transaction is active.
    */
-  public function rollBack() {
+  public function rollback() {
     if ($this->transactionLayers == 0) {
       throw new NoActiveTransactionException();
     }
 
-    $this->willRollBack = TRUE;
+    $this->willRollback = TRUE;
   }
 
   /**
@@ -867,12 +867,12 @@ abstract class DatabaseConnection extends PDO {
    * @return
    *   TRUE if the transaction will roll back, FALSE otherwise.
    */
-  public function willRollBack() {
+  public function willRollback() {
     if ($this->transactionLayers == 0) {
       throw new NoActiveTransactionException();
     }
 
-    return $this->willRollBack;
+    return $this->willRollback;
   }
 
   /**
@@ -1446,6 +1446,23 @@ class DatabaseTransaction {
 
   public function __destruct() {
     $this->connection->popTransaction();
+  }
+
+  /**
+   * Roll back the current transaction.
+   *
+   * This is just a wrapper method to rollback whatever transaction stack we
+   * are currently in, which is managed by the connection object itself.
+   */
+  public function rollback() {
+    $this->connection->rollback();
+  }
+
+  /**
+   * Determine if this transaction will roll back.
+   */
+  public function willRollback() {
+    return $this->connection->willRollback();
   }
 
 }
@@ -2431,6 +2448,24 @@ function _db_error_page($error = '') {
   drupal_set_title('Site offline');
 }
 
+ /**
+ * Helper function to get duration lag from variable
+ * and set the session variable that contains the lag.
+ */
+function db_ignore_slave() {
+  $connection_info = Database::getConnectionInfo();
+  // Only set ignore_slave_server if there are slave servers
+  // being used, which is assumed if there are more than one.    
+  if (count($connection_info) > 1) {
+    // Five minutes is long enough to allow the slave to break and resume
+    // interrupted replication without causing problems on the Drupal site
+    // from the old data.
+    $duration = variable_get('maximum_replication_lag', 300);
+    // Set session variable with amount of time to delay before using slave.
+    $_SESSION['ignore_slave_server'] = REQUEST_TIME + $duration;
+  }
+}
+
 /**
  * @ingroup database-legacy
  *
@@ -2642,20 +2677,6 @@ function db_rewrite_sql($query, $primary_table = 'n', $primary_field = 'nid',  $
   }
 
   return $query;
-}
-
-/**
- * Helper function to get duration lag from variable
- * and set the session variable that contains the lag.
- */
-function db_ignore_slave() {
-  // Five minutes is long enough to allow the slave to break and resume
-  // interrupted replication without causing problems on the Drupal site
-  // from the old data.
-  $duration = variable_get('maximum_replication_lag', 300);
-  
-  // Set session variable with amount of time to delay  before using slave.
-  $_SESSION['ignore_slave_server'] = REQUEST_TIME + $duration;
 }
 
 /**

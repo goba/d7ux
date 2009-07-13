@@ -1,5 +1,5 @@
 <?php
-// $Id: comment.api.php,v 1.8 2009/07/01 20:39:20 dries Exp $
+// $Id: comment.api.php,v 1.10 2009/07/10 05:50:08 webchick Exp $
 
 /**
  * @file
@@ -23,23 +23,6 @@ function hook_comment_insert($comment) {
 }
 
 /**
- *  The user has just finished editing the comment and is trying to
- *  preview or submit it. This hook can be used to check or
- *  even modify the comment. Errors should be set with form_set_error().
- *
- * @param $form_values
- *   Passes in an array of form values submitted by the user.
- * @return
- *   Nothing.
- */
-function hook_comment_validate(&$form_values) {
-  // if the subject is the same as the comment.
-  if ($form_values['subject'] == $form_values['comment']) {
-    form_set_error('comment', t('you should write more text than in the subject'));
-  }
-}
-
-/**
  * The comment is being updated.
  *
  * @param $comment
@@ -48,6 +31,19 @@ function hook_comment_validate(&$form_values) {
 function hook_comment_update($comment) {
   // Reindex the node when comments are updated.
   search_touch_node($comment->nid);
+}
+
+/**
+ * Comments are being loaded from the database.
+ *
+ * @param $comments
+ *  An array of comment objects indexed by cid.
+ */
+function hook_comment_load($comments) {
+  $result = db_query('SELECT cid, foo FROM {mytable} WHERE cid IN (:cids)', array(':cids' => array_keys($comments)));
+  foreach ($result as $record) {
+    $comments[$record->cid]->foo = $record->foo;
+  }
 }
 
 /**

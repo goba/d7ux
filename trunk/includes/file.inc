@@ -1,5 +1,5 @@
 <?php
-// $Id: file.inc,v 1.171 2009/06/09 21:33:12 dries Exp $
+// $Id: file.inc,v 1.175 2009/07/12 08:36:34 dries Exp $
 
 /**
  * @file
@@ -85,9 +85,7 @@ define('FILE_STATUS_PERMANENT', 1);
 function file_create_url($path) {
   // Strip file_directory_path from $path. We only include relative paths in
   // URLs.
-  if (strpos($path, file_directory_path() . '/') === 0) {
-    $path = trim(substr($path, strlen(file_directory_path())), '\\/');
-  }
+  $path = file_directory_strip($path);
   switch (variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC)) {
     case FILE_DOWNLOADS_PUBLIC:
       return $GLOBALS['base_url'] . '/' . file_directory_path() . '/' . str_replace('\\', '/', $path);
@@ -156,7 +154,9 @@ function file_check_directory(&$directory, $mode = 0, $form_item = NULL) {
 
   // Check if directory exists.
   if (!is_dir($directory)) {
-    if (($mode & FILE_CREATE_DIRECTORY) && @mkdir($directory)) {
+    // Let mkdir() recursively create directories and use the default directory
+    // permissions.
+    if (($mode & FILE_CREATE_DIRECTORY) && @mkdir($directory, variable_get('file_chmod_directory', 0775), TRUE)) {
       drupal_chmod($directory);
     }
     else {
@@ -445,19 +445,22 @@ function file_copy($source, $destination = NULL, $replace = FILE_EXISTS_RENAME) 
  * @see file_copy()
  */
 function file_unmanaged_copy($source, $destination = NULL, $replace = FILE_EXISTS_RENAME) {
+  $original_source = $source;
+  $original_destination = $destination;
+
   $source = realpath($source);
   if (!file_exists($source)) {
-    drupal_set_message(t('The specified file %file could not be copied, because no file by that name exists. Please check that you supplied the correct filename.', array('%file' => $source)), 'error');
+    drupal_set_message(t('The specified file %file could not be copied, because no file by that name exists. Please check that you supplied the correct filename.', array('%file' => $original_source)), 'error');
     return FALSE;
   }
 
-  $destination = file_create_path($destination);
-  $directory = $destination;
+  $proposed_destination = file_create_path($destination);
+  $directory = $proposed_destination;
   $basename = file_check_path($directory);
 
   // Make sure we at least have a valid directory.
   if ($basename === FALSE) {
-    drupal_set_message(t('The specified file %file could not be copied, because the destination %directory is not properly configured.', array('%file' => $source, '%directory' => $destination)), 'error');
+    drupal_set_message(t('The specified file %file could not be copied, because the destination %directory is not properly configured. This is often caused by a problem with file or directory permissions.', array('%file' => $original_source, '%directory' => empty($original_destination) ? $proposed_destination : $original_destination)), 'error');
     return FALSE;
   }
 
@@ -467,7 +470,7 @@ function file_unmanaged_copy($source, $destination = NULL, $replace = FILE_EXIST
   $destination = file_destination($directory . '/' . $basename, $replace);
 
   if ($destination === FALSE) {
-    drupal_set_message(t('The specified file %file could not be copied because a file by that name already exists in the destination.', array('%file' => $source)), 'error');
+    drupal_set_message(t('The specified file %file could not be copied because a file by that name already exists in the destination %directory.', array('%file' => $source, '%directory' => $proposed_destination)), 'error');
     return FALSE;
   }
   // Make sure source and destination filenames are not the same, makes no
@@ -1080,8 +1083,6 @@ function file_validate_name_length($file) {
  * @see hook_file_validate()
  */
 function file_validate_extensions($file, $extensions) {
-  global $user;
-
   $errors = array();
 
   $regex = '/\.(' . preg_replace('/ +/', '|', preg_quote($extensions)) . ')$/i';
@@ -1495,6 +1496,23 @@ function file_directory_temp() {
  */
 function file_directory_path() {
   return variable_get('file_directory_path', conf_path() . '/files');
+}
+
+/**
+ * Remove a possible leading file directory path from the given path.
+ *
+ * @param $path
+ *   Path to a file that may be in Drupal's files directory.
+ * @return
+ *   String with Drupal's files directory removed from it.
+ */
+function file_directory_strip($path) {
+  // Strip file_directory_path from $path. We only include relative paths in
+  // URLs.
+  if (strpos($path, file_directory_path() . '/') === 0) {
+    $path = trim(substr($path, strlen(file_directory_path())), '\\/');
+  }
+  return $path;
 }
 
 /**

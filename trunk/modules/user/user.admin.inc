@@ -1,5 +1,5 @@
 <?php
-// $Id: user.admin.inc,v 1.62 2009/07/05 18:07:04 dries Exp $
+// $Id: user.admin.inc,v 1.64 2009/07/12 08:36:35 dries Exp $
 
 /**
  * @file
@@ -360,6 +360,14 @@ function user_admin_settings() {
     '#maxlength' => 255,
     '#description' => t('URL of picture to display for users with no custom picture selected. Leave blank for none.'),
   );
+  if (module_exists('image')) {
+    $form['personalization']['pictures']['settings']['user_picture_style'] = array(
+      '#type' => 'select',
+      '#title' => t('Picture style'),
+      '#options' => image_style_options(TRUE),
+      '#default_value' => variable_get('user_picture_style', ''),
+    );
+  }
   $form['personalization']['pictures']['user_picture_dimensions'] = array(
     '#type' => 'textfield',
     '#title' => t('Picture maximum dimensions'),
@@ -456,7 +464,7 @@ function user_admin_settings() {
     '#default_value' => _user_mail_text('register_no_approval_required_body'),
     '#rows' => 15,
   );
-  
+
   $form['email_password_reset'] = array(
     '#type' => 'fieldset',
     '#title' => t('Password recovery'),
@@ -952,7 +960,9 @@ function user_modules_installed($modules) {
 function user_modules_uninstalled($modules) {
   $permissions = array();
   foreach ($modules as $module) {
-    $permissions = array_merge($permissions, array_keys(module_invoke($module, 'permission')));
+    if (drupal_function_exists($module . '_permission')) {
+      $permissions = array_merge($permissions, array_keys(module_invoke($module, 'permission')));
+    }
   }
   if (!empty($permissions)) {
     db_delete('role_permission')

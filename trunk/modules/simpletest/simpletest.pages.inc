@@ -1,5 +1,5 @@
 <?php
-// $Id: simpletest.pages.inc,v 1.5 2009/06/20 06:09:56 webchick Exp $
+// $Id: simpletest.pages.inc,v 1.8 2009/07/11 06:14:48 dries Exp $
 
 /**
  * @file
@@ -390,6 +390,7 @@ function simpletest_result_get($test_id) {
  * @return HTML image or false.
  */
 function simpletest_result_status_image($status) {
+  // $map does not use drupal_static() as its value never changes.
   static $map;
 
   if (!isset($map)) {
@@ -403,4 +404,46 @@ function simpletest_result_status_image($status) {
     return $map[$status];
   }
   return FALSE;
+}
+
+/**
+ * Provides settings form for SimpleTest variables.
+ */
+function simpletest_settings_form(&$form_state) {
+  $form = array();
+
+  $form['general'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('General'),
+  );
+  $form['general']['simpletest_clear_results'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Clear results after each complete test suite run'),
+    '#description' => t('By default SimpleTest will clear the results after they have been viewed on the results page, but in some cases it may be useful to leave the results in the database. The results can then be viewed at <em>admin/development/testing/[test_id]</em>. The test ID can be found in the database, simpletest table, or kept track of when viewing the results the first time. Additionally, some modules may provide more analaysis or features that require this setting to be disabled.'),
+    '#default_value' => variable_get('simpletest_clear_results', TRUE),
+  );
+  $form['general']['simpletest_verbose'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Provide verbose information when running tests'),
+    '#description' => t('The verbose data will be printed along with the standard assertions. Useful for debugging.'),
+    '#default_value' => variable_get('simpletest_verbose', TRUE),
+  );
+
+  $form['httpauth'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('HTTP authentication credentials'),
+    '#description' => t('HTTP auth settings to be used by the SimpleTest browser during testing. Useful when the site requires basic HTTP authentication.'),
+  );
+  $form['httpauth']['simpletest_username'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Username'),
+    '#default_value' => variable_get('simpletest_username', ''),
+  );
+  $form['httpauth']['simpletest_password'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Password'),
+    '#default_value' => variable_get('simpletest_password', ''),
+  );
+
+  return system_settings_form($form);
 }

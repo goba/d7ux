@@ -1,5 +1,5 @@
 <?php
-// $Id: database_test.test,v 1.58 2009/06/27 09:41:56 dries Exp $
+// $Id: database_test.test,v 1.60 2009/07/13 07:27:15 dries Exp $
 
 /**
  * Dummy class for fetching into a class.
@@ -2485,9 +2485,6 @@ class DatabaseInvalidDataTestCase extends DatabaseTestCase {
         $this->pass(t('The whole transaction is rolled back when a duplicate key insert occurs.'));
       }
 
-      // 23000 means "Integrity constraint violation" according to ANSI SQL.
-      $this->assertEqual($e->errorInfo[0], '23000', t('Exception has proper SQLSTATE.'));
-
       // Ensure the other values were not inserted.
       $record = db_select('test')
         ->fields('test', array('name', 'age'))
@@ -2627,8 +2624,8 @@ class DatabaseTransactionTestCase extends DatabaseTestCase {
     if ($rollback) {
       // Roll back the transaction, if requested.
       // This rollback should propagate to the the outer transaction, if present.
-      $connection->rollBack();
-      $this->assertTrue($connection->willRollBack(), t('Transaction is scheduled to roll back after calling rollBack().'));
+      $txn->rollback();
+      $this->assertTrue($txn->willRollback(), t('Transaction is scheduled to roll back after calling rollback().'));
     }
   }
 
