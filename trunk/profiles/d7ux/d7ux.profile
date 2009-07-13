@@ -9,13 +9,9 @@
 function d7ux_profile_modules() {
   return array(
     // Default core modules.
-    'block', 'color', 'comment', 'help', 'menu', 'taxonomy', 'dblog',
-    // Extra core modules.
-    'toolbar',
-    // Extra contrib modules.
+    'block', 'color', 'comment', 'help', 'menu', 'taxonomy', 'dblog', 'search', 'image', 'toolbar',
+    // Extra modules.
     'overlay',
-    // Custom modules.
-    // ...
   );
 }
 
