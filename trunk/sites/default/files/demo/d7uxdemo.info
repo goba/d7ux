@@ -1,0 +1,4 @@
+filename = d7uxdemo
+description = ""
+modules = block color comment dblog demo field field_sql_storage filter help image list menu node number options overlay search system taxonomy text toolbar update user
+version = 1.1

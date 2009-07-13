@@ -1,4 +1,0 @@
-filename = Default
-description = "Default D7UX Snapshot"
-modules = block admin color comment d7uxoverlay dblog demo field field_sql_storage filter help list menu modalframe node number options system taxonomy text update user popups
-version = 1.1
