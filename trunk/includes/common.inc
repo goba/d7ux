@@ -4104,8 +4104,11 @@ function drupal_common_theme() {
     'more_link' => array(
       'arguments' => array('url' => NULL, 'title' => NULL)
     ),
-    'closure' => array(
-      'arguments' => array('main' => 0),
+    'html_top' => array(
+      'arguments' => array(),
+    ),
+    'html_bottom' => array(
+      'arguments' => array(),
     ),
     'blocks' => array(
       'arguments' => array('region' => NULL),

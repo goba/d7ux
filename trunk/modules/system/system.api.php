@@ -148,6 +148,23 @@ function hook_exit($destination = NULL) {
 }
 
 /**
+ * Insert opening elements.
+ *
+ * This hook enables modules to insert elements just after the \<body\> opening
+ * tag of web pages. This is useful for navigation or other elements, which
+ * should be early in the HTML source order.
+ *
+ * @return
+ *   A renderable array to be inserted, keyed by the hook_html_top 
+ *   implementation.
+ */
+function hook_html_top() {
+  if (user_access('access toolbar') && !toolbar_suppress()) {
+    return array('toolbar' => toolbar_build());
+  }
+}
+
+/**
  * Insert closing elements.
  *
  * This hook enables modules to insert elements just before the \</body\> closing
@@ -156,12 +173,11 @@ function hook_exit($destination = NULL) {
  * to the header at this point, and developers wishing to do so should use
  * hook_init() instead.
  *
- * @param $main
- *   Whether the current page is the front page of the site.
  * @return
- *   A renderable array to be inserted, keyed by the hook_footer implementation.
+ *   A renderable array to be inserted, keyed by the hook_html_bottom
+ *   implementation.
  */
-function hook_footer($main = 0) {
+function hook_html_bottom() {
   if (variable_get('dev_query', 0)) {
     return array(
       'devel' => array(

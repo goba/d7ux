@@ -1703,17 +1703,29 @@ function theme_more_link($url, $title) {
 }
 
 /**
- * Execute hook_footer() which is run at the end of the page right before the
- * close of the body tag.
+ * Execute hook_html_top() which allows adding markup at the start of the 
+ * body tag.
+ *
+ * @return
+ *   A string containing the results of the hook_html_top() calls.
+ */
+function theme_html_top() {
+  $top = module_invoke_all('html_top');
+  return drupal_render($top);
+}
+
+/**
+ * Execute hook_html_bottom() which is run at the end of the page right before
+ * the close of the body tag.
  *
  * @param $main (optional)
  *   Whether the current page is the front page of the site.
  * @return
- *   A string containing the results of the hook_footer() calls.
+ *   A string containing the results of the hook_html_bottom() calls.
  */
-function theme_closure($main = 0) {
-  $footer = module_invoke_all('footer', $main);
-  return drupal_render($footer) . drupal_get_js('footer');
+function theme_html_bottom() {
+  $bottom = module_invoke_all('html_bottom');
+  return drupal_render($bottom) . drupal_get_js('footer');
 }
 
 /**
@@ -1950,8 +1962,9 @@ function template_preprocess_page(&$variables) {
   // using an associated GRDDL profile.
   $variables['rdf_namespaces']    = drupal_get_rdf_namespaces();
   $variables['grddl_profile']     = 'http://ns.inria.fr/grddl/rdfa/';
-  // Closure should be filled last.
-  $variables['closure']           = theme('closure');
+  $variables['html_top']          = theme('html_top');
+  // html_bottom should be filled last.
+  $variables['html_bottom']       = theme('html_bottom');
 
   if ($node = menu_get_object()) {
     $variables['node'] = $node;

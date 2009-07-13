@@ -71,6 +71,7 @@
  *
  * Page content (in order of occurrence in the default page.tpl.php):
  * - $title: The page title, for use in the actual HTML content.
+ * - $html_top: Markup to output at the top of the HTML page in the body tag.
  * - $messages: HTML for status and error messages. Should be displayed prominently.
  * - $tabs: Tabs linking to any sub-pages beneath the current page (e.g., the view
  *   and edit tabs when displaying a node).
@@ -83,8 +84,9 @@
  *
  * Footer/closing data:
  * - $footer : The footer region.
- * - $closure: Final closing markup from any modules that have altered the page.
- *   This variable should always be output last, after all other dynamic content.
+ * - $html_bottom: Final closing markup from any modules that have altered the
+ *   page. This variable should always be output last, after all other dynamic 
+ *   content.
  *
  * @see template_preprocess()
  * @see template_preprocess_page()
@@ -103,6 +105,8 @@
   <?php print $scripts; ?>
 </head>
 <body class="<?php print $classes; ?>">
+
+  <?php print $html_top ?>
 
   <div id="page-wrapper"><div id="page">
 
@@ -192,7 +196,7 @@
 
   </div></div> <!-- /#page, /#page-wrapper -->
 
-  <?php print $closure; ?>
+  <?php print $html_bottom; ?>
 
 </body>
 </html>

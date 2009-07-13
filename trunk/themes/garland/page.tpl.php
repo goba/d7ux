@@ -15,6 +15,8 @@
   </head>
   <body class="<?php print $classes ?>">
 
+  <?php print $html_top ?>
+
   <div id="header-region" class="clearfix"><?php print $header ?></div>
 
   <div id="wrapper">
@@ -69,6 +71,6 @@
     </div> <!-- /#container -->
   </div> <!-- /#wrapper -->
 
-  <?php print $closure ?>
+  <?php print $html_bottom ?>
   </body>
 </html>

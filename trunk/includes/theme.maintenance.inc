@@ -273,7 +273,8 @@ function template_preprocess_maintenance_page(&$variables) {
   $variables['scripts']           = drupal_get_js();
   $variables['tabs']              = '';
   $variables['title']             = drupal_get_title();
-  $variables['closure']           = '';
+  $variables['html_top']          = '';
+  $variables['html_bottom']       = '';
 
   // Compile a list of classes that are going to be applied to the body element.
   $variables['classes_array'][] = 'in-maintenance';
