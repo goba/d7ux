@@ -98,7 +98,10 @@ Drupal.overlay.create = function() {
   // iframe element is defined.
   self.iframe.$element = $('<iframe id="overlay-element" frameborder="0" name="overlay-element"'+ ($.browser.msie ? ' scrolling="yes"' : '') +'/>');
   self.iframe.$container = $('<div id="overlay-container"/>').append(self.iframe.$element);
-  self.iframe.$element.after('<div class="overlay-shadow-right"/>').after('<div class="overlay-shadow-bottom"><img src="' + Drupal.settings.overlay.shadowPath + '" alt="" /></div>');
+  self.iframe.$element
+    .after($('<div class="overlay-shadow overlay-shadow-right" />').append('<div class="overlay-shadow overlay-shadow-bottom-right" />'))
+    .after($('<div class="overlay-shadow overlay-shadow-bottom" />').append('<div class="overlay-shadow overlay-shadow-bottom-left" />'));
+
   $('body').append(self.iframe.$container);
 
   self.iframe.$container.dialog({
@@ -122,7 +125,8 @@ Drupal.overlay.create = function() {
         .attr('href', 'javascript:void(0)')
         .attr('title', Drupal.t('Close'))
         .unbind('click')
-        .bind('click', function() { try { self.close(false); } catch(e) {}; return false; });
+        .bind('click', function() { try { self.close(false); } catch(e) {}; return false; })
+        .before('<div class="ui-dialog-titlebar-close-bg" />');
 
       // Compute initial dialog size.
       var dialogSize = self.sanitizeSize({width: self.options.width, height: self.options.height});
@@ -268,6 +272,8 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
   // Setting outline to 0 prevents a border on focus in Mozilla.
   // Inspired by ui.dialog initialization code.
   $iFrameDocument.attr('tabIndex', -1).css('outline', 0);
+
+  $('.ui-dialog-titlebar-close-bg').animate({opacity: 1}, 'fast');
 
   // Perform animation to show the iframe element.
   self.iframe.$element.fadeIn('fast', function() {
@@ -476,6 +482,10 @@ Drupal.overlay.resize = function(size) {
       $('.overlay').width(dialogSize.width).height(dialogSize.height);
       self.iframe.$container.width(frameSize.width).height(frameSize.height);
       self.iframe.$element.width(frameSize.width).height(frameSize.height);
+      $('.overlay-shadow-right').height(frameSize.height);
+      
+      // Animate shadows and the close button
+      $('.overlay-shadow', $(this)).animate({opacity:1}, 'slow');
 
       // Update the dialog size so that UI internals are aware of the change.
       self.iframe.$container.dialog('option', {width: dialogSize.width, height: dialogSize.height});

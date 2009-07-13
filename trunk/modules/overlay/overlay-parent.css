@@ -29,17 +29,23 @@
 .overlay .ui-dialog-titlebar-close {
   display: block;
   position: absolute;
-  right: -24px;
+  right: -26px;
   top: 30px;
   margin: 0;
-  padding: 5px 1px 0 0;
-  width: 23px;
-  height: 20px;
-  background: #fff url(images/close.png) no-repeat 1px 5px;
-  border-radius: 0 15px 15px 0;
-  -moz-border-radius: 0 15px 15px 0;
-  -webkit-border-top-right-radius: 12px;
-  -webkit-border-bottom-right-radius: 12px;
+  padding: 0;
+  width: 26px;
+  height: 26px;
+}
+
+.overlay .ui-dialog-titlebar-close-bg {
+  background: transparent url(images/close.png) no-repeat;
+  width: 32px;
+  height: 36px;
+  position: absolute;
+  right: -32px;
+  top: 30px;
+  opacity: 0;
+  filter: alpha(opacity=0);
 }
 
 .overlay .ui-dialog-titlebar-close span {
@@ -72,14 +78,18 @@
   background: #fff url(images/loading.gif) no-repeat 50% 50%;
 }
 
-#overlay-container div.overlay-shadow-bottom {
-  height: 15px;
-  background: transparent url(images/gradient-vertical.png) repeat-x scroll 0 0;
-  margin: -6px 0 0 -15px;
+#overlay-container div.overlay-shadow {
+  position: absolute;
+  z-index: 1;
+  opacity: 0;
+  filter: alpha(opacity=0);
 }
 
-#overlay-container div.overlay-shadow-bottom img {
-  margin-left: -15px;
+#overlay-container div.overlay-shadow-bottom {
+  height: 15px;
+  background: transparent url(images/ovrly-shdw-bt.png) repeat-x;
+  margin: -6px 0 0 15px;
+  position: relative;
 }
 
 #overlay-element {
@@ -89,13 +99,26 @@
 }
 
 #overlay-container div.overlay-shadow-right {
-  position: absolute;
-  top: 26px;
+  top: 30px;
   right: 15px;
   width: 15px;
-  height: 100%;
-  background: transparent url(images/gradient-horizontal.png) repeat-y scroll right center;
-  z-index: 1;
+  background: transparent url(images/ovrly-shdw-rt.png) repeat-y;
+}
+
+#overlay-container div.overlay-shadow-bottom-right {
+  bottom: -15px;
+  left: 0px;
+  width: 15px;
+  height: 15px;
+  background: transparent url(images/ovrly-shdw-bt-rt.png) no-repeat;
+}
+
+#overlay-container div.overlay-shadow-bottom-left {
+  top: 0px;
+  left: -15px;
+  width: 15px;
+  height: 15px;
+  background: transparent url(images/ovrly-shdw-bt-lt.png) no-repeat;
 }
 
 /**
