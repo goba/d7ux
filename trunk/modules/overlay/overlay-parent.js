@@ -11,7 +11,9 @@ Drupal.behaviors.keepOverlay = {
       // Remove the active class from where it was, and add the active class to
       // this link, so the button keeps highlighting where we are. Only
       // highlight active items in the shortcuts bar.
-      $('#toolbar a').each(function() { $(this).removeClass('active'); });
+      $('#toolbar a').each(function() {
+        $(this).removeClass('active');
+      });
       if ($(this).parents('div.toolbar-shortcuts').length) {
         $(this).addClass('active');
       }

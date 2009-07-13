@@ -21,14 +21,13 @@ define('OVERLAY_CHILD', 1);
  */
 function overlay_init() {
   global $custom_theme;
-
   // Only act if the admin toolbar "is enabled" (user has access).
   if (user_access('access toolbar')) {
-    if (!empty($_GET['render']) && ($_GET['render'] == 'overlay')) {
+    if (isset($_GET['render']) && $_GET['render'] == 'overlay') {
       $admin_theme = variable_get('admin_theme', 0);
       if ($custom_theme != $admin_theme) {
-        // If system module did not switch the theme yet (ie. this is not an
-        // admin page per say), we should switch the theme here.
+        // If system module did not switch the theme yet (i.e. this is not an
+        // admin page, per se), we should switch the theme here.
         $custom_theme = $admin_theme;
         drupal_add_css(drupal_get_path('module', 'system') . '/admin.css');
       }
@@ -39,6 +38,15 @@ function overlay_init() {
       overlay_mode(OVERLAY_PARENT);
     }
   }
+}
+
+/**
+ * Implementation of hook_elements().
+ */
+function overlay_elements() {
+  $elements = array();
+  $elements['form']['#after_build_recursive'][] = 'overlay_form_after_build';
+  return $elements;
 }
 
 /**
@@ -58,43 +66,6 @@ function overlay_preprocess_page(&$variables) {
     // Do not include site name or slogan in the overlay title.
     $variables['head_title'] = drupal_get_title();
   }
-}
-
-/**
- * Implementation of hook_form_alter().
- *
- * The main goal of this function is to set $form_state['redirect'] to FALSE
- * when a submitted form performs a request to close the overlay where
- * it's been processed.
- *
- * A few notes on the workflow we're using here:
- *
- * - Form API is requested to build a form. Then invokes all hook_form_alter()
- *   implementations.
- * - Here we install an after_build callback because still, there may be other
- *   modules that can add submit handlers from their own hook_form_alter().
- * - Ok, form API processes all hook_form_alter() implementations, then invokes
- *   our after_build callback where we can scan the whole form structure in
- *   search for elements that have submit handlers. We want to append our own
- *   submit handler so that we can catch requests to close the active child
- *   dialog performed by other modules using the API overlay_close_dialog()
- *   from their submit handlers.
- * - Our submit handler has been installed using an after_build callback because
- *   this is kind of low level technique, which is not often used by contributed
- *   modules, and chances are that our submit handler is executed after all
- *   potential places from where overlay_close_dialog() can be used by a
- *   external module using the "Overlay API". Also, this way our module does
- *   not depend on the order module hooks are being invoked by Drupal.
- *
- * @see drupal_process_form()
- * @see drupal_redirect_form()
- * @see drupal_get_form()
- *
- * @ingroup forms
- */
-function overlay_form_alter(&$form, $form_state, $form_id) {
-  // Here we simply want to install a form after_build callback.
-  $form['#after_build'][] = 'overlay_form_after_build';
 }
 
 /**
@@ -124,29 +95,12 @@ function overlay_form_after_build($form, &$form_state) {
     if (!empty($form_state['submit_handlers']) && !in_array('overlay_form_submit', $form_state['submit_handlers'])) {
       $form_state['submit_handlers'][] = 'overlay_form_submit';
     }
-
-    // Find form elements with submit handlers recursively.
-    overlay_form_after_build_recursive($form, $form_state);
-  }
-  return $form;
-}
-
-/**
- * Find form elements with submit handlers recursively.
- *
- * @ingroup forms
- */
-function overlay_form_after_build_recursive(&$elements, &$form_state) {
-  // Recurse through all children elements.
-  foreach (element_children($elements) as $key) {
-    if (isset($elements[$key]) && $elements[$key]) {
-      overlay_form_after_build_recursive($elements[$key], $form_state);
+    // If this element has submit handlers, then append our own.
+    if (isset($form['#submit'])) {
+      $form['#submit'][] = 'overlay_form_submit';
     }
   }
-  // If this element has submit handlers, then append our own.
-  if (isset($elements['#submit'])) {
-    $elements['#submit'][] = 'overlay_form_submit';
-  }
+  return $form;
 }
 
 /**
