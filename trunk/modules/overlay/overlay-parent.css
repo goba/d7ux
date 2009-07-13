@@ -88,7 +88,7 @@
 #overlay-container div.overlay-shadow-bottom {
   height: 15px;
   background: transparent url(images/ovrly-shdw-bt.png) repeat-x;
-  margin: -6px 0 0 15px;
+  margin: -5px 0 0 15px;
   position: relative;
 }
 
