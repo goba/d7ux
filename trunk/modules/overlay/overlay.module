@@ -23,7 +23,7 @@ function overlay_init() {
   global $custom_theme;
 
   // Only act if the admin toolbar "is enabled" (user has access).
-  if (user_access('admin toolbar')) {
+  if (user_access('access toolbar')) {
     if (!empty($_GET['render']) && ($_GET['render'] == 'overlay')) {
       $admin_theme = variable_get('admin_theme', 0);
       if ($custom_theme != $admin_theme) {
