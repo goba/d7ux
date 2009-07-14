@@ -90,8 +90,8 @@ Drupal.overlayChild.behaviors.parseLinks = function(context) {
     }
     // Obtain the href attribute of the link.
     var href = $(this).attr('href');
-    // Do not process links with an empty href, or that only have the fragment.
-    if (href.length <= 0 || href.charAt(0) == '#') {
+    // Do not process links with a missing or empty href, or that only have the fragment.
+    if (!href || href.length <= 0 || href.charAt(0) == '#') {
       return;
     }
     if (href.indexOf('http') != 0 && href.indexOf('https') != 0) {
