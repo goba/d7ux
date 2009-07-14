@@ -11,9 +11,11 @@
   </head>
   <body class="<?php print $classes; ?>">
 
-  <?php print $html_top; ?>
-
-  <?php if (!empty($admin)): ?><?php print $admin; ?><?php endif; ?>
+  <?php if ($page_top): ?>
+    <div id="page-top-region" class="clearfix">
+      <?php print $page_top; ?>
+    </div>
+  <?php endif; ?>
 
   <?php if ($header): ?>
     <div id="header-region" class="clearfix">
@@ -49,7 +51,7 @@
 
   </div>
 
-  <?php print $html_bottom; ?>
+  <?php print $closure; ?>
 
   </body>
 </html>
