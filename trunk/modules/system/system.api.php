@@ -143,43 +143,22 @@ function hook_exit($destination = NULL) {
 }
 
 /**
- * Insert opening elements.
+ * Insert closing HTML.
  *
- * This hook enables modules to insert elements just after the \<body\> opening
- * tag of web pages. This is useful for navigation or other elements, which
- * should be early in the HTML source order.
- *
- * @return
- *   A renderable array to be inserted, keyed by the hook_html_top 
- *   implementation.
- */
-function hook_html_top() {
-  if (user_access('access toolbar') && !toolbar_suppress()) {
-    return array('toolbar' => toolbar_build());
-  }
-}
-
-/**
- * Insert closing elements.
- *
- * This hook enables modules to insert elements just before the \</body\> closing
+ * This hook enables modules to insert HTML just before the \</body\> closing
  * tag of web pages. This is useful for adding JavaScript code to the footer
  * and for outputting debug information. It is not possible to add JavaScript
  * to the header at this point, and developers wishing to do so should use
  * hook_init() instead.
  *
+ * @param $main
+ *   Whether the current page is the front page of the site.
  * @return
- *   A renderable array to be inserted, keyed by the hook_html_bottom
- *   implementation.
+ *   The HTML to be inserted.
  */
-function hook_html_bottom() {
+function hook_footer($main = 0) {
   if (variable_get('dev_query', 0)) {
-    return array(
-      'devel' => array(
-        '#type' => 'markup',
-        '#value' => '<div style="clear:both;">' . devel_query_table() . '</div>',
-      ),
-    );
+    return '<div style="clear:both;">' . devel_query_table() . '</div>';
   }
 }
 

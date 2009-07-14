@@ -72,6 +72,17 @@ define('DRUPAL_OPTIONAL', 1);
 define('DRUPAL_REQUIRED', 2);
 
 /**
+ * Return only visible regions. @see system_region_list().
+ */
+define('REGIONS_VISIBLE', 'visible');
+
+/**
+ * Return all visible regions. @see system_region_list().
+ */
+define('REGIONS_ALL', 'all');
+
+
+/**
  * Implement hook_help().
  */
 function system_help($path, $arg) {
@@ -1824,13 +1835,14 @@ function _system_get_theme_data() {
     // Set defaults for theme info.
     $defaults = array(
       'regions' => array(
-        'left' => 'Left sidebar',
-        'right' => 'Right sidebar',
-        'content' => 'Content',
-        'header' => 'Header',
-        'footer' => 'Footer',
-        'highlight' => 'Highlighted content',
-        'help' => 'Help',
+        'left' => array('label' => 'Left sidebar'),
+        'right' => array('label' => 'Right sidebar'),
+        'content' => array('label' => 'Content'),
+        'header' => array('label' => 'Header'),
+        'footer' => array('label' => 'Footer'),
+        'highlight' => array('label' => 'Highlighted content'),
+        'help' => array('label' => 'Help'),
+        'page_top' => array('label' => 'Page top', 'hidden' => TRUE),
       ),
       'description' => '',
       'features' => array(
@@ -1982,18 +1994,26 @@ function system_find_base_theme($themes, $key, $used_keys = array()) {
  *
  * @param $theme_key
  *   The name of a theme.
+ * @param $show
+ *   Possible values: REGIONS_ALL or REGIONS_VISIBLE. Visible excludes hidden 
+ *   regions.
  * @return
- *   An array of regions in the form $region['name'] = 'description'.
+ *   An array of regions in the form $region['name'] = 'label'.
  */
-function system_region_list($theme_key) {
+function system_region_list($theme_key, $show = REGIONS_ALL) {
   $list = &drupal_static(__FUNCTION__, array());
 
-  if (!array_key_exists($theme_key, $list)) {
+  if (empty($list[$theme_key][$show])) {
     $info = unserialize(db_query("SELECT info FROM {system} WHERE type = :type AND name = :name", array(':type' => 'theme', ':name' => $theme_key))->fetchField());
-    $list[$theme_key] = array_map('t', $info['regions']);
+    foreach ($info['regions'] as $name => $region) {
+      // If requested, suppress hidden regions. @see block_admin_display_form().
+      if ($show == REGIONS_ALL || empty($region['hidden'])) {
+        $list[$theme_key][$show][$name] = t($region['label']);
+      }
+    }
   }
 
-  return $list[$theme_key];
+  return $list[$theme_key][$show];
 }
 
 /**
