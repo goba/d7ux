@@ -2006,7 +2006,8 @@ function template_preprocess_page(&$variables) {
  */
 function template_process_page(&$variables) {
   // Render each region into top level variables.
-  foreach (system_region_list($GLOBALS['theme']) as $region_key => $region_name) {
+  $system_regions = array('html_top' => 'Top of output');
+  foreach (system_region_list($GLOBALS['theme']) + $system_regions as $region_key => $region_name) {
     $variables[$region_key] = drupal_render($variables['page'][$region_key]);
   }
 

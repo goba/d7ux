@@ -37,7 +37,7 @@ function toolbar_theme($existing, $type, $theme, $path) {
  */
 function toolbar_page_alter(&$page) {
   if (user_access('access toolbar')) {
-    $page['page_top']['toolbar'] = toolbar_build();
+    $page['html_top']['toolbar'] = toolbar_build();
   }
 }
 
