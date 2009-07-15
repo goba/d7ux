@@ -11,12 +11,8 @@
   </head>
   <body class="<?php print $classes; ?>">
 
-  <?php if ($page_top): ?>
-    <div id="page-top-region" class="clearfix">
-      <?php print $page_top; ?>
-    </div>
-  <?php endif; ?>
-
+  <?php print $html_top; ?>
+  
   <?php if ($header): ?>
     <div id="header-region" class="clearfix">
       <?php print $header; ?>
