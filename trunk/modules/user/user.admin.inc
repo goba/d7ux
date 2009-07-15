@@ -126,7 +126,6 @@ function user_filter_form_submit($form, &$form_state) {
  * @see user_admin_account_submit()
  */
 function user_admin_account() {
-
   $header = array(
     array(),
     array('data' => t('Username'), 'field' => 'u.name'),
@@ -153,6 +152,11 @@ function user_admin_account() {
     ->setCountQuery($count_query);
   $result = $query->execute();
 
+  $form['#accordion'] = array(
+    'table' => '#user-admin-account-table',
+    'links' => '.user-operations',
+  );
+
   $form['options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Update options'),
@@ -178,7 +182,7 @@ function user_admin_account() {
   $status = array(t('blocked'), t('active'));
   $roles = user_roles(TRUE);
   $accounts = array();
-  foreach ($result as $account) {
+  foreach ($result as $i => $account) {
     $accounts[$account->uid] = '';
     $form['name'][$account->uid] = array('#markup' => theme('username', $account));
     $form['status'][$account->uid] =  array('#markup' => $status[$account->status]);
@@ -191,7 +195,9 @@ function user_admin_account() {
     $form['roles'][$account->uid][0] = array('#markup' => theme('item_list', $users_roles));
     $form['member_for'][$account->uid] = array('#markup' => format_interval(REQUEST_TIME - $account->created));
     $form['last_access'][$account->uid] =  array('#markup' => $account->access ? t('@time ago', array('@time' => format_interval(REQUEST_TIME - $account->access))) : t('never'));
-    $form['operations'][$account->uid] = array('#markup' => l(t('edit'), "user/$account->uid/edit", array('query' => $destination)));
+    $form['operations'][$account->uid] = array('#prefix' => '<div class="user-operations" id="user-accordion-' . $i . '">', '#suffix' => '</div>');
+    $form['operations'][$account->uid]['edit'] = array('#markup' => l(t('edit'), "user/$account->uid/edit", array('query' => $destination, 'attributes' => array('id' => 'user-edit-'. $account->uid))), '#prefix' => '<div class="option">', '#suffix' => '</div>');
+    $form['operations'][$account->uid]['cancel'] = array('#markup' => l(t('cancel'), "user/$account->uid/cancel", array('query' => $destination, 'attributes' => array('id' => 'user-cancel-'. $account->uid))), '#prefix' => '<div class="option">', '#suffix' => '</div>');
   }
   $form['accounts'] = array(
     '#type' => 'checkboxes',
@@ -832,7 +838,7 @@ function theme_user_admin_account($form) {
     t('Roles'),
     array('data' => t('Member for'), 'field' => 'u.created', 'sort' => 'desc'),
     array('data' => t('Last access'), 'field' => 'u.access'),
-    t('Operations')
+    t('User operations'),
   );
 
   $output = drupal_render($form['options']);
@@ -853,7 +859,7 @@ function theme_user_admin_account($form) {
     $rows[] = array(array('data' => t('No users available.'), 'colspan' => '7'));
   }
 
-  $output .= theme('table', $header, $rows);
+  $output .= theme('table', $header, $rows, array('id' => 'user-admin-account-table'));
   if ($form['pager']['#markup']) {
     $output .= drupal_render($form['pager']);
   }

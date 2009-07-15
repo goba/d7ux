@@ -388,6 +388,12 @@ function node_admin_content($form_state) {
   $form[] = node_filter_form();
 
   $form['#theme'] = 'node_filter_form';
+
+  $form['#accordion'] = array(
+    'table' => '#node-admin-nodes-table',
+    'links' => '.node-operations',
+  );
+
   $form['admin'] = node_admin_nodes();
 
   return $form;
@@ -449,8 +455,10 @@ function node_admin_nodes() {
 
   $languages = language_list();
   $destination = drupal_get_destination();
+  $i = 0;
   $nodes = array();
   while ($node = db_fetch_object($result)) {
+    $i++;
     $nodes[$node->nid] = '';
     $options = empty($node->language) ? array() : array('language' => $languages[$node->language]);
     $form['title'][$node->nid] = array('#markup' => l($node->title, 'node/' . $node->nid, $options) . ' ' . theme('mark', node_mark($node->nid, $node->changed)));
@@ -461,7 +469,12 @@ function node_admin_nodes() {
     if ($multilanguage) {
       $form['language'][$node->nid] = array('#markup' => empty($node->language) ? t('Language neutral') : t($languages[$node->language]->name));
     }
-    $form['operations'][$node->nid] = array('#markup' => l(t('edit'), 'node/' . $node->nid . '/edit', array('query' => $destination)));
+    $form['operations'][$node->nid] = array('#prefix' => '<div class="node-operations" id="node-accordion-' . $i . '">', '#suffix' => '</div>');
+    $form['operations'][$node->nid]['edit'] = array(
+      '#markup' => l(t('edit'), 'node/' . $node->nid . '/edit', array('query' => $destination, 'attributes' => array('id' => 'node-edit-' . $node->nid))),
+      '#prefix' => '<div class="option">',
+      '#suffix' => '</div>',
+    );
   }
   $form['nodes'] = array(
     '#type' => 'checkboxes',
@@ -550,7 +563,7 @@ function theme_node_admin_nodes($form) {
     );
   }
 
-  $output .= theme('table', $header, $rows);
+  $output .= theme('table', $header, $rows, array('id' => 'node-admin-nodes-table'));
 
   if ($form['pager']['#markup']) {
     $output .= drupal_render($form['pager']);

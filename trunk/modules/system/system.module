@@ -255,8 +255,8 @@ function system_elements() {
   $type['form'] = array(
     '#method' => 'post',
     '#action' => request_uri(),
+    '#process' => array('form_expand_horizontal_tabs', 'form_add_accordion'),
     '#theme_wrapper' => 'form',
-    '#process' => array('form_expand_horizontal_tabs'),
   );
 
   $type['page'] = array(
@@ -790,6 +790,13 @@ function system_menu() {
   $items['admin/reports/status/php'] = array(
     'title' => 'PHP',
     'page callback' => 'system_php',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_CALLBACK,
+  );
+  // Dispatcher for inline editing.
+  $items['edit/inline'] = array(
+    'title' => 'Edit stuff',
+    'page callback' => 'edit_inline',
     'access arguments' => array('administer site configuration'),
     'type' => MENU_CALLBACK,
   );
@@ -2149,7 +2156,7 @@ function confirm_form($form, $question, $path, $description = NULL, $yes = NULL,
     $fragment = isset($path['fragment']) ? $path['fragment'] : NULL;
     $path = isset($path['path']) ? $path['path'] : NULL;
   }
-  $cancel = l($no ? $no : t('Cancel'), $path, array('query' => $query, 'fragment' => $fragment));
+  $cancel = l($no ? $no : t('Cancel'), $path, array('query' => $query, 'fragment' => $fragment, 'attributes' => array('class' => 'cancel-link')));
 
   drupal_set_title($question, PASS_THROUGH);
 

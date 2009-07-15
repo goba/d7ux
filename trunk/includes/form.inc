@@ -2137,6 +2137,35 @@ function form_process_checkboxes($element) {
 }
 
 /**
+ * Assist in adding JavaScript accordions to pages.
+ *
+ * @param $form
+ *   A form to check for a accordion property, which if present will trigger
+ *   the addition of the accordion JavaScript and CSS files to the form.
+ * @return
+ *   The processed form.
+ */
+function form_add_accordion($form) {
+  $accordion = isset($form['#accordion']) ? $form['#accordion'] : FALSE;
+  if (!$accordion) {
+    return $form;
+  }
+  $table = $accordion['table'];
+  $links = $accordion['links'];
+  // Add the accordion JavaScript to the page before the module JavaScript to
+  // ensure that accordion behaviors are registered before any module uses it.
+  $form['#attached_js']['misc/accordion.js'] = array('weight' => -1);
+  $form['#attached_js'][] = 'misc/ahah.js';
+  $form['#attached_js'][] = 'misc/jquery.form.js';
+  $form['#attached_js'][] = 'misc/progress.js';
+  $settings['accordion'][$table] = $links;
+  $form['#attached_js'][] = array('data' => $settings, 'type' => 'setting');
+  $form['#attached_css'][] = 'misc/accordion.css';
+
+  return $form;
+}
+
+/**
  * Format a table with radio buttons or checkboxes.
  *
  * @param $element

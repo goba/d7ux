@@ -2215,3 +2215,29 @@ function theme_system_themes_form($form) {
   $output .= drupal_render_children($form);
   return $output;
 }
+
+
+function edit_inline($type, $op, $uid) {
+  global $custom_theme;
+  $custom_theme = variable_get('admin_theme', 0);
+  drupal_add_css(drupal_get_path('module', 'system') . '/admin.css');
+
+  $function = $type . '_inline_edit_callback';
+  if (drupal_function_exists($function)) {
+    $output = $function($op, $uid);
+  }
+
+  // Add a default message if no message was set.
+  $messages = drupal_get_messages(NULL, FALSE);
+  if (empty($messages)) {
+    drupal_set_message(t('The changes have been saved.'));
+  }
+
+  // Clear and retrieve any messages that may have been set.
+  $messages = theme('status_messages');
+  $javascript = drupal_get_js();
+  $css = drupal_get_css();
+
+  // Output the data.
+  drupal_json(array('status' => 0, 'data' => $output, 'messages' => $messages, 'javaScript' => $javascript, 'css' => $css));
+}

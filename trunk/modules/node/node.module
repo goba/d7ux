@@ -3178,3 +3178,18 @@ function node_requirements($phase) {
   );
   return $requirements;
 }
+
+/**
+ * Implement hook_inline_edit_callback().
+ */
+function node_inline_edit_callback($op, $nid) {
+  $node = node_load($nid);
+  if (empty($node) || empty($node->nid) || empty($nid)) {
+    return;
+  }
+  $output = '';
+  if ($op == 'edit') {
+    $output = drupal_render(drupal_get_form($node->type . '_node_form', $node));
+  }
+  return $output;
+}
