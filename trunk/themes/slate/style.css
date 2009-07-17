@@ -4,8 +4,8 @@
  * Generic elements
  */
 body {
-  color: #fff;
-  background: #222;
+  color: #000;
+  background: #fff;
   font-style: normal;
   line-height: 20px;
   font-size: 0.8em;
@@ -55,11 +55,15 @@ legend {
  */
 #branding {
   overflow: hidden;
-  line-height: 30px;
-  height: 30px;
-  padding-top: 10px;
+  padding: 20px 40px 0 40px;
   position: relative;
-  margin-top: 10px;
+  background-color: #e0e0d8;
+}
+
+#branding div.back-to-site {
+  background: url(images/arrow-prev.png) no-repeat left center;
+  padding-left: 8px;
+  font-size: 11px;
 }
 
 #branding div.breadcrumb {
@@ -157,12 +161,11 @@ div.breadcrumb a {
 }
 
 #branding h2.page-title {
-  color: #fff;
+  color: #000;
   padding-bottom: 10px;
   font-size: 18px;
   font-weight: normal;
   float: left;
-  margin-left: 8%;
 }
 
 /**
@@ -179,13 +182,11 @@ div.breadcrumb a {
 ul.primary {
   float: right;
   border-bottom: none;
-  margin: 0;
-  margin-bottom: -10px;
-  padding: 2px 0 0 8px;
+  margin: 0 0 -10px 0;
+  padding: 3px 0 0 8px;
   line-height: 30px;
   text-transform: uppercase;
   font-size: 12px;
-  margin-right: 10%;
 }
 
 ul.primary li {
@@ -193,36 +194,36 @@ ul.primary li {
   list-style: none;
 }
 
-ul.primary li {
-  background: transparent url(images/tab_inactive_rt.png) no-repeat top right;
-  padding: 7px 8px 5px 0;
-}
-
 ul.primary li a,
-ul.primary li a.active,
 ul.primary li a:active,
 ul.primary li a:visited {
-  background: transparent url(images/tab_inactive_lt.png) no-repeat top left;
+  background-color: #a6a7a2;
+  -moz-border-radius: 8px 8px 0 0;
+  -webkit-border-top-left-radius: 8px;
+  -webkit-border-top-right-radius: 8px;
+  border-radius: 8px 8px 0 0;
   color: #000;
   font-weight: bold;
-  padding: 7px 15px 5px 20px;
-}
-
-ul.primary li.active,
-ul.primary li:hover {
-  background: transparent url(images/tab_active_rt.png) no-repeat top right;
+  padding: 7px 20px 5px 20px;
+  border-width: 1px 1px 0 1px;
+  border-style: solid;
+  border-color: #a6a7a2;
 }
 
 ul.primary li.active a,
 ul.primary li.active a.active,
 ul.primary li.active a:active,
-ul.primary li.active a:visited,
-ul.primary li a:hover,
+ul.primary li.active a:visited {
+  background-color: #fff;
+  border-color: #c9cac4;
+}
+
+ul.primary li a:hover {
+  color: #fff;
+}
+
 ul.primary li.active a:hover {
-  background: transparent url(images/tab_active_lt.png) no-repeat top left;
   color: #000;
-  font-weight: bold;
-  padding: 7px 15px 5px 20px;
 }
 
 ul.secondary {
@@ -265,8 +266,8 @@ ul.secondary li.active a.active {
  */
 #page {
   padding-bottom: 40px;
-  margin-right: 8%;
-  margin-left: 8%;
+  margin-right: 40px;
+  margin-left: 40px;
   position: relative;
 }
 
@@ -279,7 +280,7 @@ ul.secondary li.active a.active {
 
 #content {
   min-height: 180px;
-  padding: 20px;
+  padding: 20px 0;
   background: #fff;
   color: #333;
 }
@@ -744,6 +745,7 @@ div.admin-options div.form-item {
 body.overlay {
   background: #fff;
 }
+
 body.overlay #branding,
 body.overlay #page-title,
 body.overlay #page #left,
@@ -754,4 +756,8 @@ body.overlay #page #footer {
 body.overlay #page {
   margin: 0;
   padding: 0;
+}
+
+body.overlay #content {
+  padding: 20px;
 }
