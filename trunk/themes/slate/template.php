@@ -10,7 +10,7 @@ function slate_preprocess_page(&$vars) {
   $vars['secondary_local_tasks'] = menu_secondary_local_tasks();
   $vars['primary_nav'] = isset($vars['main_menu']) ? theme('links', $vars['main_menu'], array('class' => 'links main-menu')) : FALSE;
   $vars['secondary_nav'] = isset($vars['secondary_menu']) ? theme('links', $vars['secondary_menu'], array('class' => 'links secondary-menu')) : FALSE;
-  $vars['ie_styles'] = '<style type="text/css" media="screen">@import ' . path_to_theme() . '/ie6.css";</style>';
+  $vars['ie_styles'] = '<!--[if lt IE 7]><style type="text/css" media="screen">@import ' . path_to_theme() . '/ie6.css";</style><![endif]-->';
   $vars['classes_array'][] = 'admin';
 }
 
@@ -22,8 +22,8 @@ function slate_node_add_list($content) {
   if ($content) {
     $output = '<ul class="node-type-list">';
     foreach ($content as $item) {
-      $output .= '<li class="clear-block">';
-      $output .= '<label>' . l($item['title'], $item['href'], $item['localized_options']) . '</label>';
+      $output .= '<li class="clearfix">';
+      $output .= '<span class="label">' . l($item['title'], $item['href'], $item['localized_options']) . '</span>';
       $output .= '<div class="description">' . filter_xss_admin($item['description']) . '</div>';
       $output .= '</li>';
     }
