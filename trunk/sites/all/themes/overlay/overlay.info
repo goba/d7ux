@@ -1,8 +1,0 @@
-; $Id$
-
-name = Overlay theming
-description = Very simple overlay theme to resemble d7ux.org mockups later.
-version = VERSION
-core = 7.x
-engine = phptemplate
-stylesheets[all][] = style.css
