@@ -1,5 +1,5 @@
 <?php
-// $Id: common.inc,v 1.934 2009/07/14 10:22:15 dries Exp $
+// $Id: common.inc,v 1.937 2009/07/20 18:51:31 dries Exp $
 
 /**
  * @file
@@ -1138,7 +1138,7 @@ function fix_gpc_magic() {
  */
 function t($string, array $args = array(), array $options = array()) {
   global $language;
-  $custom_strings = &drupal_static(__FUNCTION__);
+  static $custom_strings;
 
   // Merge in default.
   if (empty($options['langcode'])) {
@@ -1163,7 +1163,7 @@ function t($string, array $args = array(), array $options = array()) {
   // We don't use drupal_function_exists() here, because it breaks the testing
   // framework if the locale module is enabled in the parent site (we cannot
   // unload functions in PHP).
-  elseif (module_exists('locale') && $options['langcode'] != 'en') {
+  elseif (function_exists('locale') && $options['langcode'] != 'en') {
     $string = locale($string, $options['context'], $options['langcode']);
   }
   if (empty($args)) {
@@ -2122,19 +2122,23 @@ function url($path = NULL, array $options = array()) {
 /**
  * Format an attribute string to insert in a tag.
  *
+ * Each array key and its value will be formatted into an HTML attribute string.
+ * If a value is itself an array, then each array element is concatenated with a
+ * space between each value (e.g. a multi-value class attribute).
+ *
  * @param $attributes
  *   An associative array of HTML attributes.
  * @return
  *   An HTML string ready for insertion in a tag.
  */
 function drupal_attributes($attributes = array()) {
-  if (is_array($attributes)) {
-    $t = '';
-    foreach ($attributes as $key => $value) {
-      $t .= " $key=" . '"' . check_plain($value) . '"';
+  foreach ($attributes as $attribute => $data) {
+    if (is_array($data)) {
+      $data = implode(' ', $data);
     }
-    return $t;
+    $items[] = $attribute . '="' . check_plain($data) . '"';
   }
+  return isset($items) ? ' ' . implode(' ', $items) : '';
 }
 
 /**
@@ -3141,7 +3145,7 @@ function drupal_get_library($module, $name) {
  * @endcode
  *
  * In a more complex case where there are several groups in one column (such as
- * the block regions on the admin/build/block page), a separate subgroup class
+ * the block regions on the admin/structure/block page), a separate subgroup class
  * must also be added to differentiate the groups.
  * @code
  * $form['my_elements'][$region][$delta]['weight']['#attributes']['class'] = "my-elements-weight my-elements-weight-" . $region;
@@ -4100,7 +4104,7 @@ function drupal_common_theme() {
       'arguments' => array('links' => NULL, 'attributes' => array('class' => 'links')),
     ),
     'image' => array(
-      'arguments' => array('path' => NULL, 'alt' => '', 'title' => '', 'attributes' => NULL, 'getsize' => TRUE),
+      'arguments' => array('path' => NULL, 'alt' => '', 'title' => '', 'attributes' => array(), 'getsize' => TRUE),
     ),
     'breadcrumb' => array(
       'arguments' => array('breadcrumb' => NULL),
@@ -4124,7 +4128,7 @@ function drupal_common_theme() {
       'arguments' => array('type' => MARK_NEW),
     ),
     'item_list' => array(
-      'arguments' => array('items' => array(), 'title' => NULL, 'type' => 'ul', 'attributes' => NULL),
+      'arguments' => array('items' => array(), 'title' => NULL, 'type' => 'ul', 'attributes' => array()),
     ),
     'more_help_link' => array(
       'arguments' => array('url' => NULL),

@@ -1,5 +1,5 @@
 <?php
-// $Id: field.api.php,v 1.20 2009/07/11 14:25:40 dries Exp $
+// $Id: field.api.php,v 1.22 2009/07/20 18:51:33 dries Exp $
 
 /**
  * @ingroup field_fieldable_type
@@ -77,8 +77,8 @@ function hook_fieldable_info() {
     $return['taxonomy_term']['bundles'][$vocabulary->machine_name] = array(
       'label' => $vocabulary->name,
       'admin' => array(
-        'path' => 'admin/build/taxonomy/%taxonomy_vocabulary',
-        'real path' => 'admin/build/taxonomy/' . $vocabulary->vid,
+        'path' => 'admin/structure/taxonomy/%taxonomy_vocabulary',
+        'real path' => 'admin/structure/taxonomy/' . $vocabulary->vid,
         'bundle argument' => 3,
         'access arguments' => array('administer taxonomy'),
       ),
@@ -701,7 +701,9 @@ function hook_field_attach_pre_update($obj_type, $object, &$skip_fields) {
  *   A storage module that doesn't support querying a given column should raise
  *   a FieldQueryException. Incompatibilities should be mentioned on the module
  *   project page.
- * @param $result_format
+ * @param $count
+ *   See field_attach_query().
+ * @param $cursor
  *   See field_attach_query().
  * @param $age
  *   - FIELD_LOAD_CURRENT: query the most recent revisions for all
@@ -715,7 +717,7 @@ function hook_field_attach_pre_update($obj_type, $object, &$skip_fields) {
  *   The $skip_field parameter should be set to TRUE if the query has been
  *   handled.
  */
-function hook_field_attach_pre_query($field_name, $conditions, $result_format, $age, &$skip_field) {
+function hook_field_attach_pre_query($field_name, $conditions, $count, &$cursor = NULL, $age, &$skip_field) {
 }
 
 /**
@@ -879,14 +881,16 @@ function hook_field_storage_delete_revision($obj_type, $object) {
  *   A storage module that doesn't support querying a given column should raise
  *   a FieldQueryException. Incompatibilities should be mentioned on the module
  *   project page.
- * @param $result_format
+ * @param $count
+ *   See field_attach_query().
+ * @param $cursor
  *   See field_attach_query().
  * @param $age
  *   See field_attach_query().
  * @return
  *   See field_attach_query().
  */
-function hook_field_storage_query($field_name, $conditions, $result_format, $age) {
+function hook_field_storage_query($field_name, $conditions, $count, &$cursor = NULL, $age) {
 }
 
 /**
