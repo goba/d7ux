@@ -616,23 +616,23 @@ button.form-submit {
   margin-right:5px;
   font-size: 1.3em;
   text-align: center;
-  background: transparent url(images/btn_std_rt.png) no-repeat right top;
+  background: transparent url(images/button-standard-right.png) no-repeat right top;
   padding-right: 12px;
 }
 
 button.form-submit span {
   padding: 3px 0 0 12px;
   height: 27px;
-  background: transparent url(images/btn_std_lt.png) no-repeat left top;
+  background: transparent url(images/button-standard-left.png) no-repeat left top;
   color: #5a5a5a;
 }
 
 button.form-submit.form-button-emphasized {
-  background: transparent url(images/btn_emph_rt.png) no-repeat right top;
+  background: transparent url(images/button-emphasized-right.png) no-repeat right top;
 }
 
 button.form-submit.form-button-emphasized span {
-  background: transparent url(images/btn_emph_lt.png) no-repeat left top;
+  background: transparent url(images/button-emphasized-left.png) no-repeat left top;
   color: #00273f;
 }
 

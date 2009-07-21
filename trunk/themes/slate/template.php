@@ -11,7 +11,7 @@ function slate_preprocess_page(&$vars) {
   $vars['primary_nav'] = isset($vars['main_menu']) ? theme('links', $vars['main_menu'], array('class' => 'links main-menu')) : FALSE;
   $vars['secondary_nav'] = isset($vars['secondary_menu']) ? theme('links', $vars['secondary_menu'], array('class' => 'links secondary-menu')) : FALSE;
   $vars['ie_styles'] = '<!--[if lt IE 7]><style type="text/css" media="screen">@import ' . path_to_theme() . '/ie6.css";</style><![endif]-->';
-  $vars['classes_array'][] = 'admin';
+  $vars['back_to_site'] = l(t('Back to the live site'), '');
 }
 
 /**
