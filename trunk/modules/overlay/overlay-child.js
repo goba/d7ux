@@ -5,27 +5,23 @@
 /**
  * Overlay object for child windows.
  */
-Drupal.overlayChild = Drupal.overlayChild || {
-  processed: false,
-  behaviors: {}
-};
+Drupal.overlayChild = Drupal.overlayChild || { processed: false, behaviors: {} };
 
 /**
- * Use a Drupal behavior to attach the child dialog behavior so that it will be
- * automatically attached to new content.
+ * Drupal will automatically attach the child dialog behavior to new content.
  */
 Drupal.behaviors.overlayChild = {
-  attach: function(context) {
-    Drupal.overlayChild.attachBehavior(context);
+  attach: function(context, settings) {
+    Drupal.overlayChild.attachBehavior(context, settings);
   }
 };
 
 /**
  * Attach child dialog behavior.
  */
-Drupal.overlayChild.attachBehavior = function(context) {
+Drupal.overlayChild.attachBehavior = function(context, settings) {
   var self = Drupal.overlayChild;
-  var settings = Drupal.settings.overlayChild || {};
+  var settings = settings.overlayChild || {};
 
   // Make sure this behavior is not processed more than once.
   if (self.processed) {
@@ -33,7 +29,8 @@ Drupal.overlayChild.attachBehavior = function(context) {
   }
   self.processed = true;
 
-  // If we cannot reach the parent window, then we have nothing else todo here.
+  // If we cannot reach the parent window, then we have nothing else to do
+  // here.
   if (!self.isObject(parent.Drupal) || !self.isObject(parent.Drupal.overlay)) {
     return;
   }
@@ -44,7 +41,15 @@ Drupal.overlayChild.attachBehavior = function(context) {
     parent.Drupal.overlay.bindChild(window, true);
     // Close the child window from a separate thread because the current
     // one is busy processing Drupal behaviors.
-    setTimeout(function() { parent.Drupal.overlay.close(settings.args, settings.statusMessages); }, 1);
+    setTimeout(function() {
+      // We need to store the parent variable locally because it will
+      // disappear as soon as we close the iframe.
+      var p = parent;
+      p.Drupal.overlay.close(settings.statusMessages);
+      if (typeof settings.redirect == 'string') {
+        p.Drupal.overlay.redirect(settings.redirect);
+      }
+    }, 1);
     return;
   }
 
@@ -59,39 +64,50 @@ Drupal.overlayChild.attachBehavior = function(context) {
     });
   }
 
-  // Attach child related behaviors to the iframed document.
-  self.attachBehaviors(context);
+  // Attach child related behaviors to the iframe document.
+  self.attachBehaviors(context, settings);
 };
 
 /**
- * Check if the given variable is an object.
+ * Add the isObject() method to the overlayChild object for convenience.
  */
-Drupal.overlayChild.isObject = function(something) {
-  return (something !== null && typeof something === 'object');
-};
+Drupal.overlayChild.isObject = parent.Drupal.overlay.isObject;
 
 /**
  * Attach child related behaviors to the iframed document.
  */
-Drupal.overlayChild.attachBehaviors = function(context) {
+Drupal.overlayChild.attachBehaviors = function(context, settings) {
   $.each(this.behaviors, function() {
-    this(context);
+    this(context, settings);
   });
 };
 
 /**
  * Add target="_new" to all external URLs.
  */
-Drupal.overlayChild.behaviors.parseLinks = function(context) {
+Drupal.overlayChild.behaviors.parseLinks = function(context, settings) {
   $('a:not(.overlay-processed)', context).addClass('overlay-processed').each(function() {
     // Do not process links that have the class "overlay-exclude".
     if ($(this).hasClass('overlay-exclude')) {
       return;
     }
+    // Links that have the class "overlay-escape" should close the overlay and
+    // open in the main window.
+    if ($(this).hasClass('overlay-escape')) {
+      $(this).click(function() {
+        // We need to store the parent variable locally because it will
+        // disappear as soon as we close the iframe.
+        var parentWindow = parent;
+        parentWindow.Drupal.overlay.close(false);
+        parentWindow.Drupal.overlay.redirect($(this).attr('href'));
+        return false;
+      });
+      return;
+    }
     // Obtain the href attribute of the link.
     var href = $(this).attr('href');
-    // Do not process links with a missing or empty href, or that only have the fragment.
-    if (!href || href.length <= 0 || href.charAt(0) == '#') {
+    // Do not process links with an empty href, or that only have the fragment.
+    if (href.length <= 0 || href.charAt(0) == '#') {
       return;
     }
     if (href.indexOf('http') != 0 && href.indexOf('https') != 0) {

@@ -1014,9 +1014,8 @@ function form_builder($form_id, $element, &$form_state) {
 
   // The #after_build flag allows any piece of a form to be altered
   // after normal input parsing has been completed.
-  if ((isset($element['#after_build']) || isset($form_state['complete form']['#after_build_recursive'])) && !isset($element['#after_build_done'])) {
-    $functions = array_merge(isset($element['#after_build']) ? $element['#after_build'] : array(), isset($form_state['complete form']['#after_build_recursive']) ? $form_state['complete form']['#after_build_recursive'] : array());
-    foreach ($functions as $function) {
+  if (isset($element['#after_build']) && !isset($element['#after_build_done'])) {
+    foreach ($element['#after_build'] as $function) {
       $element = $function($element, $form_state);
       $element['#after_build_done'] = TRUE;
     }

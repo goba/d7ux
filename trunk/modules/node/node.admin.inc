@@ -459,6 +459,9 @@ function node_admin_nodes() {
     $i++;
     $nodes[$node->nid] = '';
     $options = empty($node->language) ? array() : array('language' => $languages[$node->language]);
+    // Set a class to flag to the overlay, if present, not to open the link in
+    // the overlay.
+    $options['attributes']['class'] = 'overlay-escape';
     $form['title'][$node->nid] = array('#markup' => l($node->title, 'node/' . $node->nid, $options) . ' ' . theme('mark', node_mark($node->nid, $node->changed)));
     $form['name'][$node->nid] =  array('#markup' => check_plain(node_type_get_name($node)));
     $form['username'][$node->nid] = array('#markup' => theme('username', $node));

@@ -3,7 +3,7 @@
 (function ($) {
 
 Drupal.behaviors.keepOverlay = {
-  attach: function(context) {
+  attach: function(context, settings) {
 
     // Attach on the .to-overlay class.
     $('a.to-overlay:not(.overlay-processed)').addClass('overlay-processed').click(function() {
@@ -155,6 +155,15 @@ Drupal.overlay.create = function() {
         self.load(self.options.url);
       });
 
+      // Close the overlay if the background is clicked.
+      $('.overlay-shadow, .ui-dialog, .ui-widget-overlay, .ui-dialog-titlebar').bind('click', function() {
+        try {
+          self.close(false);
+        }
+        catch (e) {}
+        return false;
+      });
+
       self.isOpen = true;
     },
     beforeclose: function() {
@@ -218,7 +227,7 @@ Drupal.overlay.canClose = function() {
 /**
  * Close the overlay.
  */
-Drupal.overlay.close = function(args, statusMessages) {
+Drupal.overlay.close = function(statusMessages) {
   var self = this;
 
   // Check if the dialog can be closed.
@@ -236,7 +245,7 @@ Drupal.overlay.close = function(args, statusMessages) {
     self.beforeCloseEnabled = true;
     self.iframe.$container.dialog('close');
     if ($.isFunction(self.options.onOverlayClose)) {
-      self.options.onOverlayClose(args, statusMessages);
+      self.options.onOverlayClose(statusMessages);
     }
   }
   if (!self.isObject(self.iframe.$element) || !self.iframe.$element.size() || !self.iframe.$element.is(':visible')) {
@@ -249,6 +258,15 @@ Drupal.overlay.close = function(args, statusMessages) {
   }
   return true;
 };
+
+Drupal.overlay.redirect = function(link) {
+  if (link.indexOf('http') != 0 && link.indexOf('https') != 0) {
+    var absolute = location.href.match(/https?:\/\/[^\/]*/)[0];
+    link = absolute + link;
+  }
+  location.href = link;
+  return true;
+}
 
 /**
  * Bind the child window.
@@ -448,14 +466,9 @@ Drupal.overlay.computePosition = function($element, elementSize) {
     left: Math.max(0, parseInt(($window.width() - elementSize.width) / 2)),
     top: toolbarHeight + 20
   };
-  // @todo: this helps when the toolbar moves with the page, since otherwise
-  // we might open a screen which does not show on the viewport. It is not
-  // nice however, when one scrolls up top again and the overlay is not there.
-  if ($element.css('position') != 'fixed') {
-    var $document = $(document);
-    position.left += $document.scrollLeft();
-    position.top += $document.scrollTop();
-  }
+
+  // Reset the scroll to the top of the window so that the overlay is visible again.
+  window.scrollTo(0, 0);
   return position;
 };
 

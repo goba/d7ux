@@ -21,8 +21,10 @@ define('OVERLAY_CHILD', 1);
  */
 function overlay_init() {
   global $custom_theme;
-  // Only act if the admin toolbar "is enabled" (user has access).
-  if (user_access('access toolbar')) {
+  // Only act if the admin toolbar if the user has access to administration
+  // pages. Other modules could also enable the overlay directly for other uses
+  // of the JavaScript.
+  if (user_access('access administration pages')) {
     if (isset($_GET['render']) && $_GET['render'] == 'overlay') {
       $admin_theme = variable_get('admin_theme', 0);
       if ($custom_theme != $admin_theme) {
@@ -41,12 +43,12 @@ function overlay_init() {
 }
 
 /**
- * Implementation of hook_elements().
+ * Implementation of hook_element_info_alter().
  */
-function overlay_elements() {
-  $elements = array();
-  $elements['form']['#after_build_recursive'][] = 'overlay_form_after_build';
-  return $elements;
+function overlay_element_info_alter(&$types) {
+  foreach (array('submit', 'button', 'image_button', 'form') as $type) {
+    $types[$type]['#after_build'][] = 'overlay_form_after_build';
+  }
 }
 
 /**
@@ -83,7 +85,7 @@ function overlay_preprocess_page(&$variables) {
  * @ingroup forms
  */
 function overlay_form_after_build($form, &$form_state) {
-  if (isset($_GET['render']) && $_GET['render'] == 'overlay') {
+  #if (isset($_GET['render']) && $_GET['render'] == 'overlay') {
     // Form API may have already captured submit handlers from the submitted
     // button before after_build callback is invoked. This may have been done
     // by _form_builder_handle_input_element().
@@ -99,7 +101,7 @@ function overlay_form_after_build($form, &$form_state) {
     if (isset($form['#submit'])) {
       $form['#submit'][] = 'overlay_form_submit';
     }
-  }
+  #}
   return $form;
 }
 
@@ -117,7 +119,23 @@ function overlay_form_after_build($form, &$form_state) {
  * @ingroup forms
  */
 function overlay_form_submit($form, &$form_state) {
-  if (is_array($form_state['redirect'])) {
+  // Close the overlay in the lack of a redirect, or if specifically requested
+  // to do so.
+  if (overlay_close_dialog() || empty($form_state['redirect'])) {
+    $settings = array(
+      'overlayChild' => array(
+        'closeOverlay' => TRUE,
+        'statusMessages' => theme('status_messages'),
+        'redirect' => $form_state['redirect'] ? url($form_state['redirect']) : $form_state['redirect'],
+      ),
+    );
+    drupal_add_js($settings, array('type' => 'setting'));
+    // Print the page with no content to avoid a flash of the refilled form.
+    print theme('page', '');
+    drupal_page_footer();
+    exit;
+  }
+  elseif (is_array($form_state['redirect'])) {
     if (!empty($form_state['redirect'][1])) {
       if (is_array($form_state['redirect'][1])) {
         // Query is an array, add our marker as a key.
@@ -133,9 +151,9 @@ function overlay_form_submit($form, &$form_state) {
       $form_state['redirect'][1] = array('render' => 'overlay');
     }
   }
-  elseif (!isset($form_state['redirect']) || ($form_state['redirect'] !== FALSE && $form_state['redirect'] !== NULL)) {
+  else {
     // Not an array. Save the path value and add our own marker.
-    $form_state['redirect'] = array(!empty($form_state['redirect']) ? $form_state['redirect'] : $_GET['q'], array('render' => 'overlay'));
+    $form_state['redirect'] = array($form_state['redirect'], array('render' => 'overlay'));
   }
 }
 
@@ -189,4 +207,21 @@ function overlay_mode($mode = NULL) {
       break;
   }
   return $overlay_mode;
+}
+
+/**
+ * Callback to close the overlay dialog.
+ *
+ * @param $set
+ *   If set, will set the current close dialog mode to the given boolean.
+ * @return
+ *   The current overlay close dialog mode, TRUE if the overlay should close or
+ *   FALSE if it should not (default).
+ */
+function overlay_close_dialog($set = NULL) {
+  $close = &drupal_static(__FUNCTION__, FALSE);
+  if (isset($set)) {
+    $close = $set;
+  }
+  return $close;
 }

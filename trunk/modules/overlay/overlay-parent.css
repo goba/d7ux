@@ -96,6 +96,7 @@
   margin: 0;
   padding: 0;
   border: none;
+  overflow: hidden;
 }
 
 #overlay-container div.overlay-shadow-right {

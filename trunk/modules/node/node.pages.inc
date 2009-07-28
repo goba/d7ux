@@ -428,6 +428,15 @@ function theme_node_preview($node) {
 function node_form_submit($form, &$form_state) {
   global $user;
 
+  // Run all submit callbacks except the overlay, which we require to run later
+  // if present.
+  if ($key = array_search('overlay_form_submit', $form['#submit'])) {
+    unset($form['#submit'][$key]);
+  }
+  if ($key = array_search('overlay_form_submit', $form_state['submit_handlers'])) {
+    unset($form['submit_handlers'][$key]);
+  }
+
   $node = node_form_submit_build_node($form, $form_state);
   $insert = empty($node->nid);
   node_save($node);
@@ -447,6 +456,11 @@ function node_form_submit($form, &$form_state) {
     unset($form_state['rebuild']);
     $form_state['nid'] = $node->nid;
     $form_state['redirect'] = 'node/' . $node->nid;
+    // If the overlay module is enabled, use the overlay module's API to close
+    // the overlay.
+    if (module_exists('overlay')) {
+      overlay_close_dialog(TRUE);
+    }
   }
   else {
     // In the unlikely case something went wrong on save, the node will be
