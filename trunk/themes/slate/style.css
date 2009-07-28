@@ -455,43 +455,6 @@ table tr.selected td {
   border-color: #eeb;
 }
 
-/* Pager */
-.short-pager {
-  float: right;
-  margin-top: 2em;
-}
-
-.short-pager div {
-  display: inline;
-  margin-left: 1em;
-}
-
-.short-pager .short-pager-total {
-  font-size: 0.8em;
-  color: #5d5d5d;
-}
-
-.short-pager .short-pager-prev {
-  background: url(images/arrow-prev.png) no-repeat center left;
-  padding-left: 10px;
-}
-
-.short-pager .short-pager-next {
-  background: url(images/arrow-next.png) no-repeat center right;
-  padding-right: 10px;
-}
-
-/* This whole portion is to accommodate the correct order of next/last pager links. */
-#content ul.pager li.last {
-  position: absolute;
-  right: 0;
-}
-
-#content ul.pager li.pager-current,
-#content ul.pager li.pager-item {
-  position: static;
-}
-
 /**
  * Forms.
  */
@@ -586,54 +549,46 @@ div.form-item div.description {
   color: #666;
 }
 
-/* Form buttons */
-button {
-  position: relative;
-  border: 0;
-  padding: 0;
+/* Buttons */
+input.form-submit {
   cursor: pointer;
-  overflow: visible; /* Removes extra side padding in IE. */
-}
-button::-moz-focus-inner {
-  border: none; /* Overrides extra padding in Firefox. */
-}
-
-button span {
-  position: relative;
-  display: block;
-  white-space: nowrap;
-}
-
-@media screen and (-webkit-min-device-pixel-ratio:0) {
-  /* Safari and Google Chrome only - fix margins */
-  button span {
-    margin-top: -1px;
-  }
-}
-
-button.form-submit {
-  color: #333;
-  margin-right:5px;
-  font-size: 1.3em;
-  text-align: center;
-  background: transparent url(images/button-standard-right.png) no-repeat right top;
-  padding-right: 12px;
-}
-
-button.form-submit span {
-  padding: 3px 0 0 12px;
-  height: 27px;
-  background: transparent url(images/button-standard-left.png) no-repeat left top;
+  padding: 4px 17px;
   color: #5a5a5a;
+  text-align: center;
+  font-weight: normal;
+  font-family: "Lucida Grande", Verdana, sans-serif;
+  border: 1px solid #e4e4e4;
+  border-bottom: 1px solid #b4b4b4;
+  border-left-color: #D2D2D2;
+  border-right-color: #D2D2D2;
+  background: url(images/buttons.png) 0 0 repeat-x;
+  -moz-border-radius: 20px;
+  -webkit-border-radius: 15px;
+  font-size: 1.1em;
 }
 
-button.form-submit.form-button-emphasized {
-  background: transparent url(images/button-emphasized-right.png) no-repeat right top;
+div.node-form input#edit-submit,
+div.node-form input#edit-submit-1 {
+  border: 1px solid #8eB7cd;
+  border-left-color: #8eB7cd;
+  border-right-color: #8eB7cd;
+  border-bottom-color: #7691a2;
+  background: url(images/buttons.png) 0px -40px repeat-x;
+  color: #133B54;
 }
 
-button.form-submit.form-button-emphasized span {
-  background: transparent url(images/button-emphasized-left.png) no-repeat left top;
-  color: #00273f;
+input.form-submit:active {
+  background: #666;
+  color: #fff;
+  border-color: #555;
+  text-shadow: #222 0px -1px 0px;
+}
+
+form input#edit-delete {
+  background: #eee;
+  border-color: #fff #ddd #ccc;
+  text-shadow: none;
+  color: #999;
 }
 
 input.form-autocomplete,
