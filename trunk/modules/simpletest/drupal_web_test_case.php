@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.127 2009/07/15 02:08:41 webchick Exp $
+// $Id: drupal_web_test_case.php,v 1.129 2009/07/27 19:26:31 dries Exp $
 
 /**
  * Base class for Drupal tests.
@@ -750,7 +750,6 @@ class DrupalWebTestCase extends DrupalTestCase {
       'name' => $name,
       'description' => '',
       'help' => '',
-      'min_word_count' => 0,
       'title_label' => 'Title',
       'body_label' => 'Body',
       'has_title' => 1,
@@ -1194,6 +1193,7 @@ class DrupalWebTestCase extends DrupalTestCase {
    */
   protected function curlInitialize() {
     global $base_url, $db_prefix;
+
     if (!isset($this->curlHandle)) {
       $this->curlHandle = curl_init();
       $curl_options = $this->additionalCurlOptions + array(
@@ -1206,9 +1206,6 @@ class DrupalWebTestCase extends DrupalTestCase {
         CURLOPT_SSL_VERIFYHOST => FALSE, // Required to make the tests run on https.
         CURLOPT_HEADERFUNCTION => array(&$this, 'curlHeaderCallback'),
       );
-      if (preg_match('/simpletest\d+/', $db_prefix, $matches)) {
-        $curl_options[CURLOPT_USERAGENT] = $matches[0];
-      }
       if (isset($this->httpauth_credentials)) {
         $curl_options[CURLOPT_USERPWD] = $this->httpauth_credentials;
       }
@@ -1216,6 +1213,11 @@ class DrupalWebTestCase extends DrupalTestCase {
 
       // By default, the child session name should be the same as the parent.
       $this->session_name = session_name();
+    }
+    // We set the user agent header on each request so as to use the current
+    // time and a new uniqid.
+    if (preg_match('/simpletest\d+/', $db_prefix, $matches)) {
+      curl_setopt($this->curlHandle, CURLOPT_USERAGENT, drupal_generate_test_ua($matches[0]));
     }
   }
 

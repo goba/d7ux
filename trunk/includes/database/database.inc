@@ -1,5 +1,5 @@
 <?php
-// $Id: database.inc,v 1.64 2009/07/21 07:26:59 webchick Exp $
+// $Id: database.inc,v 1.67 2009/07/27 19:42:55 dries Exp $
 
 /**
  * @file
@@ -891,7 +891,7 @@ abstract class DatabaseConnection extends PDO {
       }
 
       // Reset any scheduled rollback
-      $this->willRollBack = FALSE;
+      $this->willRollback = FALSE;
     }
   }
 
@@ -912,7 +912,7 @@ abstract class DatabaseConnection extends PDO {
     --$this->transactionLayers;
 
     if ($this->transactionLayers == 0 && $this->supportsTransactions()) {
-      if ($this->willRollBack) {
+      if ($this->willRollback) {
         parent::rollBack();
       }
       else {
@@ -1347,9 +1347,10 @@ abstract class Database {
       }
 
       // We need to pass around the simpletest database prefix in the request
-      // and we put that in the user_agent header.
-      if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match("/^simpletest\d+$/", $_SERVER['HTTP_USER_AGENT'])) {
-        $db_prefix .= $_SERVER['HTTP_USER_AGENT'];
+      // and we put that in the user_agent header. The header HMAC was already
+      // validated in bootstrap.inc.
+      if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match("/^(simpletest\d+);/", $_SERVER['HTTP_USER_AGENT'], $matches)) {
+        $db_prefix .= $matches[1];
       }
       return $new_connection;
     }
@@ -2690,6 +2691,21 @@ function db_rewrite_sql($query, $primary_table = 'n', $primary_field = 'nid',  $
   }
 
   return $query;
+}
+
+/**
+ * Ensures the environment for a Drupal database on a predefined connection.
+ *
+ * This will run tasks that check that Drupal can perform all of the functions
+ * on a database, that Drupal needs. Tasks include simple checks like CREATE
+ * TABLE to database specfic functions like stored procedures and client 
+ * encoding.
+ */
+function db_run_tasks($driver) {
+  $task_class = 'DatabaseTasks_' . $driver;
+  $DatabaseTasks = new $task_class();
+  $DatabaseTasks->runTasks();
+  return true;
 }
 
 /**

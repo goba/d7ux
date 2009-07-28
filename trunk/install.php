@@ -1,5 +1,5 @@
 <?php
-// $Id: install.php,v 1.185 2009/07/19 04:48:09 webchick Exp $
+// $Id: install.php,v 1.187 2009/07/27 19:42:54 dries Exp $
 
 /**
  * Root directory of Drupal installation.
@@ -28,7 +28,7 @@ function install_main() {
   // The user agent header is used to pass a database prefix in the request when
   // running tests. However, for security reasons, it is imperative that no
   // installation be permitted using such a prefix.
-  if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match("/^simpletest\d+$/", $_SERVER['HTTP_USER_AGENT'])) {
+  if (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], "simpletest") !== FALSE) {
     header($_SERVER['SERVER_PROTOCOL'] . ' 403 Forbidden');
     exit;
   }
@@ -336,7 +336,6 @@ function install_settings_form(&$form_state, $profile, $install_locale, $setting
  * Form API validate for install_settings form.
  */
 function install_settings_form_validate($form, &$form_state) {
-  global $db_url;
   _install_settings_form_validate($form_state['values'], $form_state['values']['settings_file'], $form_state, $form);
 }
 
@@ -364,17 +363,15 @@ function _install_settings_form_validate($database, $settings_file, &$form_state
     if (isset($form)) {
       form_set_value($form['_database'], $database, $form_state);
     }
-    $class = "DatabaseInstaller_$driver";
-    $test = new $class;
+
+    // Run tasks associated with the database type. Any errors are caught in the
+    // calling function
     $databases['default']['default'] = $database;
-    $return = $test->test();
-    if (!$return || $test->error) {
-      if (!empty($test->success)) {
-        form_set_error('db_type', st('In order for Drupal to work, and to continue with the installation process, you must resolve all permission issues reported above. We were able to verify that we have permission for the following commands: %commands. For more help with configuring your database server, see the <a href="http://drupal.org/node/258">Installation and upgrading handbook</a>. If you are unsure what any of this means you should probably contact your hosting provider.', array('%commands' => implode($test->success, ', '))));
-      }
-      else {
-        form_set_error('driver', '');
-      }
+    try {
+      db_run_tasks($database['driver']);
+    } 
+    catch (DatabaseTaskException $e) {
+      form_set_error('db_type', $e->getMessage());
     }
   }
 }

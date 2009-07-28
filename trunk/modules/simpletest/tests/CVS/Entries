@@ -6,7 +6,6 @@
 /field_test.info/1.2/Sun Feb  8 21:22:59 2009//
 /field_test.install/1.4/Wed May 27 18:34:00 2009//
 /file_test.info/1.1/Sat Sep 20 07:35:53 2008//
-/file_test.module/1.10/Wed May 27 18:34:00 2009//
 /form_test.info/1.1/Wed Jan 28 07:43:26 2009//
 /form_test.module/1.7/Wed May 27 18:34:00 2009//
 /image_test.info/1.1/Mon Mar  9 11:44:54 2009//
@@ -45,6 +44,7 @@
 /xmlrpc.test/1.11/Wed Jul 15 16:47:53 2009//
 /common.test/1.56/Tue Jul 21 09:46:36 2009//
 /database_test.test/1.62/Tue Jul 21 09:46:36 2009//
-/file.test/1.36/Tue Jul 21 09:46:36 2009//
 /module.test/1.9/Tue Jul 21 09:46:36 2009//
+/file.test/1.37/Tue Jul 28 11:02:08 2009//
+/file_test.module/1.11/Tue Jul 28 11:02:08 2009//
 D

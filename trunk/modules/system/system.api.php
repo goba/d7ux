@@ -1,5 +1,5 @@
 <?php
-// $Id: system.api.php,v 1.49 2009/07/15 02:08:41 webchick Exp $
+// $Id: system.api.php,v 1.52 2009/07/27 19:53:18 dries Exp $
 
 /**
  * @file
@@ -116,6 +116,24 @@ function hook_elements() {
 }
 
 /**
+ * Alter the element type information returned from modules.
+ *
+ * A module may implement this hook in order to alter the element type defaults
+ * defined by a module.
+ *
+ * @param &$type
+ *   All element type defaults as collected by hook_elements().
+ *
+ * @see hook_elements()
+ */
+function hook_element_info_alter(&$type) {
+  // Decrease the default size of textfields.
+  if (isset($type['textfield']['#size'])) {
+    $type['textfield']['#size'] = 40;
+  }
+}
+
+/**
  * Perform cleanup tasks.
  *
  * This hook is run at the end of each page request. It is often used for
@@ -140,26 +158,6 @@ function hook_exit($destination = NULL) {
     ->expression('hits', 'hits + 1')
     ->condition('type', 1)
     ->execute();
-}
-
-/**
- * Insert closing HTML.
- *
- * This hook enables modules to insert HTML just before the \</body\> closing
- * tag of web pages. This is useful for adding JavaScript code to the footer
- * and for outputting debug information. It is not possible to add JavaScript
- * to the header at this point, and developers wishing to do so should use
- * hook_init() instead.
- *
- * @param $main
- *   Whether the current page is the front page of the site.
- * @return
- *   The HTML to be inserted.
- */
-function hook_footer($main = 0) {
-  if (variable_get('dev_query', 0)) {
-    return '<div style="clear:both;">' . devel_query_table() . '</div>';
-  }
 }
 
 /**
@@ -1159,6 +1157,60 @@ function custom_url_rewrite_inbound(&$result, $path, $path_language) {
   if ($path == 'e') {
     $result = 'user/' . $user->uid . '/edit';
   }
+}
+
+/**
+ * Registers PHP stream wrapper implementations associated with a module.
+ *
+ * Provide a facility for managing and querying user-defined stream wrappers
+ * in PHP. PHP's internal stream_get_wrappers() doesn't return the class
+ * registered to handle a stream, which we need to be able to find the handler
+ * for class instantiation.
+ *
+ * If a module registers a scheme that is already registered with PHP, it will
+ * be unregistered and replaced with the specified class.
+ *
+ * @return
+ *   A nested array, keyed first by scheme name ("public" for "public://"),
+ *   then keyed by the following values:
+ *   - 'name' A short string to name the wrapper.
+ *   - 'class' A string specifying the PHP class that implements the
+ *     DrupalStreamWrapperInterface interface.
+ *   - 'description' A string with a short description of what the wrapper does.
+ *
+ * @see file_get_stream_wrappers()
+ * @see hook_stream_wrappers_alter()
+ * @see system_stream_wrappers()
+ */
+function hook_stream_wrappers() {
+  return array(
+    'public' => array(
+      'name' => t('Public files'),
+      'class' => 'DrupalPublicStreamWrapper',
+      'description' => t('Public local files served by the webserver.'),
+    ),
+    'private' => array(
+      'name' => t('Private files'),
+      'class' => 'DrupalPrivateStreamWrapper',
+      'description' => t('Private local files served by Drupal.'),
+    ),
+    'temp' => array(
+      'name' => t('Temporary files'),
+      'class' => 'DrupalTempStreamWrapper',
+      'description' => t('Temporary local files for upload and previews.'),
+    )
+  );
+}
+
+/**
+ * Alters the list of PHP stream wrapper implementations.
+ *
+ * @see file_get_stream_wrappers()
+ * @see hook_stream_wrappers()
+ */
+function hook_stream_wrappers_alter(&$wrappers) {
+  // Change the name of private files to reflect the performance.
+  $wrappers['private']['name'] = t('Slow files');
 }
 
 /**
