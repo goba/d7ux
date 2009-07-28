@@ -37,7 +37,7 @@ function slate_node_add_list($content) {
 function slate_admin_block_content($content) {
   $output = '';
   if (!empty($content)) {
-    $output = system_admin_compact_mode() ? '<ul class="menu">' : '<ul class="admin-list">';
+    $output = system_admin_compact_mode() ? '<ul class="admin-list compact">' : '<ul class="admin-list">';
     foreach ($content as $item) {
       $output .= '<li class="leaf">';
       $output .= l($item['title'], $item['href'], $item['localized_options']);

@@ -19,12 +19,6 @@
     </div>
   <?php endif; ?>
 
-  <?php if ($header): ?>
-    <div id="header-region" class="clearfix">
-      <?php print $header; ?>
-    </div>
-  <?php endif; ?>
-
   <div id="branding" class="clearfix">
     <div class="back-to-site"><?php print $back_to_site; ?></div>
     <?php if ($title): ?><h1 class="page-title"><?php print $title; ?></h1><?php endif; ?>
@@ -38,7 +32,6 @@
       <?php if ($show_messages && $messages): ?>
         <div id="console" class="clearfix"><?php print $messages; ?></div>
       <?php endif; ?>
-      <?php if ($highlight): ?><div id="highlight"><?php print $highlight; ?></div><?php endif; ?>
       <?php if ($help): ?>
         <div id="help">
           <?php print $help; ?>
@@ -49,12 +42,11 @@
 
     <div id="footer">
       <?php print $feed_icons; ?>
-      <?php print $footer; ?>
     </div>
 
   </div>
 
-  <?php print $closure; ?>
+  <?php print $page_bottom; ?>
 
   </body>
 </html>

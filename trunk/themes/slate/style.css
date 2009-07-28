@@ -29,23 +29,23 @@ legend {
   font-weight: bold;
 }
 
-#content h1,
-#content h2,
-#content h3,
-#content h4,
-#content h5,
-#content h6 {
+#block-system-main h1,
+#block-system-main h2,
+#block-system-main h3,
+#block-system-main h4,
+#block-system-main h5,
+#block-system-main h6 {
   font-size: 15px;
   font-weight: bold;
   margin:  10px 0;
 }
 
-#content dl {
+#block-system-main dl {
   margin: 0 0 20px;
 }
 
-#content dl dd,
-#content dl dl {
+#block-system-main dl dd,
+#block-system-main dl dl {
   margin-left: 20px;
   margin-bottom: 10px;
 }
@@ -113,6 +113,7 @@ div.breadcrumb a {
  */
 #help {
   font-size: 0.9em;
+  margin-top: 1em;
 }
 
 #help p {
@@ -128,7 +129,7 @@ div.breadcrumb a {
  */
 #console div.messages {
   padding: 9px;
-  margin: 0 0 10px;
+  margin: 1em 0;
   color: #036;
   background: #bdf;
   border: 1px solid #ace;
@@ -196,7 +197,8 @@ ul.primary li {
 
 ul.primary li a,
 ul.primary li a:active,
-ul.primary li a:visited {
+ul.primary li a:visited,
+ul.primary li a:hover {
   background-color: #a6a7a2;
   -moz-border-radius: 8px 8px 0 0;
   -webkit-border-top-left-radius: 8px;
@@ -252,7 +254,7 @@ ul.secondary li.active a,
 ul.secondary li.active a.active {
   padding: 0 10px;
   -moz-border-radius: 10px;
-  -webkit-border-radius: 10px;
+  -webkit-border-radius: 7px;
 }
 
 ul.secondary li.active a,
@@ -278,26 +280,26 @@ ul.secondary li.active a.active {
   font-size: 12px;
 }
 
-#content {
+#block-system-main {
   min-height: 180px;
   padding: 20px 0;
   background: #fff;
   color: #333;
 }
 
-#content ul.menu li,
-#content ul.menu li a,
+#block-system-main ul.menu li,
+#block-system-main ul.menu li a,
 #secondary-links ul.links li,
 #secondary-links ul.links li a {
   float: left;
 }
 
-#content ul.menu li,
+#block-system-main ul.menu li,
 #secondary-links ul.links li {
   padding: 0 10px 10px 0;
 }
 
-#content ul.menu li a,
+#block-system-main ul.menu li a,
 #secondary-links ul.links li a {
   font-size: 9px;
   line-height: 10px;
@@ -316,12 +318,12 @@ ul.secondary li.active a.active {
   background: #999;
 }
 
-#content ul.menu li a {
+#block-system-main ul.menu li a {
   background: #f8f8f8;
   color: #05a;
 }
 
-#content ul.menu li a:hover {
+#block-system-main ul.menu li a:hover {
   background: #eee;
 }
 
@@ -330,43 +332,29 @@ ul.secondary li.active a.active {
   background: #333;
 }
 
-#content ul.admin-list li a span.icon,
-#content ul.menu li a span.icon,
-#secondary-links ul.links li a span.icon {
-  margin: 0 auto 5px;
-  display: block;
-  width: 30px;
-  height: 30px;
-}
-
-#content ul.node-type-list li,
-#content ul.admin-list li {
+#block-system-main ul.node-type-list li,
+#block-system-main ul.admin-list li {
   position: relative;
-  padding-left: 40px;
+  padding-left: 30px;
   padding-bottom: 9px;
   border-bottom: 1px solid #ccc;
   margin-left: 0;
   margin-bottom: 10px;
   background: url(images/list-item.png) no-repeat;
+  list-style-type: none;
+  list-style-image: none;
+}
+#block-system-main ul.admin-list.compact li {
+  border: 0;
+  background: none;
 }
 
-#content ul.admin-list li:last-child {
+#block-system-main ul.admin-list li:last-child {
   border-bottom: none;
 }
 
-#content ul.admin-list li a span.icon {
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-#content ul.node-type-list .label {
+#block-system-main ul.node-type-list .label {
   font-size: 15px;
-}
-
-#content ul.node-type-list li {
-  padding-left: 30px;
-  background: url(images/list-item.png) no-repeat;
 }
 
 /**
@@ -620,7 +608,7 @@ html.js input.throbbing {
 
 /* Exceptions */
 #diff-inline-form select,
-#content div.filter-options select {
+#block-system-main div.filter-options select {
   padding: 0;
 }
 
@@ -646,7 +634,7 @@ div.admin-panel {
   border: 1px solid #ccc;
 }
 
-#content div.admin-panel h3 {
+#block-system-main div.admin-panel h3 {
   font-size: 12px;
   text-transform: uppercase;
   margin: 0 0 10px;
@@ -659,13 +647,13 @@ div.admin-panel {
 }
 
 /* admin/content/node and admin/user/user */
-#content dl.multiselect,
-#content dl.multiselect dt,
-#content dl.multiselect dd {
+#block-system-main dl.multiselect,
+#block-system-main dl.multiselect dt,
+#block-system-main dl.multiselect dd {
   margin: 0 10px 0 0;
 }
 
-#content dl.multiselect select {
+#block-system-main dl.multiselect select {
   font-size: 12px;
   background: #fff;
   border: 1px solid #ccc;
@@ -714,6 +702,6 @@ body.overlay #page {
   padding: 0;
 }
 
-body.overlay #content {
+body.overlay #block-system-main {
   padding: 20px;
 }
