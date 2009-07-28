@@ -1,7 +1,0 @@
-; $Id: popups_test.info,v 1.1.4.3 2009/03/05 19:52:49 starbow Exp $
-name = Popups: Test Page
-description = Test the Popups API.
-package = User interface
-core = 7.x
-dependencies[] = popups
-files[] = popups_test.module
