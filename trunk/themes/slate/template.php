@@ -2,14 +2,11 @@
 // $Id: template.php,v 1.1.2.1 2009/06/05 05:46:18 yhahn Exp $
 
 /**
- * Page preprocessor().
+ * Override or insert variables into the page template.
  */
 function slate_preprocess_page(&$vars) {
-  $vars['site_name'] = !empty($vars['site_name']) ? truncate_utf8($vars['site_name'], 25, FALSE, TRUE) : '';
   $vars['primary_local_tasks'] = menu_primary_local_tasks();
   $vars['secondary_local_tasks'] = menu_secondary_local_tasks();
-  $vars['primary_nav'] = isset($vars['main_menu']) ? theme('links', $vars['main_menu'], array('class' => 'links main-menu')) : FALSE;
-  $vars['secondary_nav'] = isset($vars['secondary_menu']) ? theme('links', $vars['secondary_menu'], array('class' => 'links secondary-menu')) : FALSE;
   $vars['ie_styles'] = '<!--[if lt IE 7]><style type="text/css" media="screen">@import ' . path_to_theme() . '/ie6.css";</style><![endif]-->';
   $vars['back_to_site'] = l(t('Back to the live site'), '');
 }
@@ -34,23 +31,12 @@ function slate_node_add_list($content) {
 
 /**
  * Override of theme_admin_block_content().
+ *
+ * Use unordered list markup in both compact and extended move.
  */
 function slate_admin_block_content($content) {
   $output = '';
   if (!empty($content)) {
-    foreach ($content as $key => $item) {
-      $id = str_replace('/', '-', $item['href']);
-      $class = ' path-' . $id;
-
-      $content[$key]['title'] = "<span class='icon'></span>{$item['title']}";
-      $content[$key]['localized_options']['html'] = TRUE;
-      if (!empty($content[$key]['localized_options']['attributes']['class'])) {
-        $content[$key]['localized_options']['attributes']['class'] .= $class;
-      }
-      else {
-        $content[$key]['localized_options']['attributes']['class'] = $class;
-      }
-    }
     $output = system_admin_compact_mode() ? '<ul class="menu">' : '<ul class="admin-list">';
     foreach ($content as $item) {
       $output .= '<li class="leaf">';

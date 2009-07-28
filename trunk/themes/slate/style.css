@@ -347,6 +347,7 @@ ul.secondary li.active a.active {
   border-bottom: 1px solid #ccc;
   margin-left: 0;
   margin-bottom: 10px;
+  background: url(images/list-item.png) no-repeat;
 }
 
 #content ul.admin-list li:last-child {

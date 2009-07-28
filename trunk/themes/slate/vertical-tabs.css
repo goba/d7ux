@@ -33,25 +33,25 @@ div.vertical-tabs ul li.vertical-tab-button a {
 }
 
 div.vertical-tabs ul li.vertical-tab-button .summary {
-  display:block;
-  font-size:9px;
-  color:#666;
+  display: block;
+  font-size: 9px;
+  color: #666;
 }
 
 div.vertical-tabs ul li.vertical-tab-button a:hover {
-  background:#fff;
+  background: #fff;
 }
 
 div.vertical-tabs ul li.selected a,
 div.vertical-tabs ul li.selected a:hover {
-  background:#ddd;
+  background: #ddd;
 }
 
 div.vertical-tabs .vertical-tabs-panes {
-  width:75%;
-  float:right;
+  width: 75%;
+  float: right;
 }
 
 div.vertical-tabs .vertical-tabs-panes legend {
-  display:none;
+  display: none;
 }
