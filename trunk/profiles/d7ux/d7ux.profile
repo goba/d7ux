@@ -4,7 +4,6 @@
  * Implement hook_profile_tasks().
  */
 function d7ux_profile_tasks(&$task, $url) {
-  
   // Enable some standard blocks.
   $values = array(
     array(
@@ -16,7 +15,6 @@ function d7ux_profile_tasks(&$task, $url) {
       'region' => 'content',
       'pages' => '',
       'cache' => -1,
-      'custom' => 0,
     ),
     array(
       'module' => 'user',
@@ -27,7 +25,6 @@ function d7ux_profile_tasks(&$task, $url) {
       'region' => 'left',
       'pages' => '',
       'cache' => -1,
-      'custom' => 0,
     ),
     array(
       'module' => 'system',
@@ -38,7 +35,6 @@ function d7ux_profile_tasks(&$task, $url) {
       'region' => 'left',
       'pages' => '',
       'cache' => -1,
-      'custom' => 0,
     ),
     array(
       'module' => 'system',
@@ -49,7 +45,6 @@ function d7ux_profile_tasks(&$task, $url) {
       'region' => 'footer',
       'pages' => '',
       'cache' => -1,
-      'custom' => 0,
     ),
     array(
       'module' => 'system',
@@ -60,7 +55,6 @@ function d7ux_profile_tasks(&$task, $url) {
       'region' => 'help',
       'pages' => '',
       'cache' => -1,
-      'custom' => 0,
     ),
     array(
       'module' => 'system',
@@ -71,10 +65,9 @@ function d7ux_profile_tasks(&$task, $url) {
       'region' => 'content',
       'pages' => '',
       'cache' => -1,
-      'custom' => 0,
     ),
   );
-  $query = db_insert('block')->fields(array('module', 'delta', 'theme', 'status', 'weight', 'region', 'pages', 'cache', 'custom'));
+  $query = db_insert('block')->fields(array('module', 'delta', 'theme', 'status', 'weight', 'region', 'pages', 'cache'));
   foreach ($values as $record) {
     $query->values($record);
   }
@@ -88,7 +81,7 @@ function d7ux_profile_tasks(&$task, $url) {
       'type' => 'page',
       'name' => st('Page'),
       'base' => 'node_content',
-      'description' => st("A <em>page</em>, similar in form to an <em>article</em>, is a simple method for creating and displaying information that rarely changes, such as an \"About us\" section of a website. By default, a <em>page</em> entry does not allow visitor comments and is not featured on the site's initial home page."),
+      'description' => st("Use <em>pages</em> for your static content, such as an 'About us' page."),
       'custom' => 1,
       'modified' => 1,
       'locked' => 0,
@@ -97,7 +90,7 @@ function d7ux_profile_tasks(&$task, $url) {
       'type' => 'article',
       'name' => st('Article'),
       'base' => 'node_content',
-      'description' => st("An <em>article</em>, similar in form to a <em>page</em>, is ideal for creating and displaying content that informs or engages website visitors. Press releases, site announcements, and informal blog-like entries may all be created with an <em>article</em> entry. By default, an <em>article</em> entry is automatically featured on the site's initial home page, and provides the ability to post comments."),
+      'description' => st('Use <em>articles</em> for time-specific content like news, press releases or blog posts.'),
       'custom' => 1,
       'modified' => 1,
       'locked' => 0,
@@ -116,6 +109,27 @@ function d7ux_profile_tasks(&$task, $url) {
   // Don't display date and author information for page nodes by default.
   variable_set('node_submitted_page', FALSE);
 
+  // Create an image style.
+  $style = array('name' => 'thumbnail');
+  $style = image_style_save($style);
+  $effect = array(
+    'isid' => $style['isid'],
+    'name' => 'image_scale_and_crop',
+    'data' => array('width' => '85', 'height' => '85'),
+  );
+  image_effect_save($effect);
+
+  // Enable user picture support and set the default to a square thumbnail option.
+  variable_set('user_pictures', '1');
+  variable_set('user_picture_dimensions', '1024x1024');
+  variable_set('user_picture_file_size', '800');
+  variable_set('user_picture_style', 'thumbnail');
+
+  $theme_settings = theme_get_settings();
+  $theme_settings['toggle_node_user_picture'] = '1';
+  $theme_settings['toggle_comment_user_picture'] = '1';
+  variable_set('theme_settings', $theme_settings);
+
   // Create a default vocabulary named "Tags", enabled for the 'article' content type.
   $description = st('Use tags to group articles on similar topics into categories.');
   $help = st('Enter a comma-separated list of words.');
@@ -123,6 +137,7 @@ function d7ux_profile_tasks(&$task, $url) {
   $vid = db_insert('taxonomy_vocabulary')->fields(array(
     'name' => 'Tags',
     'description' => $description,
+    'machine_name' => 'tags',
     'help' => $help,
     'relations' => 0,
     'hierarchy' => 0,
@@ -141,7 +156,7 @@ function d7ux_profile_tasks(&$task, $url) {
   variable_set('user_admin_role', $rid);
 
   // Assign all available permissions to this role.
-  foreach (module_invoke_all('perm') as $key => $value) {
+  foreach (module_invoke_all('permission') as $key => $value) {
     db_insert('role_permission')
       ->fields(array(
         'rid' => $rid,
@@ -153,13 +168,8 @@ function d7ux_profile_tasks(&$task, $url) {
   menu_rebuild();
 
   // Save some default links.
-  $link = array('link_path' => 'admin/build/menu-customize/main-menu/add', 'link_title' => 'Add a main menu link', 'menu_name' => 'main-menu');
+  $link = array('link_path' => 'admin/structure/menu-customize/main-menu/add', 'link_title' => 'Add a main menu link', 'menu_name' => 'main-menu');
   menu_link_save($link);
-  
-  // Tell the popups module to always scan for popup links.
-  variable_set('popups_always_scan', 1);
-  // Set popups to unskinned.
-  variable_set('popups_skin', 'D7ux');
   
   // Enable the admin theme.
   db_update('system')
