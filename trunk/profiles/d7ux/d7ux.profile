@@ -3,7 +3,14 @@
 /**
  * Implement hook_profile_tasks().
  */
-function d7ux_profile_tasks(&$task, $url) {
+function d7ux_profile_tasks() {
+  $tasks = array(
+    'd7ux_profile_site_setup' => array(),
+  );
+  return $tasks;
+}
+
+function d7ux_profile_site_setup(&$install_state) {
   // Enable some standard blocks.
   $values = array(
     array(

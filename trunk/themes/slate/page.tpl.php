@@ -13,11 +13,7 @@
   </head>
   <body class="<?php print $classes; ?>">
 
-  <?php if ($page_top): ?>
-    <div id="page-top-region" class="clearfix">
-      <?php print $page_top; ?>
-    </div>
-  <?php endif; ?>
+  <?php print $page_top; ?>
 
   <div id="branding" class="clearfix">
     <div class="back-to-site"><?php print $back_to_site; ?></div>

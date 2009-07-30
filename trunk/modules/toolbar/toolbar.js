@@ -86,4 +86,8 @@ Drupal.admin.toolbar.toggle = function() {
   }
 }
 
+Drupal.admin.toolbar.height = function() {
+  return $("#toolbar").height();
+}
+
 })(jQuery);

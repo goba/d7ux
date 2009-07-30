@@ -1498,8 +1498,30 @@ function theme_table($header, $rows, $attributes = array(), $caption = NULL, $co
     // HTML requires that the thead tag has tr tags in it followed by tbody
     // tags. Using ternary operator to check and see if we have any rows.
     $output .= (count($rows) ? ' <thead><tr>' : ' <tr>');
-    foreach ($header as $cell) {
+    $column_count = count($header);
+    foreach ($header as $key => $cell) {
       $cell = tablesort_header($cell, $header, $ts);
+      // Add 'first' and 'last' class to table header cells.
+      $class = '';
+      if ($key == 0) {
+        $class = 'first';
+      }
+      elseif ($key == $column_count - 1) {
+        $class = 'last';
+      }
+      if (!empty($class)) {
+        if (is_array($cell)) {
+          if (isset($cell['class'])) {
+            $cell['class'] .= ' '. $class;
+          }
+          else {
+            $cell['class'] = $class;
+          }
+        }
+        else {
+          $cell = array('data' => $cell, 'class' => $class);
+        }
+      }
       $output .= _theme_table_cell($cell, TRUE);
     }
     // Using ternary operator to close the tags based on whether or not there are rows

@@ -64,6 +64,10 @@ function toolbar_build() {
     '#attached_js' => array(
       $module_path . '/toolbar.js',
       array('data' => 'misc/jquery.cookie.js', 'weight' => JS_LIBRARY + 2),
+      array(
+        'data' => array('tableHeaderOffset' => 'Drupal.admin.toolbar.height'),
+        'type' => 'setting'
+      ),
     ),
     '#attached_css' => array(
       $module_path . '/toolbar.css',
