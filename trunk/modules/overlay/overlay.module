@@ -85,7 +85,7 @@ function overlay_preprocess_page(&$variables) {
  * @ingroup forms
  */
 function overlay_form_after_build($form, &$form_state) {
-  #if (isset($_GET['render']) && $_GET['render'] == 'overlay') {
+  if (isset($_GET['render']) && $_GET['render'] == 'overlay') {
     // Form API may have already captured submit handlers from the submitted
     // button before after_build callback is invoked. This may have been done
     // by _form_builder_handle_input_element().
@@ -101,7 +101,7 @@ function overlay_form_after_build($form, &$form_state) {
     if (isset($form['#submit'])) {
       $form['#submit'][] = 'overlay_form_submit';
     }
-  #}
+  }
   return $form;
 }
 
@@ -121,7 +121,7 @@ function overlay_form_after_build($form, &$form_state) {
 function overlay_form_submit($form, &$form_state) {
   // Close the overlay in the lack of a redirect, or if specifically requested
   // to do so.
-  if (overlay_close_dialog() || empty($form_state['redirect'])) {
+  if (overlay_close_dialog() || (!$form_state['programmed'] && empty($form_state['rebuild']) && empty($form_state['storage']) && empty($form_state['no_redirect']))) {
     $settings = array(
       'overlayChild' => array(
         'closeOverlay' => TRUE,
