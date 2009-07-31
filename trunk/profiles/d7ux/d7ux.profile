@@ -66,10 +66,20 @@ function d7ux_profile_site_setup(&$install_state) {
     array(
       'module' => 'system',
       'delta' => 'main',
-      'theme' => 'slate',
+      'theme' => 'seven',
       'status' => 1,
       'weight' => 0,
       'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => 'seven',
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
       'pages' => '',
       'cache' => -1,
     ),
@@ -182,9 +192,9 @@ function d7ux_profile_site_setup(&$install_state) {
   db_update('system')
     ->fields(array('status' => 1))
     ->condition('type', 'theme')
-    ->condition('name', 'slate')
+    ->condition('name', 'seven')
     ->execute();
-  variable_set('admin_theme', 'slate');
+  variable_set('admin_theme', 'seven');
   variable_set('node_admin_theme', '1');
 }
 
