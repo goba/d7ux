@@ -131,7 +131,7 @@ function overlay_form_submit($form, &$form_state) {
     );
     drupal_add_js($settings, array('type' => 'setting'));
     // Print the page with no content to avoid a flash of the refilled form.
-    print theme('page', '');
+    print drupal_render_page('');
     drupal_page_footer();
     exit;
   }
