@@ -4,7 +4,7 @@
 /**
  * Override or insert variables into the page template.
  */
-function slate_preprocess_page(&$vars) {
+function seven_preprocess_page(&$vars) {
   $vars['primary_local_tasks'] = menu_primary_local_tasks();
   $vars['secondary_local_tasks'] = menu_secondary_local_tasks();
   $vars['ie_styles'] = '<!--[if lt IE 7]><style type="text/css" media="screen">@import ' . path_to_theme() . '/ie6.css";</style><![endif]-->';
@@ -14,7 +14,7 @@ function slate_preprocess_page(&$vars) {
 /**
  * Display the list of available node types for node creation.
  */
-function slate_node_add_list($content) {
+function seven_node_add_list($content) {
   $output = '';
   if ($content) {
     $output = '<ul class="node-type-list">';
@@ -34,7 +34,7 @@ function slate_node_add_list($content) {
  *
  * Use unordered list markup in both compact and extended move.
  */
-function slate_admin_block_content($content) {
+function seven_admin_block_content($content) {
   $output = '';
   if (!empty($content)) {
     $output = system_admin_compact_mode() ? '<ul class="admin-list compact">' : '<ul class="admin-list">';
@@ -56,8 +56,8 @@ function slate_admin_block_content($content) {
  *
  * Use our own image versions, so they show up as black and not gray on gray.
  */
-function slate_tablesort_indicator($style) {
-  $theme_path = drupal_get_path('theme', 'slate');
+function seven_tablesort_indicator($style) {
+  $theme_path = drupal_get_path('theme', 'seven');
   if ($style == "asc") {
     return theme('image', $theme_path . '/images/arrow-asc.png', t('sort icon'), t('sort ascending'));
   }

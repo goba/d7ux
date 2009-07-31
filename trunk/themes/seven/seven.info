@@ -1,5 +1,5 @@
 ; $Id$
-name = Slate
+name = Seven
 description = A simple one-column, tableless, fluid width administration theme.
 core = 7.x
 version = VERSION
