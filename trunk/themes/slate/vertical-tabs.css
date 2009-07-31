@@ -4,15 +4,15 @@
  * Override of misc/vertical-tabs.css.
  */
 div.vertical-tabs {
-  margin: 10px 0px;
+  margin: 10px 0;
   padding: 9px;
   border: 1px solid #ccc;
   background: #f8f8f8;
 }
 
 div.vertical-tabs fieldset {
-  border: 0px;
-  padding: 0px 0px 0px 20px;
+  border: 0;
+  padding: 0 0 0 20px;
 }
 
 div.vertical-tabs .vertical-tabs-list {
