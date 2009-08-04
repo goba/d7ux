@@ -290,6 +290,10 @@ table .form-button, table .form-submit {
   margin-bottom: 2.5em;
 }
 
+.edit-link {
+  font-size: 0.8em;
+}
+
 /**
  * Layout
  */
@@ -1162,3 +1166,18 @@ table.system-status-report tr.ok, table.system-status-report tr.ok th {
   background-color: #dfd;
   border-color: #beb;
 }
+
+/**
+ * Action link icons.
+ */
+ul.action-links {
+  float: right;
+  margin: 0;
+  padding: 0;
+}
+
+ul.action-links li {
+  padding: 0;
+  margin: 0;
+}
+

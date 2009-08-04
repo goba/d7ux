@@ -46,6 +46,15 @@
  *   teaser listings.
  * - $id: Position of the node. Increments each time it's output.
  *
+ * Action links variables:
+ * - $has_actions: TRUE when the node is editable by the current user.
+ * - $action_links: Already-themed links to the actioni pages for the node; may
+ *   be empty.
+ * - $action_links_text: An array of caption for the action links of the node;
+ *   may be empty.
+ * - $action_links_info: An array of information describing the links to take
+ *   action on the node; may be empty.
+ *
  * Node status variables:
  * - $build_mode: Build mode, e.g. 'full', 'teaser'...
  * - $teaser: Flag for the teaser state (shortcut for $build_mode == 'teaser').
@@ -68,6 +77,10 @@
 <div id="node-<?php print $node->nid; ?>" class="<?php print $classes ?> clearfix">
 
 <?php print $picture ?>
+
+<?php if (!$page && $action_links): ?>
+  <?php print $action_links; ?>
+<?php endif; ?>
 
 <?php if (!$page): ?>
   <h2><a href="<?php print $node_url ?>"><?php print $title ?></a></h2>

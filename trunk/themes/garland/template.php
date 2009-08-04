@@ -35,6 +35,9 @@ function garland_preprocess_page(&$vars) {
   if (!empty($site_fields)) {
     $site_fields[0] = '<span>' . $site_fields[0] . '</span>';
   }
+  // TODO: Remove. This is just a quick hack to give a rough feel for the
+  // "edit mode" in the D7UX proposal.
+  $site_fields[0] = $vars['site_name'];
   $vars['site_html'] = implode(' ', $site_fields);
 
   // Hook into color.module

@@ -766,7 +766,7 @@ function menu_get_object($type = 'node', $position = 1, $path = NULL) {
 }
 
 /**
- * Render a menu tree based on the current path.
+ * Returns a menu tree based on the current path.
  *
  * The tree is expanded based on the current path and dynamic paths are also
  * changed according to the defined to_arg functions (for example the 'My account'
@@ -775,28 +775,30 @@ function menu_get_object($type = 'node', $position = 1, $path = NULL) {
  * @param $menu_name
  *   The name of the menu.
  * @return
- *   The rendered HTML of that menu on the current page.
+ *   An array representing the menu on the current page, suitable for
+ *   rendering with drupal_render().
  */
 function menu_tree($menu_name) {
-  $menu_output = &drupal_static(__FUNCTION__, array());
+  $menu_tree = &drupal_static(__FUNCTION__, array());
 
-  if (!isset($menu_output[$menu_name])) {
+  if (!isset($menu_tree[$menu_name])) {
     $tree = menu_tree_page_data($menu_name);
-    $menu_output[$menu_name] = menu_tree_output($tree);
+    $menu_tree[$menu_name] = menu_tree_unrendered($tree);
   }
-  return $menu_output[$menu_name];
+  return $menu_tree[$menu_name];
 }
 
 /**
- * Returns a rendered menu tree.
+ * Returns an array representing a menu, suitable for rendering.
  *
  * @param $tree
  *   A data structure representing the tree as returned from menu_tree_data.
  * @return
- *   The rendered HTML of that data structure.
+ *  A structured array representing the menu, suitable for rendering with
+ *  drupal_render().
  */
-function menu_tree_output($tree) {
-  $output = '';
+function menu_tree_unrendered($tree) {
+  $content = '';
   $items = array();
 
   // Pull out just the menu items we are going to render so that we
@@ -819,13 +821,28 @@ function menu_tree_output($tree) {
     $extra_class = implode(' ', $extra_class);
     $link = theme('menu_item_link', $data['link']);
     if ($data['below']) {
-      $output .= theme('menu_item', $link, $data['link']['has_children'], menu_tree_output($data['below']), $data['link']['in_active_trail'], $extra_class);
+      $content .= theme('menu_item', $link, $data['link']['has_children'], menu_tree_output($data['below']), $data['link']['in_active_trail'], $extra_class);
     }
     else {
-      $output .= theme('menu_item', $link, $data['link']['has_children'], '', $data['link']['in_active_trail'], $extra_class);
+      $content .= theme('menu_item', $link, $data['link']['has_children'], '', $data['link']['in_active_trail'], $extra_class);
     }
   }
-  return $output ? theme('menu_tree', $output) : '';
+  return array(
+    '#theme' => 'menu_tree',
+    '#menu' => $content,
+  );
+}
+
+/**
+ * Returns a rendered menu tree.
+ *
+ * @param $tree
+ *   A data structure representing the tree as returned from menu_tree_data.
+ * @return
+ *   The rendered HTML of that data structure.
+ */
+function menu_tree_output($tree) {
+  return drupal_render(menu_tree_unrendered($tree));
 }
 
 /**
@@ -1259,7 +1276,7 @@ function theme_menu_item_link($link) {
  * @ingroup themeable
  */
 function theme_menu_tree($tree) {
-  return '<ul class="menu">' . $tree . '</ul>';
+  return !empty($tree['#menu']) ? '<ul class="menu">' . $tree['#menu'] . '</ul>' : '';
 }
 
 /**

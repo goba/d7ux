@@ -147,6 +147,10 @@ function menu_theme() {
       'file' => 'menu.admin.inc',
       'arguments' => array('title' => NULL, 'name' => NULL, 'description' => NULL),
     ),
+    'menu_editable' => array(
+      'arguments' => array('element' => NULL),
+      'template' => 'menu-editable',
+    ),
   );
 }
 
@@ -288,6 +292,32 @@ function menu_block_view($delta = '') {
   $data['subject'] = check_plain($menus[$delta]);
   $data['content'] = menu_tree($delta);
   return $data;
+}
+
+/**
+ * Implement hook_page_alter().
+ */
+function menu_page_alter(&$page) {
+  // Search for every non-empty menu block on the page.
+  // TODO: This works, but cries out for something like hook_block_alter()...
+  foreach (element_children($page) as $region) {
+    $blocks = &$page[$region];
+    foreach (element_children($blocks) as $id) {
+      if (isset($blocks[$id]['content']['#theme'])) {
+        $block = $blocks[$id]['#block'];
+        $content = &$blocks[$id]['content'];
+        if ($content['#theme'] == 'menu_tree' && !empty($content['#menu'])) {
+          // If we have a non-empty menu tree, wrap it in a theme function
+          // that will display an edit link.
+          $content['#theme_wrapper'] = 'menu_editable';
+          $content['#actions']['edit'] = array(
+            'href' => 'admin/structure/menu-customize/' . $block->delta,
+            'title' => t('Edit this menu'),
+          );
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -486,4 +516,12 @@ function menu_get_menus($all = TRUE) {
   $query->orderBy('title');
 
   return $query->execute()->fetchAllKeyed();
+}
+
+/**
+ * Process variables for menu-editable.tpl.php.
+ */
+function template_preprocess_menu_editable(&$variables) {
+  // Create the $content variable that templates expect.
+  $variables['content'] = $variables['element']['#children'];
 }

@@ -740,16 +740,22 @@ function theme() {
   }
   else {
     // The theme call is a template.
-    $variables = array(
-      'template_files' => array()
-    );
+    $variables = array();      
     if (!empty($info['arguments'])) {
+      // Populate the variables with arguments passed to the theme function.
+      // Note that the first argument may be treated specially by template
+      // preprocess functions, so it must go into the variables array before
+      // anything else does.
       $count = 0;
       foreach ($info['arguments'] as $name => $default) {
         $variables[$name] = isset($args[$count]) ? $args[$count] : $default;
         $count++;
       }
     }
+    // Add an empty array of template files as a default; preprocess functions
+    // will be able to modify this. We include it last, as per the comment
+    // above.
+    $variables += array('template_files' => array());
 
     // default render function and extension.
     $render_function = 'theme_render_template';
@@ -778,7 +784,12 @@ function theme() {
     foreach (array('preprocess functions', 'process functions') as $template_phase) {
       foreach ($info[$template_phase] as $template_function) {
         if (drupal_function_exists($template_function)) {
-          call_user_func_array($template_function, $args);
+          $result = call_user_func_array($template_function, $args);
+          // Allow process functions to abort rendering the item by returning
+          // FALSE.
+          if ($result === FALSE) {
+            return '';
+          }
         }
       }
     }
@@ -1322,6 +1333,32 @@ function theme_links($links, $attributes = array('class' => 'links')) {
 }
 
 /**
+ * Return themed action links for an element on a page.
+ *
+ * @param $links
+ *   An array representing the action links to be themed, in the format
+ *   expected by theme_links(); e.g., the array can have keys including
+ *   'title', 'href', 'html', etc.
+ * @param $element
+ *   An array representing the editable page element.
+ * @return
+ *   A themed HTML string representing the edit link.
+ *
+ * @see theme_links()
+ */
+function theme_action_links($links, $element) {
+  // Construct a CSS class which associates this edit link with the region on
+  // the page that it edits.
+  $links_array = array();
+  foreach ($links as $key => $link) {
+    $class = "actions-link actions-$key-link actions-at-" . str_replace('/', '-', $link['href']);
+    $links_array[$class] = $link;
+  }
+  drupal_add_js(!empty($_REQUEST['edit_mode']) ? 'misc/actions.mode.js' : 'misc/action-links.js');
+  return theme('links', $links_array, array('class' => 'links action-links'));
+}
+
+/**
  * Return a themed image.
  *
  * @param $path
@@ -1861,6 +1898,72 @@ function template_preprocess(&$variables, $hook) {
   // Initialize html class attribute for the current hook.
   $variables['classes_array'] = array($hook);
 
+  // If the first item passed to the theme function is an editable page
+  // element which the current user has access to, populate useful variables
+  // for constructing edit links and other editable markup.
+  $element = reset($variables);
+  $variables['has_actions'] = FALSE;
+  if (is_array($element) && isset($element['#actions'])) {
+    foreach ($element['#actions'] as $key => $data) {
+      $variables['has_actions'] = $variables['has_actions'] || !empty($data['access']);
+    }
+  }
+  // Do not show edit links when the user is already on the page that is being
+  // linked to.
+  $show_action_links = FALSE;
+  if ($variables['has_actions'] && isset($_GET['q'])) {
+    foreach ($element['#actions'] as $key => $data) {
+      $show_action_links = $show_action_links || ($data['href'] != $_GET['q']);
+    }
+  }
+  // Add appropriate CSS classes that define this element as editable and
+  // associate it with its edit link.
+  if ($variables['has_actions']) {
+    $variables['classes_array'][] = 'actions-enabled-region';
+    foreach ($element['#actions'] as $key => $data) {
+      $variables['classes_array'][] = 'actions-enabled-at-' . str_replace('/', '-', $data['href']);
+    }
+  }
+  if ($show_action_links) {
+    $available_icons = module_invoke_all('action_links_icons');
+    $text_items = array();
+    $info_items = array();
+    foreach ($element['#actions'] as $key => $data) {
+      if (isset($available_icons[$key])) {
+        $title = isset($data['title']) ? $data['title'] : '';
+        $text_items[$key] = theme('image', $available_icons[$key]['path'], $available_icons[$key]['alt'], $title, array('class' => 'action-link-icon action-link-icon-' . $key));
+        $info_items[$key] = array(
+          'title' => $text_items[$key],
+          'href' => $data['href'],
+          // HTML should always be on for icons, which are images.
+          'html' => TRUE,
+          // Refer users back to the current page after they have completed
+          // their edits.
+          'query' => drupal_get_destination(),
+        );
+      }
+      else {
+        $check_plain = isset($data['attributes']['html']) ? !$data['attributes']['html'] : TRUE;
+        $text_items[$key] = $check_plain ? check_plain($data['title']) : $data['title'];
+        $info_items[$key] = array(
+          'title' => $text_items[$key],
+          'href' => $data['href'],
+          'html' => isset($data['html']) ? $data['html'] : FALSE,
+          // Refer users back to the current page after they have completed
+          // their edits.
+          'query' => drupal_get_destination(),
+        );
+      }
+    }
+    $variables['action_links_text'] = $text_items;
+    $variables['action_links_info'] = $info_items;
+  }
+  else {
+    $variables['action_links_text'] = array();
+    $variables['action_links_info'] = array();
+  }
+  $variables['action_links'] = $show_action_links ? theme('action_links', $variables['action_links_info'], $element) : '';
+
   // Set default variables that depend on the database.
   $variables['is_admin']            = FALSE;
   $variables['is_front']            = FALSE;
@@ -1947,7 +2050,10 @@ function template_preprocess_page(&$variables) {
   $variables['main_menu']         = theme_get_setting('toggle_main_menu') ? menu_main_menu() : array();
   $variables['secondary_menu']    = theme_get_setting('toggle_secondary_menu') ? menu_secondary_menu() : array();
   $variables['search_box']        = (theme_get_setting('toggle_search') ? drupal_render(drupal_get_form('search_theme_form')) : '');
-  $variables['site_name']         = (theme_get_setting('toggle_name') ? filter_xss_admin(variable_get('site_name', 'Drupal')) : '');
+  // TODO: Remove. This is just a quick hack to give a rough feel for the
+  // "edit mode" in the D7UX proposal.
+  $edit_mode_link = !empty($_REQUEST['edit_mode']) ? l(t('global edit mode: On'), $_GET['q']) : l(t('global edit mode: Off'), $_GET['q'], array('query' => 'edit_mode=1'));
+  $variables['site_name']         = (theme_get_setting('toggle_name') ? t('!site_name (!edit_mode)', array('!site_name' => filter_xss_admin(variable_get('site_name', 'Drupal')), '!edit_mode' => $edit_mode_link)) : '');
   $variables['site_slogan']       = (theme_get_setting('toggle_slogan') ? filter_xss_admin(variable_get('site_slogan', '')) : '');
   $variables['tabs']              = theme('menu_local_tasks');
   $variables['title']             = drupal_get_title();

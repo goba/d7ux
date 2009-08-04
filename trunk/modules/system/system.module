@@ -259,6 +259,28 @@ function system_rdf_namespaces() {
 }
 
 /**
+ * Implement hook_action_links_icons().
+ */
+function system_action_links_icons() {
+  $icons['configure'] = array(
+    'path' => 'misc/configure.png',
+    'alt'  => t('Configure'),
+  );
+
+  $icons['delete'] = array(
+    'path' => 'misc/delete.png',
+    'alt' => t('Delete'),
+  );
+
+  $icons['edit'] = array(
+    'path' => 'misc/edit.png',
+    'alt'  => t('Edit'),
+  );
+
+  return $icons;
+}
+
+/**
  * Implement hook_elements().
  */
 function system_elements() {

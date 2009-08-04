@@ -491,6 +491,17 @@ table.sticky-header {
 }
 
 /*
+** Highlighted regions for editable.js
+*/
+.active-actions-region {
+  outline: solid red 2px;
+}
+
+.active-actions-link a:hover {
+  color: red;
+}
+
+/*
 ** Installation clean URLs
 */
 #clean-url.install {
