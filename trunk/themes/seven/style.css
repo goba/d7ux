@@ -684,6 +684,11 @@ div.admin-options div.form-item {
   border: 0;
 }
 
+/* Node form */
+#edit-switch-wrapper {
+  background-color: #fff6cd;
+}
+
 /* Overlay theming */
 body.overlay {
   background: #fff;
