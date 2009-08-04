@@ -486,7 +486,7 @@ function system_elements() {
   );
 
   $type['horizontal_tabs'] = array(
-    '#theme_wrapper' => 'horizontal_tabs',
+    '#theme_wrappers' => array('horizontal_tabs'),
     '#default_tab' => '',
     '#primary_tab' => 'none',
     '#tabs' => array(),
