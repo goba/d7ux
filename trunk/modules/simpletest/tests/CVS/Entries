@@ -14,8 +14,6 @@
 /session_test.info/1.1/Sat Aug 16 21:11:02 2008//
 /system_test.info/1.3/Fri Oct 24 23:32:44 2008//
 /taxonomy_test.info/1.3/Sun Apr  5 12:21:12 2009//
-/taxonomy_test.install/1.7/Wed May 27 18:34:00 2009//
-/taxonomy_test.module/1.5/Sat May 30 11:17:32 2009//
 /xmlrpc_test.info/1.1/Sat Aug  9 12:41:22 2008//
 /xmlrpc_test.module/1.4/Wed May 27 18:34:00 2009//
 /module_test.info/1.1/Wed Jul  1 08:39:55 2009//
@@ -26,7 +24,6 @@
 /field_test.module/1.13/Mon Jul 13 10:30:06 2009//
 /actions.test/1.5/Wed Jul 15 16:47:53 2009//
 /batch.test/1.2/Wed Jul 15 16:47:53 2009//
-/bootstrap.test/1.18/Wed Jul 15 16:47:53 2009//
 /cache.test/1.9/Wed Jul 15 16:47:53 2009//
 /error.test/1.4/Wed Jul 15 16:47:53 2009//
 /filetransfer.test/1.3/Wed Jul 15 16:47:53 2009//
@@ -40,11 +37,14 @@
 /theme.test/1.4/Wed Jul 15 16:47:53 2009//
 /unicode.test/1.5/Wed Jul 15 16:47:53 2009//
 /xmlrpc.test/1.11/Wed Jul 15 16:47:53 2009//
-/database_test.test/1.62/Tue Jul 21 09:46:36 2009//
 /module.test/1.9/Tue Jul 21 09:46:36 2009//
 /file.test/1.37/Tue Jul 28 11:02:08 2009//
 /file_test.module/1.11/Tue Jul 28 11:02:08 2009//
 /registry.test/1.13/Thu Jul 30 07:55:19 2009//
 /system_test.module/1.13/Thu Jul 30 07:55:19 2009//
 /common.test/1.57/Fri Jul 31 08:55:02 2009//
+/bootstrap.test/1.19/Tue Aug  4 11:52:18 2009//
+/database_test.test/1.63/Tue Aug  4 11:52:19 2009//
+/taxonomy_test.install/1.8/Tue Aug  4 11:52:19 2009//
+/taxonomy_test.module/1.6/Tue Aug  4 11:52:19 2009//
 D
