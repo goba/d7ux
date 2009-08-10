@@ -1,5 +1,5 @@
 <?php
-// $Id: node.module,v 1.1091 2009/08/04 06:44:48 webchick Exp $
+// $Id: node.module,v 1.1095 2009/08/08 22:52:59 webchick Exp $
 
 /**
  * @file
@@ -43,7 +43,7 @@ function node_help($path, $arg) {
     case 'admin/content':
       return ' '; // Return a non-null value so that the 'more help' link is shown.
     case 'admin/structure/types/add':
-      return '<p>' . t('To create a new content type, enter the human-readable name, the machine-readable name, and all other relevant fields that are on this page. Once created, users of your site will be able to create posts that are instances of this content type.') . '</p>';
+      return '<p>' . t('Each piece of content is of a specific content type. Each <em>content type</em> can have different fields, behaviors, and permissions assigned to it.') . '</p>';
     case 'node/%/revisions':
       return '<p>' . t('The revisions let you track differences between multiple versions of a post.') . '</p>';
     case 'node/%/edit':
@@ -1235,11 +1235,11 @@ function template_preprocess_node(&$variables) {
   // Display post information only on certain node types.
   if (variable_get('node_submitted_' . $node->type, TRUE)) {
     $variables['submitted'] = theme('node_submitted', $node);
-    $variables['picture'] = theme_get_setting('toggle_node_user_picture') ? theme('user_picture', $node) : '';
+    $variables['user_picture'] = theme_get_setting('toggle_node_user_picture') ? theme('user_picture', $node) : '';
   }
   else {
     $variables['submitted'] = '';
-    $variables['picture'] = '';
+    $variables['user_picture'] = '';
   }
 
   // Gather node classes.
@@ -1602,27 +1602,6 @@ function theme_node_search_admin($form) {
 
   $output .= drupal_render_children($form);
   return $output;
-}
-
-/**
- * Implement hook_link().
- */
-function node_link($type, $node, $build_mode) {
-  $links = array();
-
-  if ($type == 'node') {
-    if ($build_mode == 'teaser') {
-      $links['node_read_more'] = array(
-        'title' => t('Read more'),
-        'href' => "node/$node->nid",
-        // The title attribute gets escaped when the links are processed, so
-        // there is no need to escape here.
-        'attributes' => array('title' => t('Read the rest of !title.', array('!title' => $node->title)))
-      );
-    }
-  }
-
-  return $links;
 }
 
 function _node_revision_access($node, $op = 'view') {
@@ -2669,10 +2648,9 @@ function node_access_rebuild($batch_mode = FALSE) {
       batch_set($batch);
     }
     else {
-      // If not in 'safe mode', increase the maximum execution time.
-      if (!ini_get('safe_mode')) {
-        set_time_limit(240);
-      }
+      // Try to allocate enough time to rebuild node grants
+      drupal_set_time_limit(240);
+
       $nids = db_query("SELECT nid FROM {node}")->fetchCol();
       foreach ($nids as $nid) {
         $node = node_load($nid, NULL, TRUE);
