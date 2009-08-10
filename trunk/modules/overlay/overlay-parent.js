@@ -124,7 +124,7 @@ Drupal.overlay.create = function() {
 
       // Adjust close button features.
       $('.overlay .ui-dialog-titlebar-close:not(.overlay-processed)').addClass('overlay-processed')
-        .attr('href', 'javascript:void(0)')
+        .attr('href', '#')
         .attr('title', Drupal.t('Close'))
         .unbind('click')
         .bind('click', function() { try { self.close(false); } catch(e) {}; return false; })
@@ -153,15 +153,6 @@ Drupal.overlay.create = function() {
       $('.overlay').fadeIn('fast', function() {
         // Load the document on hidden iframe (see bindChild method).
         self.load(self.options.url);
-      });
-
-      // Close the overlay if the background is clicked.
-      $('.overlay-shadow, .ui-dialog, .ui-widget-overlay, .ui-dialog-titlebar').bind('click', function() {
-        try {
-          self.close(false);
-        }
-        catch (e) {}
-        return false;
       });
 
       self.isOpen = true;
@@ -275,6 +266,7 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
   var self = this;
   var $iFrameWindow = iFrameWindow.jQuery;
   var $iFrameDocument = $iFrameWindow(iFrameWindow.document);
+  var autoResizing = false;
   self.iframe.Drupal = iFrameWindow.Drupal;
 
   // We are done if the child window is closing.
@@ -293,7 +285,7 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
   // Inspired by ui.dialog initialization code.
   $iFrameDocument.attr('tabIndex', -1).css('outline', 0);
 
-  $('.ui-dialog-titlebar-close-bg').animate({opacity: 1}, 'fast');
+  $('.ui-dialog-titlebar-close-bg').animate({opacity: 0.9999}, 'fast');
 
   // Perform animation to show the iframe element.
   self.iframe.$element.fadeIn('fast', function() {
@@ -369,6 +361,30 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
         }
       }
     });
+
+    var autoResize = function() {
+      var iframeElement = self.iframe.$element.get(0);
+      var iframeDocument = (iframeElement.contentWindow || iframeElement.contentDocument);
+      if (iframeDocument.document) {
+        iframeDocument = iframeDocument.document;
+      }
+      // Use outerHeight() because otherwise the calculation will be off
+      // because of padding and/or border added by the theme.
+      var height = $(iframeDocument).find('body').outerHeight() + 25;
+      self.iframe.$element.css('height', height);
+      $('.overlay-shadow-right').css('height', height);
+      self.iframe.$container.css('height', height);
+      self.iframe.$container.parent().css('height', height + 45);
+      // Don't allow the shadow background to shrink so it's not enough to hide
+      // the whole page.
+      $('.ui-widget-overlay').height(Math.max($('.ui-widget-overlay').height(), height + 145));
+      setTimeout(autoResize, 150);
+    };
+
+    if (!autoResizing) {
+      autoResizing = true;
+      autoResize();
+    }
 
     // When the focus is captured by the parent document, then try
     // to drive the focus back to the first tabbable element, or the
@@ -500,7 +516,7 @@ Drupal.overlay.resize = function(size) {
       $('.overlay-shadow-right').height(frameSize.height);
       
       // Animate shadows and the close button
-      $('.overlay-shadow', $(this)).animate({opacity:1}, 'slow');
+      $('.overlay-shadow', $(this)).animate({opacity: 0.9999}, 'slow');
 
       // Update the dialog size so that UI internals are aware of the change.
       self.iframe.$container.dialog('option', {width: dialogSize.width, height: dialogSize.height});
@@ -509,7 +525,7 @@ Drupal.overlay.resize = function(size) {
       $('.ui-widget-overlay').height($(document).height());
       
       // Animate body opacity, so we fade in the page page as it loads in. 
-      $(self.iframe.$element.get(0)).contents().find('body.overlay').animate({opacity:1}, 'slow');
+      $(self.iframe.$element.get(0)).contents().find('body.overlay').animate({opacity: 0.9999}, 'slow');
     }
   });
 };
