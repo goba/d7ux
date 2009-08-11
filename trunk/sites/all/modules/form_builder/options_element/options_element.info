@@ -1,5 +1,0 @@
-; $Id: options_element.info,v 1.1 2008/12/03 19:32:23 quicksketch Exp $
-name = Options element
-description = A custom form element for entering the options in select lists, radios, or checkboxes.
-core = 7.x
-files[] = options_element.module
