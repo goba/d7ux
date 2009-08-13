@@ -13,6 +13,7 @@
   height: 30px;
   white-space: nowrap;
   z-index: 2;
+  padding-right: 20px;
 }
 
 .overlay .ui-dialog-title {
