@@ -129,7 +129,6 @@
  */
 .ui-dialog-titlebar ul {
   float: right;
-  border-bottom: none;
   margin: 0 0 -10px 0;
   padding: 3px 0 0 8px;
   line-height: 30px;
@@ -140,6 +139,7 @@
 .ui-dialog-titlebar ul li {
   display: inline;
   list-style: none;
+  margin-left: 0;
 }
 
 .ui-dialog-titlebar ul li a,
@@ -153,10 +153,7 @@
   border-radius: 8px 8px 0 0;
   color: #000;
   font-weight: bold;
-  padding: 7px 20px 5px 20px;
-  border-width: 1px 1px 0 1px;
-  border-style: solid;
-  border-color: #a6a7a2;
+  padding: 8px 20px 3px 20px;
   text-decoration: none;
 }
 
@@ -165,7 +162,7 @@
 .ui-dialog-titlebar ul li.active a:active,
 .ui-dialog-titlebar ul li.active a:visited {
   background-color: #fff;
-  border-color: #c9cac4;
+  padding: 8px 20px 5px 20px;
 }
 
 .ui-dialog-titlebar ul li a:hover {
