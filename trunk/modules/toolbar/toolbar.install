@@ -28,7 +28,14 @@ function toolbar_install() {
     'node/add' => 'Add',
     'admin/content' => 'Find content',
     'admin' => 'Dashboard',
+    'edit-mode/toggle' => '',
   );
+
+  db_delete('menu_links')
+    ->condition('link_path', 'edit-mode/toggle')
+    ->condition('menu_name', 'main-menu')
+    ->execute();
+
   $weight = -20;
   foreach ($items as $path => $title) {
     $link = array(

@@ -22,7 +22,7 @@
  */
 function hook_action_links_icons() {
   $icons['rearrange'] = array(
-    'path' => drupal_get_path('module', 'hook') . '/rerrange.png',
+    'path' => drupal_get_path('module', 'hook') . '/rearrange.png',
     'alt'  => t('Rearrange'),
   );
 

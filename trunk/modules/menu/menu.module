@@ -309,7 +309,7 @@ function menu_page_alter(&$page) {
         if ($content['#theme'] == 'menu_tree' && !empty($content['#menu'])) {
           // If we have a non-empty menu tree, wrap it in a theme function
           // that will display an edit link.
-          $content['#theme_wrapper'] = 'menu_editable';
+          $content['#theme_wrappers'] = array('menu_editable');
           $content['#actions']['edit'] = array(
             'href' => 'admin/structure/menu-customize/' . $block->delta,
             'title' => t('Edit this menu'),

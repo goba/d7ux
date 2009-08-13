@@ -1,0 +1,37 @@
+/* $Id$ */
+
+/*
+** Highlighted regions for actions.js
+*/
+.active-actions-region {
+  outline: solid #000000 2px;
+}
+
+.actions-enabled-region {
+  position: relative;
+}
+
+ul.action-links {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 0;
+  margin: 0 4px 0 0;
+}
+
+ul.action-links li {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: inline;
+}
+
+ul.action-links li a img {
+  background-color: #000000;
+  margin-right: -4px;
+  padding: 1px;
+}
+
+ul.action-links li a:hover img {
+  background-color: #404040;
+}

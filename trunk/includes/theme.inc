@@ -1347,6 +1347,9 @@ function theme_links($links, $attributes = array('class' => 'links')) {
  * @see theme_links()
  */
 function theme_action_links($links, $element) {
+  if (empty($_SESSION['edit_mode'])) {
+    return;
+  }
   // Construct a CSS class which associates this edit link with the region on
   // the page that it edits.
   $links_array = array();
@@ -1354,8 +1357,9 @@ function theme_action_links($links, $element) {
     $class = "actions-link actions-$key-link actions-at-" . str_replace('/', '-', $link['href']);
     $links_array[$class] = $link;
   }
-  drupal_add_js(!empty($_REQUEST['edit_mode']) ? 'misc/actions.mode.js' : 'misc/action-links.js');
-  return theme('links', $links_array, array('class' => 'links action-links'));
+  drupal_add_js('misc/actions.js');
+  drupal_add_css('misc/actions.css');
+  return theme('links', $links_array, array('class' => 'action-links'));
 }
 
 /**
@@ -2050,10 +2054,7 @@ function template_preprocess_page(&$variables) {
   $variables['main_menu']         = theme_get_setting('toggle_main_menu') ? menu_main_menu() : array();
   $variables['secondary_menu']    = theme_get_setting('toggle_secondary_menu') ? menu_secondary_menu() : array();
   $variables['search_box']        = (theme_get_setting('toggle_search') ? drupal_render(drupal_get_form('search_theme_form')) : '');
-  // TODO: Remove. This is just a quick hack to give a rough feel for the
-  // "edit mode" in the D7UX proposal.
-  $edit_mode_link = !empty($_REQUEST['edit_mode']) ? l(t('global edit mode: On'), $_GET['q']) : l(t('global edit mode: Off'), $_GET['q'], array('query' => 'edit_mode=1'));
-  $variables['site_name']         = (theme_get_setting('toggle_name') ? t('!site_name (!edit_mode)', array('!site_name' => filter_xss_admin(variable_get('site_name', 'Drupal')), '!edit_mode' => $edit_mode_link)) : '');
+  $variables['site_name']         = (theme_get_setting('toggle_name') ? filter_xss_admin(variable_get('site_name', 'Drupal')) : '');
   $variables['site_slogan']       = (theme_get_setting('toggle_slogan') ? filter_xss_admin(variable_get('site_slogan', '')) : '');
   $variables['tabs']              = theme('menu_local_tasks');
   $variables['title']             = drupal_get_title();
