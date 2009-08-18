@@ -1,5 +1,5 @@
 <?php
-// $Id: common.inc,v 1.959 2009/08/13 03:03:03 webchick Exp $
+// $Id: common.inc,v 1.963 2009/08/17 19:14:39 webchick Exp $
 
 /**
  * @file
@@ -873,7 +873,16 @@ function _drupal_log_error($error, $fatal = FALSE) {
     $error_level = variable_get('error_level', ERROR_REPORTING_DISPLAY_ALL);
     $display_error = $error_level == ERROR_REPORTING_DISPLAY_ALL || ($error_level == ERROR_REPORTING_DISPLAY_SOME && $error['%type'] != 'Notice');
     if ($display_error || (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE == 'update')) {
-      drupal_set_message(t('%type: %message in %function (line %line of %file).', $error), 'error');
+      $class = 'error';
+
+      // If error type is 'User notice' then treat it as debug information
+      // instead of an error message, see dd().
+      if ($error['%type'] == 'User notice') {
+        $error['%type'] = 'Debug';
+        $class = 'status';
+      }
+
+      drupal_set_message(t('%type: %message in %function (line %line of %file).', $error), $class);
     }
 
     if ($fatal) {
@@ -895,9 +904,11 @@ function _drupal_log_error($error, $fatal = FALSE) {
  *   An associative array with keys 'file', 'line' and 'function'.
  */
 function _drupal_get_last_caller($backtrace) {
-  // Errors that occur inside PHP internal functions
-  // do not generate information about file and line.
-  while ($backtrace && !isset($backtrace[0]['line'])) {
+  // Errors that occur inside PHP internal functions do not generate
+  // information about file and line. Ignore black listed functions.
+  $blacklist = array('debug');
+  while (($backtrace && !isset($backtrace[0]['line'])) ||
+         (isset($backtrace[1]['function']) && in_array($backtrace[1]['function'], $blacklist))) {
     array_shift($backtrace);
   }
 
@@ -2333,14 +2344,14 @@ function drupal_map_assoc($array, $function = NULL) {
  * In other words, if the timeout is the default 30 seconds, and 25 seconds
  * into script execution a call such as set_time_limit(20) is made, the
  * script will run for a total of 45 seconds before timing out.
- * 
+ *
  * It also means that it is possible to decrease the total time limit if
  * the sum of the new time limit and the current time spent running the
  * script is inferior to the original time limit. It is inherent to the way
  * set_time_limit() works, it should rather be called with an appropriate
  * value every time you need to allocate a certain amount of time
  * to execute a task than only once at the beginning of the script.
- * 
+ *
  * Before calling set_time_limit(), we check if this function is available
  * because it could be disabled by the server administrator. We also hide all
  * the errors that could occur when calling set_time_limit(), because it is
@@ -2423,13 +2434,16 @@ function drupal_add_link($attributes) {
  *   - 'inline': A string of CSS that should be placed in the given scope. Note
  *     that it is better practice to use 'file' stylesheets, rather than 'inline'
  *     as the CSS would then be aggregated and cached.
+ *   - 'external': The absolute path to an external CSS file that is not hosted
+ *     on the local server. These files will not be aggregated if CSS aggregation
+ *     is enabled.
  *
  * @param $options
  *   (optional) A string defining the 'type' of CSS that is being added in the
  *   $data parameter ('file'/'inline'), or an array which can have any or all of
  *   the following keys:
- *   - 'type': The type of stylesheet being added. Available options are 'file'
- *     or 'inline'. Defaults to 'file'.
+ *   - 'type': The type of stylesheet being added. Available options are 'file',
+ *     'inline' or 'external'. Defaults to 'file'.
  *   - 'weight': The weight of the stylesheet specifies the order in which the
  *     CSS will appear when presented on the page.
  *
@@ -2454,7 +2468,8 @@ function drupal_add_link($attributes) {
  *     files into one file that is then compressed by removing all extraneous
  *     white space. Note that preprocessed inline stylesheets will not be
  *     aggregated into this single file, instead it will just be compressed
- *     when being output on the page.
+ *     when being output on the page. External stylesheets will not be
+ *     aggregated.
  *
  *     The reason for merging the CSS files is outlined quite thoroughly here:
  *     http://www.die.net/musings/page_load_time/
@@ -2501,14 +2516,15 @@ function drupal_add_css($data = NULL, $options = NULL) {
 
     // Add the data to the CSS array depending on the type.
     switch ($options['type']) {
-      case 'file':
-        $css[$data] = $options;
-        break;
       case 'inline':
         // For inline stylesheets, we don't want to use the $data as the array
         // key as $data could be a very long string of CSS.
         $css[] = $options;
         break;
+      default:
+        // Local and external files must keep their name as the associative key
+        // so the same CSS file is not be added twice.
+        $css[$data] = $options;
     }
   }
 
@@ -2544,8 +2560,8 @@ function drupal_get_css($css = NULL) {
   }
 
   $preprocess_css = (variable_get('preprocess_css', FALSE) && (!defined('MAINTENANCE_MODE') || MAINTENANCE_MODE != 'update'));
-  $directory = file_directory_path();
-  $is_writable = is_dir($directory) && is_writable($directory) && (variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC) == FILE_DOWNLOADS_PUBLIC);
+  $directory = file_directory_path('public');
+  $is_writable = is_dir($directory) && is_writable($directory);
 
   // A dummy query-string is added to filenames, to gain control over
   // browser-caching. The string changes on every update or full cache
@@ -2576,6 +2592,7 @@ function drupal_get_css($css = NULL) {
   // Additionally, go through any remaining styles if CSS preprocessing is on and output the non-cached ones.
   $rendered_css = array();
   $inline_css = '';
+  $external_css = '';
   $preprocess_items = array();
   foreach ($css as $data => $item) {
     // Loop through each of the stylesheets, including them appropriately based
@@ -2584,7 +2601,7 @@ function drupal_get_css($css = NULL) {
       case 'file':
         // Depending on whether aggregation is desired, include the file.
         if (!$item['preprocess'] || !($is_writable && $preprocess_css)) {
-          $rendered_css[] = '<link type="text/css" rel="stylesheet" media="' . $item['media'] . '" href="' . base_path() . $item['data'] . $query_string . '" />';
+          $rendered_css[] = '<link type="text/css" rel="stylesheet" media="' . $item['media'] . '" href="' . file_create_url($item['data']) . $query_string . '" />';
         }
         else {
           $preprocess_items[$item['media']][] = $item;
@@ -2597,6 +2614,10 @@ function drupal_get_css($css = NULL) {
         // Include inline stylesheets.
         $inline_css .= drupal_load_stylesheet_content($item['data'], $item['preprocess']);
         break;
+      case 'external':
+        // Preprocessing for external CSS files is ignored.
+        $external_css .= '<link type="text/css" rel="stylesheet" media="' . $item['media'] . '" href="' . $item['data'] . '" />' . "\n";
+        break;
     }
   }
 
@@ -2605,8 +2626,8 @@ function drupal_get_css($css = NULL) {
       // Prefix filename to prevent blocking by firewalls which reject files
       // starting with "ad*".
       $filename = 'css_' . md5(serialize($items) . $query_string) . '.css';
-      $preprocess_file = drupal_build_css_cache($items, $filename);
-      $rendered_css['preprocess'] .= '<link type="text/css" rel="stylesheet" media="' . $media . '" href="' . base_path() . $preprocess_file . '" />' . "\n";
+      $preprocess_file = file_create_url(drupal_build_css_cache($items, $filename));
+      $rendered_css['preprocess'] .= '<link type="text/css" rel="stylesheet" media="' . $media . '" href="' . $preprocess_file . '" />' . "\n";
     }
   }
   // Enclose the inline CSS with the style tag if required.
@@ -2615,7 +2636,7 @@ function drupal_get_css($css = NULL) {
   }
 
   // Output all the CSS files with the inline stylesheets showing up last.
-  return implode("\n", $rendered_css) . $inline_css;
+  return implode("\n", $rendered_css) . $external_css . $inline_css;
 }
 
 /**
@@ -2632,9 +2653,8 @@ function drupal_build_css_cache($css, $filename) {
   $data = '';
 
   // Create the css/ within the files folder.
-  $csspath = file_create_path('css');
-  file_check_directory($csspath, FILE_CREATE_DIRECTORY);
-
+  $csspath = 'public://css';
+  file_prepare_directory($csspath, FILE_CREATE_DIRECTORY);
   if (!file_exists($csspath . '/' . $filename)) {
     // Build aggregate CSS file.
     foreach ($css as $stylesheet) {
@@ -2776,7 +2796,7 @@ function _drupal_load_stylesheet($matches) {
  * Delete all cached CSS files.
  */
 function drupal_clear_css_cache() {
-  file_scan_directory(file_create_path('css'), '/.*/', array('callback' => 'file_unmanaged_delete'));
+  file_scan_directory('public://css', '/.*/', array('callback' => 'file_unmanaged_delete'));
 }
 
 /**
@@ -2826,7 +2846,9 @@ function drupal_clear_css_cache() {
  *   (optional) If given, the value depends on the $options parameter:
  *   - 'file': Path to the file relative to base_path().
  *   - 'inline': The JavaScript code that should be placed in the given scope.
- *   - 'external': The absolute path to a JavaScript file hosted externally.
+ *   - 'external': The absolute path to an external JavaScript file that is not
+ *     hosted on the local server. These files will not be aggregated if 
+ *     JavaScript aggregation is enabled.
  *   - 'setting': An array with configuration options as associative array. The
  *       array is directly placed in Drupal.settings. All modules should wrap
  *       their actual configuration settings in another variable to prevent
@@ -2940,7 +2962,6 @@ function drupal_add_js($data = NULL, $options = NULL) {
         // Local and external files must keep their name as the associative key
         // so the same JavaScript file is not be added twice.
         $javascript[$options['data']] = $options;
-        break;
     }
   }
   return $javascript;
@@ -3017,8 +3038,8 @@ function drupal_get_js($scope = 'header', $javascript = NULL) {
   $no_preprocess = '';
   $files = array();
   $preprocess_js = (variable_get('preprocess_js', FALSE) && (!defined('MAINTENANCE_MODE') || MAINTENANCE_MODE != 'update'));
-  $directory = file_directory_path();
-  $is_writable = is_dir($directory) && is_writable($directory) && (variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC) == FILE_DOWNLOADS_PUBLIC);
+  $directory = file_directory_path('public');
+  $is_writable = is_dir($directory) && is_writable($directory);
 
   // A dummy query-string is added to filenames, to gain control over
   // browser-caching. The string changes on every update or full cache
@@ -3050,7 +3071,7 @@ function drupal_get_js($scope = 'header', $javascript = NULL) {
 
       case 'file':
         if (!$item['preprocess'] || !$is_writable || !$preprocess_js) {
-          $no_preprocess .= '<script type="text/javascript"' . ($item['defer'] ? ' defer="defer"' : '') . ' src="' . base_path() . $item['data'] . ($item['cache'] ? $query_string : '?' . REQUEST_TIME) . "\"></script>\n";
+          $no_preprocess .= '<script type="text/javascript"' . ($item['defer'] ? ' defer="defer"' : '') . ' src="' . file_create_url($item['data']) . ($item['cache'] ? $query_string : '?' . REQUEST_TIME) . "\"></script>\n";
         }
         else {
           $files[$item['data']] = $item;
@@ -3069,8 +3090,8 @@ function drupal_get_js($scope = 'header', $javascript = NULL) {
     // Prefix filename to prevent blocking by firewalls which reject files
     // starting with "ad*".
     $filename = 'js_' . md5(serialize($files) . $query_string) . '.js';
-    $preprocess_file = drupal_build_js_cache($files, $filename);
-    $preprocessed .= '<script type="text/javascript" src="' . base_path() . $preprocess_file . '"></script>' . "\n";
+    $preprocess_file = file_create_url(drupal_build_js_cache($files, $filename));
+    $preprocessed .= '<script type="text/javascript" src="' . $preprocess_file . '"></script>' . "\n";
   }
 
   // Keep the order of JS files consistent as some are preprocessed and others are not.
@@ -3341,8 +3362,8 @@ function drupal_build_js_cache($files, $filename) {
   $contents = '';
 
   // Create the js/ within the files folder.
-  $jspath = file_create_path('js');
-  file_check_directory($jspath, FILE_CREATE_DIRECTORY);
+  $jspath = 'public://js';
+  file_prepare_directory($jspath, FILE_CREATE_DIRECTORY);
 
   if (!file_exists($jspath . '/' . $filename)) {
     // Build aggregate JS file.
@@ -3364,7 +3385,7 @@ function drupal_build_js_cache($files, $filename) {
  * Delete all cached JS files.
  */
 function drupal_clear_js_cache() {
-  file_scan_directory(file_create_path('js'), '/.*/', array('callback' => 'file_unmanaged_delete'));
+  file_scan_directory('public://js', '/.*/', array('callback' => 'file_unmanaged_delete'));
   variable_set('javascript_parsed', array());
 }
 
@@ -3527,6 +3548,7 @@ function _drupal_bootstrap_full() {
   require_once DRUPAL_ROOT . '/includes/form.inc';
   require_once DRUPAL_ROOT . '/includes/mail.inc';
   require_once DRUPAL_ROOT . '/includes/actions.inc';
+  require_once DRUPAL_ROOT . '/includes/ajax.inc';
   // Set the Drupal custom error handler.
   set_error_handler('_drupal_error_handler');
   set_exception_handler('_drupal_exception_handler');
@@ -4934,6 +4956,27 @@ function _drupal_flush_css_js() {
     $new_character = $characters[mt_rand(0, strlen($characters) - 1)];
   }
   variable_set('css_js_query_string', $new_character . substr($string_history, 0, 19));
+}
+
+/**
+ * Debug function used for outputting debug information.
+ *
+ * The debug information is passed on to trigger_error() after being converted
+ * to a string using _drupal_debug_message().
+ *
+ * @param $data
+ *   Data to be output.
+ * @param $label
+ *   Label to prefix the data.
+ * @param $print_r
+ *   Flag to switch between print_r() and var_export() for data conversion to
+ *   string. Set $print_r to TRUE when dealing with a recursive data structure
+ *   as var_export() will generate an error.
+ */
+function debug($data, $label = NULL, $print_r = FALSE) {
+  // Print $data contents to string.
+  $string = $print_r ? print_r($data, TRUE) : var_export($data, TRUE);
+  trigger_error(trim($label ? "$label: $string" : $string));
 }
 
 /**

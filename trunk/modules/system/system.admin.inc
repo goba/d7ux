@@ -1,5 +1,5 @@
 <?php
-// $Id: system.admin.inc,v 1.175 2009/08/14 08:09:48 dries Exp $
+// $Id: system.admin.inc,v 1.180 2009/08/17 19:14:41 webchick Exp $
 
 /**
  * @file
@@ -264,13 +264,12 @@ function system_themes_form() {
     '#type' => 'select',
     '#options' => array(0 => t('Default theme')) + $options,
     '#title' => t('Administration theme'),
-    '#description' => t('Choose which theme the administration pages should display in. If you choose "Default theme" the administration pages will use the same theme as the rest of the site.'),
+    '#description' => t('Choose "Default theme" to always use the same theme as the rest of the site.'),
     '#default_value' => variable_get('admin_theme', 0),
   );
   $form['admin_theme']['node_admin_theme'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Use administration theme for content editing'),
-    '#description' => t('Use the administration theme when editing existing posts or creating new ones.'),
+    '#title' => t('Use the administration theme when editing or creating content'),
     '#default_value' => variable_get('node_admin_theme', '0'),
   );
 
@@ -366,7 +365,9 @@ function system_themes_form_submit($form, &$form_state) {
  */
 function system_theme_settings(&$form_state, $key = '') {
   $directory_path = file_directory_path();
-  file_check_directory($directory_path, FILE_CREATE_DIRECTORY, 'file_directory_path');
+  if (!file_prepare_directory($directory_path, FILE_CREATE_DIRECTORY)) {
+    drupal_set_message(t('The directory %directory does not exist or is not writable.', array('%directory' => $directory_path)), 'warning');
+  }
 
   // Default settings are defined in theme_get_settings() in includes/theme.inc
   if ($key) {
@@ -390,7 +391,7 @@ function system_theme_settings(&$form_state, $key = '') {
     // The image was saved using file_save_upload() and was added to the
     // files table as a temporary file. We'll make a copy and let the garbage
     // collector delete the original upload.
-    if ($filepath = file_unmanaged_copy($file->filepath, $filename, FILE_EXISTS_REPLACE)) {
+    if ($filepath = file_unmanaged_copy($file->uri, $filename, FILE_EXISTS_REPLACE)) {
       $_POST['default_logo'] = 0;
       $_POST['logo_path'] = $filepath;
       $_POST['toggle_logo'] = 1;
@@ -405,7 +406,7 @@ function system_theme_settings(&$form_state, $key = '') {
     // The image was saved using file_save_upload() and was added to the
     // files table as a temporary file. We'll make a copy and let the garbage
     // collector delete the original upload.
-    if ($filepath = file_unmanaged_copy($file->filepath, $filename, FILE_EXISTS_REPLACE)) {
+    if ($filepath = file_unmanaged_copy($file->uri, $filename, FILE_EXISTS_REPLACE)) {
       $_POST['default_favicon'] = 0;
       $_POST['favicon_path'] = $filepath;
       $_POST['toggle_favicon'] = 1;
@@ -1364,27 +1365,11 @@ function system_performance_settings() {
   );
 
   $cache = variable_get('cache', CACHE_DISABLED);
-  $js_hide = $cache != CACHE_AGGRESSIVE ? 'js-hide' : '';
-  $problem_modules = array_unique(array_merge(module_implements('boot'), module_implements('exit')));
-  if (count($problem_modules) > 0) {
-    $module_names = array();
-    foreach ($problem_modules as $module) {
-      $info = drupal_parse_info_file(drupal_get_path('module', $module) . "/$module.info");
-      $module_names[] = $info['name'];
-    }
-    sort($module_names);
-    $message = format_plural(count($module_names), '%module may cause issues when using aggressive caching.', '%modules may cause issues when using aggressive caching.', array('%module' => $module_names[0], '%modules' => implode(', ', $module_names)));
-    $description = ' <strong id="cache-error" class="error ' . $js_hide . '">' . $message . '</strong>';
-  }
-  else {
-    $description = ' <strong class="' . $js_hide . '">' . t('Note: if you use aggressive page caching and enable new modules, you will need to check this setting again to ensure compatibility.') . '</strong>';
-  }
   $form['caching']['cache'] = array(
     '#type' => 'radios',
     '#title' => t('Page cache for anonymous users'),
     '#default_value' => $cache,
-    '#options' => array(CACHE_DISABLED => t('Disabled'), CACHE_NORMAL => t('Normal (recommended)'), CACHE_AGGRESSIVE => t('Aggressive (possible issues)')),
-    '#description' => t('Aggressive caching prevents modules from being loaded if the requested page can be retrieved from the cache. This may cause issues if you use modules that need to be loaded every request i.e. for writing data like statistics.') . $description,
+    '#options' => array(CACHE_DISABLED => t('Disabled'), CACHE_NORMAL => t('Normal (recommended)')),
   );
   $period = drupal_map_assoc(array(0, 60, 180, 300, 600, 900, 1800, 2700, 3600, 10800, 21600, 32400, 43200, 86400), 'format_interval');
   $period[0] = '<' . t('none') . '>';
@@ -1396,20 +1381,14 @@ function system_performance_settings() {
     '#description' => t('The minimum amount of time that will elapse before the caches are recreated.')
   );
 
-  $directory = file_directory_path();
+  $directory = 'public://';
   $is_writable = is_dir($directory) && is_writable($directory);
-  $public_downloads = (variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC) == FILE_DOWNLOADS_PUBLIC);
-  $disabled = !$is_writable && !$public_downloads;
+  $disabled = !$is_writable;
   $disabled_message = '';
-  if(!$is_writable && !$public_downloads) {
-    $disabled_message = ' ' . t('<strong class="error">Please <a href="!file-system">set up</a> the files directory and set the download method to public to make these optimizations available.</strong>', array('!file-system' => url('admin/settings/file-system')));
+  if(!$is_writable) {
+    $disabled_message = ' ' . t('<strong class="error">Please set up the <a href="!file-system">public files directory</a> to make these optimizations available.</strong>', array('!file-system' => url('admin/settings/file-system')));
   }
-  elseif(!$is_writable) {
-    $disabled_message = ' ' . t('<strong class="error">Please set up the <a href="!file-system">files directory</a> to make these optimizations available.</strong>', array('!file-system' => url('admin/settings/file-system')));
-  }
-  elseif(!$public_downloads) {
-    $disabled_message = ' ' . t('<strong class="error">Please set the <a href="!file-system">download method</a> to public to make these optimizations available.</strong>', array('!file-system' => url('admin/settings/file-system')));
-  }
+
   $form['bandwidth_optimization'] = array(
     '#type' => 'fieldset',
     '#title' => t('Bandwidth optimization'),
@@ -1464,30 +1443,43 @@ function system_clear_cache_submit($form, &$form_state) {
  */
 function system_file_system_settings() {
 
-  $form['file_directory_path'] = array(
+  $form['file_public_path'] = array(
     '#type' => 'textfield',
-    '#title' => t('File system path'),
+    '#title' => t('Public file system path'),
     '#default_value' => file_directory_path(),
     '#maxlength' => 255,
-    '#description' => t('A file system path where the files will be stored. This directory must exist and be writable by Drupal. If the download method is set to public, this directory must be relative to the Drupal installation directory and be accessible over the web. If the download method is set to private, this directory should not be accessible over the web. Changing this location will modify all download paths and may cause unexpected problems on an existing site.'),
+    '#description' => t('A local file system path where public files will be stored. This directory must exist and be writable by Drupal. This directory must be relative to the Drupal installation directory and be accessible over the web.'),
     '#after_build' => array('system_check_directory'),
   );
 
-  $form['file_directory_temp'] = array(
+  $form['file_private_path'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Private file system path'),
+    '#default_value' => file_directory_path('private'),
+    '#maxlength' => 255,
+    '#description' => t('A local file system path where private files will be stored. This directory must exist and be writable by Drupal. This directory should not be accessible over the web.'),
+    '#after_build' => array('system_check_directory'),
+  );
+
+  $form['file_temporary_path'] = array(
     '#type' => 'textfield',
     '#title' => t('Temporary directory'),
-    '#default_value' => file_directory_temp(),
+    '#default_value' => file_directory_path('temporary'),
     '#maxlength' => 255,
-    '#description' => t('A file system path where uploaded files will be stored during previews.'),
+    '#description' => t('A local file system path where temporary files will be stored. This directory should not be accessible over the web.'),
     '#after_build' => array('system_check_directory'),
   );
-
-  $form['file_downloads'] = array(
+  $wrappers = file_get_stream_wrappers();
+  $options = array(
+    'public' => $wrappers['public']['description'],
+    'private' => $wrappers['private']['description']
+  );
+  $form['file_default_scheme'] = array(
     '#type' => 'radios',
-    '#title' => t('Download method'),
-    '#default_value' => FILE_DOWNLOADS_PUBLIC,
-    '#options' => array(FILE_DOWNLOADS_PUBLIC => t('Public - files are available using HTTP directly.'), FILE_DOWNLOADS_PRIVATE => t('Private - files are transferred by Drupal.')),
-    '#description' => t('Choose the <em>Public download</em> method unless you wish to enforce fine-grained access controls over file downloads. Changing the download method will modify all download paths and may cause unexpected problems on an existing site.')
+    '#title' => t('Default download method'),
+    '#default_value' => 'public',
+    '#options' => $options,
+    '#description' => t('This setting is used as the preferred download method. The use of public files is more efficient, but does not provide any access control.'),
   );
 
   return system_settings_form($form, TRUE);
@@ -1941,9 +1933,6 @@ function theme_admin_block($block) {
       $block[title]
     </h3>
     <div class="body">
-      <p class="description">
-        $block[description]
-      </p>
       $block[content]
     </div>
   </div>

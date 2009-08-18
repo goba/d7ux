@@ -1,5 +1,5 @@
 <?php
-// $Id: system.module,v 1.744 2009/08/13 11:31:26 dries Exp $
+// $Id: system.module,v 1.750 2009/08/17 19:14:41 webchick Exp $
 
 /**
  * @file
@@ -309,7 +309,7 @@ function system_elements() {
     '#name' => 'op',
     '#button_type' => 'submit',
     '#executes_submit_callback' => TRUE,
-    '#process' => array('form_process_ahah'),
+    '#process' => array('ajax_process_form'),
     '#theme_wrappers' => array('button'),
   );
 
@@ -318,7 +318,7 @@ function system_elements() {
     '#name' => 'op',
     '#button_type' => 'submit',
     '#executes_submit_callback' => FALSE,
-    '#process' => array('form_process_ahah'),
+    '#process' => array('ajax_process_form'),
     '#theme_wrappers' => array('button'),
   );
 
@@ -326,7 +326,7 @@ function system_elements() {
     '#input' => TRUE,
     '#button_type' => 'submit',
     '#executes_submit_callback' => TRUE,
-    '#process' => array('form_process_ahah'),
+    '#process' => array('ajax_process_form'),
     '#return_value' => TRUE,
     '#has_garbage_value' => TRUE,
     '#src' => NULL,
@@ -338,7 +338,7 @@ function system_elements() {
     '#size' => 60,
     '#maxlength' => 128,
     '#autocomplete_path' => FALSE,
-    '#process' => array('form_process_text_format', 'form_process_ahah'),
+    '#process' => array('form_process_text_format', 'ajax_process_form'),
     '#theme' => 'textfield',
     '#theme_wrappers' => array('form_element'),
   );
@@ -347,7 +347,7 @@ function system_elements() {
     '#input' => TRUE,
     '#size' => 60,
     '#maxlength' => 128,
-    '#process' => array('form_process_ahah'),
+    '#process' => array('ajax_process_form'),
     '#theme' => 'password',
     '#theme_wrappers' => array('form_element'),
   );
@@ -363,7 +363,7 @@ function system_elements() {
     '#cols' => 60,
     '#rows' => 5,
     '#resizable' => TRUE,
-    '#process' => array('form_process_text_format', 'form_process_ahah'),
+    '#process' => array('form_process_text_format', 'ajax_process_form'),
     '#theme' => 'textarea',
     '#theme_wrappers' => array('form_element'),
   );
@@ -378,7 +378,7 @@ function system_elements() {
   $type['radio'] = array(
     '#input' => TRUE,
     '#default_value' => NULL,
-    '#process' => array('form_process_ahah'),
+    '#process' => array('ajax_process_form'),
     '#theme' => 'radio',
     '#theme_wrappers' => array('form_element'),
     '#form_element_skip_title' => TRUE,
@@ -395,7 +395,7 @@ function system_elements() {
   $type['checkbox'] = array(
     '#input' => TRUE,
     '#return_value' => 1,
-    '#process' => array('form_process_ahah'),
+    '#process' => array('ajax_process_form'),
     '#theme' => 'checkbox',
     '#theme_wrappers' => array('form_element'),
     '#form_element_skip_title' => TRUE,
@@ -405,7 +405,7 @@ function system_elements() {
     '#input' => TRUE,
     '#size' => 0,
     '#multiple' => FALSE,
-    '#process' => array('form_process_ahah'),
+    '#process' => array('ajax_process_form'),
     '#theme' => 'select',
     '#theme_wrappers' => array('form_element'),
   );
@@ -414,7 +414,7 @@ function system_elements() {
     '#input' => TRUE,
     '#delta' => 10,
     '#default_value' => 0,
-    '#process' => array('form_process_weight', 'form_process_ahah'),
+    '#process' => array('form_process_weight', 'ajax_process_form'),
   );
 
   $type['date'] = array(
@@ -453,7 +453,7 @@ function system_elements() {
 
   $type['hidden'] = array(
     '#input' => TRUE,
-    '#process' => array('form_process_ahah'),
+    '#process' => array('ajax_process_form'),
     '#theme' => 'hidden',
   );
 
@@ -470,7 +470,7 @@ function system_elements() {
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#value' => NULL,
-    '#process' => array('form_process_fieldset', 'form_process_ahah'),
+    '#process' => array('form_process_fieldset', 'ajax_process_form'),
     '#pre_render' => array('form_pre_render_fieldset'),
     '#theme_wrappers' => array('fieldset'),
   );
@@ -504,12 +504,20 @@ function system_menu() {
   $items['system/files'] = array(
     'title' => 'File download',
     'page callback' => 'file_download',
+    'page arguments' => array('private'),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
-  $items['system/ahah'] = array(
+  $items['system/temporary'] = array(
+    'title' => 'Temporary files',
+    'page callback' => 'file_download',
+    'page arguments' => array('temporary'),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  $items['system/ajax'] = array(
     'title' => 'AHAH callback',
-    'page callback' => 'form_ahah_callback',
+    'page callback' => 'ajax_form_callback',
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
@@ -616,7 +624,6 @@ function system_menu() {
   );
   $items['admin/config/config'] = array(
     'title' => 'Configuration',
-    'access callback' => array('user_access'),
     'access arguments' => array('administer site configuration'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
@@ -626,7 +633,6 @@ function system_menu() {
     'description' => 'Enable or disable add-on modules for your site.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('system_modules'),
-    'access callback' => array('user_access'),
     'access arguments' => array('administer site configuration'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 10,
@@ -743,18 +749,12 @@ function system_menu() {
     'page arguments' => array('system_site_information_settings'),
     'access arguments' => array('administer site configuration'),
   );
-  $items['admin/settings/logging'] = array(
+  $items['admin/config/development/logging'] = array(
     'title' => 'Logging and errors',
     'description' => "Settings for logging and alerts modules. Various modules can route Drupal's system events to different destinations, such as syslog, database, email, etc.",
     'page callback' => 'drupal_get_form',
     'page arguments' => array('system_logging_settings'),
     'access arguments' => array('administer site configuration'),
-  );
-  $items['admin/settings/logging/settings'] = array(
-    'title' => 'Settings',
-    'access arguments' => array('administer site configuration'),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -1,
   );
   $items['admin/settings/file-system'] = array(
     'title' => 'File system',
@@ -1639,7 +1639,7 @@ function system_admin_menu_block($item) {
     }
     // Prepare for sorting as in function _menu_tree_check_access().
     // The weight is offset so it is always positive, with a uniform 5-digits.
-    $content[(50000 + $link['weight']) . ' ' . $link['title'] . ' ' . $link['mlid']] = $link;
+    $content[(50000 + $link['weight']) . ' ' . drupal_strtolower($link['title']) . ' ' . $link['mlid']] = $link;
   }
   ksort($content);
   $cache[$item['mlid']] = $content;
@@ -1648,16 +1648,37 @@ function system_admin_menu_block($item) {
 
 /**
  * Checks the existence of the directory specified in $form_element. This
- * function is called from the system_settings form to check both the
- * file_directory_path and file_directory_temp directories. If validation
- * fails, the form element is flagged with an error from within the
- * file_check_directory function.
+ * function is called from the system_settings form to check both core file
+ * directories (file_public_path, file_private_path, file_temporary_path).
  *
  * @param $form_element
  *   The form element containing the name of the directory to check.
  */
 function system_check_directory($form_element) {
-  file_check_directory($form_element['#value'], FILE_CREATE_DIRECTORY, $form_element['#parents'][0]);
+  $directory = $form_element['#value'];
+  
+  if (!is_dir($directory) && !drupal_mkdir($directory, NULL, TRUE)) {
+    // If the directory does not exists and cannot be created.
+    form_set_error($form_element['#parents'][0], t('The directory %directory does not exist and could not be created.', array('%directory' => $directory)));
+    watchdog('file system', 'The directory %directory does not exist and could not be created.', array('%directory' => $directory), WATCHDOG_ERROR);
+  }
+
+  if (is_dir($directory) && !is_writable($directory) && !drupal_chmod($directory)) {
+    // If the directory is not writable and cannont be made so.
+    form_set_error($form_element['#parents'][0], t('The directory %directory exists but is not writable and could not be made writable.', array('%directory' => $directory)));
+    watchdog('file system', 'The directory %directory exists but is not writable and could not be made writable.', array('%directory' => $directory), WATCHDOG_ERROR);
+  }
+  else {
+    if ($form_element['#name'] == 'file_public_path') {
+      // Create public .htaccess file.
+      file_create_htaccess($directory, FALSE);
+    }
+    else {
+      // Create private .htaccess file.
+      file_create_htaccess($directory);
+    }
+  }
+
   return $form_element;
 }
 
@@ -1674,7 +1695,7 @@ function system_get_files_database(&$files, $type) {
   $result = db_query("SELECT filename, name, type, status, schema_version, weight FROM {system} WHERE type = :type", array(':type' => $type));
   foreach ($result as $file) {
     if (isset($files[$file->name]) && is_object($files[$file->name])) {
-      $file->filepath = $file->filename;
+      $file->uri = $file->filename;
       foreach ($file as $key => $value) {
         if (!isset($files[$file->name]->key)) {
           $files[$file->name]->$key = $value;
@@ -1750,7 +1771,7 @@ function system_update_files_database(&$files, $type) {
     }
     else {
       $query->values(array(
-        'filename' => $file->filepath,
+        'filename' => $file->uri,
         'name' => $file->name,
         'type' => $type,
         'owner' => isset($file->owner) ? $file->owner : '',
@@ -1788,7 +1809,7 @@ function _system_get_module_data() {
   // Read info files for each module.
   foreach ($modules as $key => $module) {
     // Look for the info file.
-    $module->info = drupal_parse_info_file(dirname($module->filepath) . '/' . $module->name . '.info');
+    $module->info = drupal_parse_info_file(dirname($module->uri) . '/' . $module->name . '.info');
 
     // Skip modules that don't provide info.
     if (empty($module->info)) {
@@ -1870,8 +1891,8 @@ function _system_get_theme_data() {
     $sub_themes = array();
     // Read info files for each theme
     foreach ($themes as $key => $theme) {
-      $themes[$key]->filename = $theme->filepath;
-      $themes[$key]->info = drupal_parse_info_file($theme->filepath) + $defaults;
+      $themes[$key]->filename = $theme->uri;
+      $themes[$key]->info = drupal_parse_info_file($theme->uri) + $defaults;
 
       // Invoke hook_system_info_alter() to give installed modules a chance to
       // modify the data in the .info files if necessary.
@@ -1881,7 +1902,7 @@ function _system_get_theme_data() {
         $sub_themes[] = $key;
       }
       if (empty($themes[$key]->info['engine'])) {
-        $filename = dirname($themes[$key]->filepath) . '/' . $themes[$key]->name . '.theme';
+        $filename = dirname($themes[$key]->uri) . '/' . $themes[$key]->name . '.theme';
         if (file_exists($filename)) {
           $themes[$key]->owner = $filename;
           $themes[$key]->prefix = $key;
@@ -1890,7 +1911,7 @@ function _system_get_theme_data() {
       else {
         $engine = $themes[$key]->info['engine'];
         if (isset($engines[$engine])) {
-          $themes[$key]->owner = $engines[$engine]->filepath;
+          $themes[$key]->owner = $engines[$engine]->uri;
           $themes[$key]->prefix = $engines[$engine]->name;
           $themes[$key]->template = TRUE;
         }
@@ -1901,7 +1922,7 @@ function _system_get_theme_data() {
       if (isset($themes[$key]->info['stylesheets'])) {
         foreach ($themes[$key]->info['stylesheets'] as $media => $stylesheets) {
           foreach ($stylesheets as $stylesheet) {
-            $pathed_stylesheets[$media][$stylesheet] = dirname($themes[$key]->filepath) . '/' . $stylesheet;
+            $pathed_stylesheets[$media][$stylesheet] = dirname($themes[$key]->uri) . '/' . $stylesheet;
           }
         }
       }
@@ -1911,13 +1932,13 @@ function _system_get_theme_data() {
       $scripts = array();
       if (isset($themes[$key]->info['scripts'])) {
         foreach ($themes[$key]->info['scripts'] as $script) {
-          $scripts[$script] = dirname($themes[$key]->filepath) . '/' . $script;
+          $scripts[$script] = dirname($themes[$key]->uri) . '/' . $script;
         }
       }
       $themes[$key]->info['scripts'] = $scripts;
       // Give the screenshot proper path information.
       if (!empty($themes[$key]->info['screenshot'])) {
-        $themes[$key]->info['screenshot'] = dirname($themes[$key]->filepath) . '/' . $themes[$key]->info['screenshot'];
+        $themes[$key]->info['screenshot'] = dirname($themes[$key]->uri) . '/' . $themes[$key]->info['screenshot'];
       }
     }
 
@@ -2109,8 +2130,6 @@ function system_settings_form($form, $automatic_defaults = TRUE) {
  * add an array_filter value to your form.
  */
 function system_settings_form_submit($form, &$form_state) {
-  $op = isset($form_state['values']['op']) ? $form_state['values']['op'] : '';
-
   // Exclude unnecessary elements.
   unset($form_state['values']['submit'], $form_state['values']['reset'], $form_state['values']['form_id'], $form_state['values']['op'], $form_state['values']['form_token'], $form_state['values']['form_build_id']);
 
@@ -2286,7 +2305,7 @@ function system_cron() {
   // Remove temporary files that are older than DRUPAL_MAXIMUM_TEMP_FILE_AGE.
   // Use separate placeholders for the status to avoid a bug in some versions
   // of PHP. See http://drupal.org/node/352956
-  $result = db_query('SELECT fid FROM {files} WHERE status & :permanent1 <> :permanent2 AND timestamp < :timestamp', array(
+  $result = db_query('SELECT fid FROM {file} WHERE status & :permanent1 <> :permanent2 AND timestamp < :timestamp', array(
     ':permanent1' => FILE_STATUS_PERMANENT,
     ':permanent2' => FILE_STATUS_PERMANENT,
     ':timestamp' => REQUEST_TIME - DRUPAL_MAXIMUM_TEMP_FILE_AGE
@@ -2294,7 +2313,7 @@ function system_cron() {
   foreach ($result as $row) {
     if ($file = file_load($row->fid)) {
       if (!file_delete($file)) {
-        watchdog('file system', 'Could not delete temporary file "%path" during garbage collection', array('%path' => $file->filepath), WATCHDOG_ERROR);
+        watchdog('file system', 'Could not delete temporary file "%path" during garbage collection', array('%path' => $file->uri), WATCHDOG_ERROR);
       }
     }
   }
@@ -3081,7 +3100,7 @@ function system_image_toolkits() {
  */
 function system_retrieve_file($url, $destination = NULL, $overwrite = TRUE) {
   if (!$destination) {
-    $destination = file_directory_temp();
+    $destination = file_directory_path('temporary');
   }
   $parsed_url = parse_url($url);
   $local = is_dir(file_directory_path() . '/' . $destination) ? $destination . '/' . basename($parsed_url['path']) : $destination;

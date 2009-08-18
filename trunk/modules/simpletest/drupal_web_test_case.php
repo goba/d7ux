@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.134 2009/08/05 15:58:35 webchick Exp $
+// $Id: drupal_web_test_case.php,v 1.137 2009/08/17 19:14:41 webchick Exp $
 
 /**
  * Base class for Drupal tests.
@@ -42,6 +42,7 @@ abstract class DrupalTestCase {
     '#pass' => 0,
     '#fail' => 0,
     '#exception' => 0,
+    '#debug' => 0,
   );
 
   /**
@@ -376,6 +377,12 @@ abstract class DrupalTestCase {
    *   FALSE.
    */
   protected function error($message = '', $group = 'Other', array $caller = NULL) {
+    if ($group == 'User notice') {
+      // Since 'User notice' is set by trigger_error() which is used for debug
+      // set the message to a status of 'debug'.
+      return $this->assert('debug', $message, 'Debug', $caller);
+    }
+
     return $this->assert('exception', $message, $group, $caller);
   }
 
@@ -384,7 +391,7 @@ abstract class DrupalTestCase {
    */
   public function run() {
     // Initialize verbose debugging.
-    simpletest_verbose(NULL, file_directory_path());
+    simpletest_verbose(NULL, file_directory_path(), get_class($this));
 
     // HTTP auth settings (<username>:<password>) for the simpletest browser
     // when sending requests to the test site.
@@ -534,7 +541,7 @@ class DrupalUnitTestCase extends DrupalTestCase {
 
     // Generate temporary prefixed database to ensure that tests have a clean starting point.
     $db_prefix = Database::getConnection()->prefixTables('{simpletest' . mt_rand(1000, 1000000) . '}');
-    $conf['file_directory_path'] = $this->originalFileDirectory . '/' . $db_prefix;
+    $conf['file_public_path'] = $this->originalFileDirectory . '/' . $db_prefix;
 
     // If locale is enabled then t() will try to access the database and
     // subsequently will fail as the database is not accessible.
@@ -549,7 +556,7 @@ class DrupalUnitTestCase extends DrupalTestCase {
   function tearDown() {
     global $db_prefix, $conf;
     if (preg_match('/simpletest\d+/', $db_prefix)) {
-      $conf['file_directory_path'] = $this->originalFileDirectory;
+      $conf['file_public_path'] = $this->originalFileDirectory;
       // Return the database prefix to the original.
       $db_prefix = $this->originalPrefix;
       // Restore modules if necessary.
@@ -807,9 +814,9 @@ class DrupalWebTestCase extends DrupalTestCase {
       // If size is set then remove any files that are not of that size.
       if ($size !== NULL) {
         foreach ($files as $file) {
-          $stats = stat($file->filepath);
+          $stats = stat($file->uri);
           if ($stats['size'] != $size) {
-            unset($files[$file->filepath]);
+            unset($files[$file->uri]);
           }
         }
       }
@@ -822,7 +829,7 @@ class DrupalWebTestCase extends DrupalTestCase {
    * Compare two files based on size and file name.
    */
   protected function drupalCompareFiles($file1, $file2) {
-    $compare_size = filesize($file1->filepath) - filesize($file2->filepath);
+    $compare_size = filesize($file1->uri) - filesize($file2->uri);
     if ($compare_size) {
       // Sort by file size.
       return $compare_size;
@@ -1043,7 +1050,7 @@ class DrupalWebTestCase extends DrupalTestCase {
     // Create test directory ahead of installation so fatal errors and debug
     // information can be logged during installation process.
     $directory = $this->originalFileDirectory . '/simpletest/' . substr($db_prefix, 10);
-    file_check_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+    file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
 
     // Log fatal errors.
     ini_set('log_errors', 1);
@@ -1106,9 +1113,18 @@ class DrupalWebTestCase extends DrupalTestCase {
     // default mail handler.
     variable_set('smtp_library', drupal_get_path('module', 'simpletest') . '/drupal_web_test_case.php');
 
-    // Use temporary files directory with the same prefix as database. The
-    // directory will have been created already.
-    variable_set('file_directory_path', $directory);
+    // Use temporary files directory with the same prefix as the database.
+    $public_files_directory  = $this->originalFileDirectory . '/' . $db_prefix;
+    $private_files_directory = $public_files_directory . '/private';
+
+    // Set path variables
+    variable_set('file_public_path', $public_files_directory);
+    variable_set('file_private_path', $private_files_directory);
+
+    // Create the directories
+    $directory = file_directory_path('public');
+    file_prepare_directory($directory, FILE_CREATE_DIRECTORY | FILE_MODIFY_PERMISSIONS);
+    file_prepare_directory($private_files_directory, FILE_CREATE_DIRECTORY);
 
     drupal_set_time_limit($this->timeLimit);
   }
@@ -1162,9 +1178,8 @@ class DrupalWebTestCase extends DrupalTestCase {
     }
 
     if (preg_match('/simpletest\d+/', $db_prefix)) {
-      // Delete temporary files directory and reset files directory path.
+      // Delete temporary files directory.
       file_unmanaged_delete_recursive(file_directory_path());
-      variable_set('file_directory_path', $this->originalFileDirectory);
 
       // Remove all prefixed tables (all the tables in the schema).
       $schema = drupal_get_schema(NULL, TRUE);
@@ -1444,7 +1459,7 @@ class DrupalWebTestCase extends DrupalTestCase {
             // is broken. This is a less than elegant workaround. Alternatives
             // are being explored at #253506.
             foreach ($upload as $key => $file) {
-              $file = realpath($file);
+              $file = drupal_realpath($file);
               if ($file && is_file($file)) {
                 $post[$key] = '@' . $file;
               }
@@ -2483,7 +2498,7 @@ class DrupalWebTestCase extends DrupalTestCase {
    */
   protected function verbose($message) {
     if ($id = simpletest_verbose($message)) {
-      $this->pass(l(t('Verbose message'), $this->originalFileDirectory . '/simpletest/verbose.html', array('fragment' => $id)), 'Debug');
+      $this->pass(l(t('Verbose message'), $this->originalFileDirectory . '/simpletest/verbose/' . get_class($this) . '-' . $id . '.html', array('attributes' => array('target' => '_blank'))), 'Debug');
     }
   }
 }
@@ -2515,13 +2530,15 @@ function drupal_mail_wrapper($message) {
  *   The verbose message to be stored.
  * @param $original_file_directory
  *   The original file directory, before it was changed for testing purposes.
+ * @param $test_class
+ *   The active test case class.
  * @return
  *   The ID of the message to be placed in related assertion messages.
  * @see DrupalTestCase->originalFileDirectory
  * @see DrupalWebTestCase->verbose()
  */
-function simpletest_verbose($message, $original_file_directory = NULL) {
-  static $file_directory = NULL, $id = 0;
+function simpletest_verbose($message, $original_file_directory = NULL, $test_class = NULL) {
+  static $file_directory = NULL, $class = NULL, $id = 1;
   $verbose = &drupal_static(__FUNCTION__);
 
   // Will pass first time during setup phase, and when verbose is TRUE.
@@ -2530,21 +2547,17 @@ function simpletest_verbose($message, $original_file_directory = NULL) {
   }
 
   if ($message && $file_directory) {
-    $message = '<hr /><a id="' . $id . '" href="#' . $id . '">ID #' . $id . '</a><hr />' . $message;
-    file_put_contents($file_directory . '/simpletest/verbose.html', $message, FILE_APPEND);
+    $message = '<hr />ID #' . $id . ' (<a href="' . $class . '-' . ($id - 1) . '.html">Previous</a> | <a href="' . $class . '-' . ($id + 1) . '.html">Next</a>)<hr />' . $message;
+    file_put_contents($file_directory . "/simpletest/verbose/$class-$id.html", $message, FILE_APPEND);
     return $id++;
   }
 
   if ($original_file_directory) {
     $file_directory = $original_file_directory;
+    $class = $test_class;
     $verbose = variable_get('simpletest_verbose', FALSE);
-
-    // Clear out the previous log.
-    $message = t('Starting verbose log at @time.', array('@time' => format_date(time()))) . "\n";
-    $directory = $file_directory . '/simpletest';
-    if (file_check_directory($directory, FILE_CREATE_DIRECTORY)) {
-      file_put_contents($directory . '/verbose.html', $message);
-    }
+    $directory = $file_directory . '/simpletest/verbose';
+    return file_prepare_directory($directory, FILE_CREATE_DIRECTORY);
   }
   return FALSE;
 }
