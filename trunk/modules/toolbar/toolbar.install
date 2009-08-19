@@ -33,7 +33,7 @@ function toolbar_install() {
 
   db_delete('menu_links')
     ->condition('link_path', 'edit-mode/toggle')
-    ->condition('menu_name', 'main-menu')
+    ->condition('menu_name', 'navigation')
     ->execute();
 
   $weight = -20;

@@ -303,16 +303,16 @@ function menu_page_alter(&$page) {
   foreach (element_children($page) as $region) {
     $blocks = &$page[$region];
     foreach (element_children($blocks) as $id) {
-      if (isset($blocks[$id]['content']['#theme'])) {
+      if (isset($blocks[$id]['#theme'])) {
         $block = $blocks[$id]['#block'];
-        $content = &$blocks[$id]['content'];
+        $content = &$blocks[$id];
         if ($content['#theme'] == 'menu_tree' && !empty($content['#menu'])) {
           // If we have a non-empty menu tree, wrap it in a theme function
           // that will display an edit link.
-          $content['#theme_wrappers'] = array('menu_editable');
+          $content['#theme_wrappers'] += array('menu_editable');
           $content['#actions']['edit'] = array(
             'href' => 'admin/structure/menu-customize/' . $block->delta,
-            'title' => t('Edit this menu'),
+            'title' => t('Edit the @menu menu', array('@menu' => drupal_strtolower($content['#block']->subject))),
           );
         }
       }

@@ -1,14 +1,35 @@
 /* $Id$ */
 
 /*
-** Highlighted regions for actions.js
+** Highlighted regions for actions.js.
 */
-.active-actions-region {
-  outline: solid #000000 2px;
+.action-link-icon {
+  font-size: 1px;
+  padding-top: 14px;
+  padding-right: 14px;
+  margin-left: -4px;
+  background-color: #000000;
+}
+
+.action-link-icon-configure {
+  background-image: url(configure.png);
+}
+
+.action-link-icon-delete {
+  background-image: url(delete.png);
+}
+
+.action-link-icon-edit {
+  background-image: url(edit.png);
 }
 
 .actions-enabled-region {
+  outline: dashed #000000 2px;
   position: relative;
+}
+
+.active-actions-region {
+  outline-style: solid;
 }
 
 ul.action-links {
@@ -16,7 +37,7 @@ ul.action-links {
   right: 0;
   top: 0;
   padding: 0;
-  margin: 0 4px 0 0;
+  margin: 0;
 }
 
 ul.action-links li {
@@ -24,14 +45,9 @@ ul.action-links li {
   margin: 0;
   list-style: none;
   display: inline;
+  line-height: 100%;
 }
 
-ul.action-links li a img {
-  background-color: #000000;
-  margin-right: -4px;
-  padding: 1px;
-}
-
-ul.action-links li a:hover img {
-  background-color: #404040;
+ul.action-links li a {
+  text-decoration: none;
 }

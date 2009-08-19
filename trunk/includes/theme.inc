@@ -740,7 +740,7 @@ function theme() {
   }
   else {
     // The theme call is a template.
-    $variables = array();      
+    $variables = array();
     if (!empty($info['arguments'])) {
       // Populate the variables with arguments passed to the theme function.
       // Note that the first argument may be treated specially by template
@@ -1347,9 +1347,6 @@ function theme_links($links, $attributes = array('class' => 'links')) {
  * @see theme_links()
  */
 function theme_action_links($links, $element) {
-  if (empty($_SESSION['edit_mode'])) {
-    return;
-  }
   // Construct a CSS class which associates this edit link with the region on
   // the page that it edits.
   $links_array = array();
@@ -1902,71 +1899,62 @@ function template_preprocess(&$variables, $hook) {
   // Initialize html class attribute for the current hook.
   $variables['classes_array'] = array($hook);
 
-  // If the first item passed to the theme function is an editable page
-  // element which the current user has access to, populate useful variables
-  // for constructing edit links and other editable markup.
-  $element = reset($variables);
-  $variables['has_actions'] = FALSE;
-  if (is_array($element) && isset($element['#actions'])) {
-    foreach ($element['#actions'] as $key => $data) {
-      $variables['has_actions'] = $variables['has_actions'] || !empty($data['access']);
+  // Only theme action links if edit mode is enabled.
+  if (!empty($_SESSION['edit_mode'])) {
+    // If the first item passed to the theme function is an editable page
+    // element which the current user has access to, populate useful variables
+    // for constructing edit links and other editable markup.
+    $element = reset($variables);
+    $variables['has_actions'] = FALSE;
+    if (is_array($element) && isset($element['#actions'])) {
+      foreach ($element['#actions'] as $key => $data) {
+        $variables['has_actions'] = $variables['has_actions'] || !empty($data['access']);
+      }
     }
-  }
-  // Do not show edit links when the user is already on the page that is being
-  // linked to.
-  $show_action_links = FALSE;
-  if ($variables['has_actions'] && isset($_GET['q'])) {
-    foreach ($element['#actions'] as $key => $data) {
-      $show_action_links = $show_action_links || ($data['href'] != $_GET['q']);
+    // Do not show edit links when the user is already on the page that is
+    // being linked to.
+    $show_action_links = FALSE;
+    if ($variables['has_actions'] && isset($_GET['q'])) {
+      foreach ($element['#actions'] as $key => $data) {
+        $show_action_links = $show_action_links || ($data['href'] != $_GET['q']);
+      }
     }
-  }
-  // Add appropriate CSS classes that define this element as editable and
-  // associate it with its edit link.
-  if ($variables['has_actions']) {
-    $variables['classes_array'][] = 'actions-enabled-region';
-    foreach ($element['#actions'] as $key => $data) {
-      $variables['classes_array'][] = 'actions-enabled-at-' . str_replace('/', '-', $data['href']);
+    // Add appropriate CSS classes that define this element as editable and
+    // associate it with its edit link.
+    if ($variables['has_actions']) {
+      $variables['classes_array'][] = 'actions-enabled-region';
+      foreach ($element['#actions'] as $key => $data) {
+        $variables['classes_array'][] = 'actions-enabled-at-' . str_replace('/', '-', $data['href']);
+      }
     }
-  }
-  if ($show_action_links) {
-    $available_icons = module_invoke_all('action_links_icons');
-    $text_items = array();
-    $info_items = array();
-    foreach ($element['#actions'] as $key => $data) {
-      if (isset($available_icons[$key])) {
-        $title = isset($data['title']) ? $data['title'] : '';
-        $text_items[$key] = theme('image', $available_icons[$key]['path'], $available_icons[$key]['alt'], $title, array('class' => 'action-link-icon action-link-icon-' . $key));
+    if ($show_action_links) {
+      $text_items = array();
+      $info_items = array();
+      foreach ($element['#actions'] as $key => $data) {
+        $check_plain = isset($data['attributes']['html']) ? !$data['attributes']['html'] : TRUE;
+        $text_items[$key] = $check_plain ? check_plain($data['title']) : $data['title'];
         $info_items[$key] = array(
-          'title' => $text_items[$key],
+          'title' => '<span class="action-link-icon action-link-icon-' . $key . '">&nbsp;</span>',
           'href' => $data['href'],
-          // HTML should always be on for icons, which are images.
           'html' => TRUE,
           // Refer users back to the current page after they have completed
           // their edits.
           'query' => drupal_get_destination(),
+          'attributes' => array(
+            'class' => 'action-link action-link-' . $key,
+            'title' => $text_items[$key],
+          ),
         );
       }
-      else {
-        $check_plain = isset($data['attributes']['html']) ? !$data['attributes']['html'] : TRUE;
-        $text_items[$key] = $check_plain ? check_plain($data['title']) : $data['title'];
-        $info_items[$key] = array(
-          'title' => $text_items[$key],
-          'href' => $data['href'],
-          'html' => isset($data['html']) ? $data['html'] : FALSE,
-          // Refer users back to the current page after they have completed
-          // their edits.
-          'query' => drupal_get_destination(),
-        );
-      }
+      $variables['action_links'] = theme('action_links', $info_items, $element);
     }
-    $variables['action_links_text'] = $text_items;
-    $variables['action_links_info'] = $info_items;
+    else {
+      $variables['action_links'] = '';
+    }
   }
   else {
-    $variables['action_links_text'] = array();
-    $variables['action_links_info'] = array();
+    $variables['action_links'] = '';
   }
-  $variables['action_links'] = $show_action_links ? theme('action_links', $variables['action_links_info'], $element) : '';
 
   // Set default variables that depend on the database.
   $variables['is_admin']            = FALSE;

@@ -88,7 +88,7 @@ hr {
   background: #5294c1;
 }
 
-ul, .block ul, ol {
+ul, .block ul.menu, ol {
   margin: 0.5em 0 1em;
   padding: 0 0 0 1.5em; /* LTR */
 }
@@ -292,6 +292,10 @@ table .form-button, table .form-submit {
 
 .box {
   margin-bottom: 2.5em;
+}
+
+.edit-link {
+  font-size: 0.8em;
 }
 
 /**
@@ -654,8 +658,8 @@ ul.secondary li.active a {
  */
 .node {
   border-bottom: 1px solid #e9eff3;
-  margin: 0 -26px 1.5em;
-  padding: 1.5em 26px;
+  margin: 0 -16px 1.5em;
+  padding: 1.5em 16px;
 }
 
 ul.links li, ul.inline li {
@@ -810,6 +814,29 @@ tr.even td.menu-disabled {
   cursor: default;
   padding: 2px;
   margin: 0;
+}
+
+/**
+ * Edit icons.
+ */
+.actions-enabled-region {
+  outline: dashed #027AC6 2px;
+}
+
+.active-actions-region {
+  outline-style: solid;
+}
+
+ul.action-links li a {
+  text-decoration: none;
+}
+
+ul.action-links li a span {
+  background-color: #027AC6;
+}
+
+ul.action-links li a:hover span {
+  background-color: #0062A0;
 }
 
 /**

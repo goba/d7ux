@@ -281,7 +281,7 @@ function block_get_blocks_by_region($region) {
         '#actions' => array(
           'configure' => array(
             'href' => 'admin/structure/block/configure/' . $block->module . '/' . $block->delta,
-            'title' => t('Configure this block'),
+            'title' => !empty($block->subject) ? t('Configure the @block block', array('@block' => drupal_strtolower($block->subject))) : t('Configure this block'),
           ),
         ),
         '#weight' => ++$weight,

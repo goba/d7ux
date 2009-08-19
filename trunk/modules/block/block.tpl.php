@@ -34,10 +34,6 @@
  * - $has_actions: TRUE when the block is editable by the current user.
  * - $action_links: Already-themed link(s) for actions that may be taken on the
  *   block; may be empty.
- * - $action_links_text: An array of captions for the links to take action on
- *   the block; may be empty.
- * - $action_links_info: An array of information describing the links to take
- *   action on the block; may be empty.
  *
  * @see template_preprocess()
  * @see template_preprocess_block()

@@ -12,24 +12,6 @@
  */
 
 /**
- * Register icons to be used for the action links on in-page items; core
- * registers "configure", "delete", and "edit".
- *
- * @return
- *   An array of icons to be used for the action links on inline items; each
- *   icon must specify a 'path', the path to the image, and an 'alt', the text
- *   to display if the image cannot be.
- */
-function hook_action_links_icons() {
-  $icons['rearrange'] = array(
-    'path' => drupal_get_path('module', 'hook') . '/rearrange.png',
-    'alt'  => t('Rearrange'),
-  );
-
-  return $icons;
-}
-
-/**
  * Perform periodic actions.
  *
  * Modules that require to schedule some commands to be executed at regular
