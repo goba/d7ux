@@ -243,9 +243,8 @@ Drupal.overlay.close = function(statusMessages) {
     closeDialog();
   }
   else {
-    self.iframe.$element.fadeOut('fast', function() {
-      $('.overlay').animate({height: 'hide', opacity: 'hide'}, closeDialog);
-    });
+    self.iframe.$container.animate({height: 'hide'}, {duration: 'fast', 'queue': false});
+    $('.overlay').animate({opacity: 'hide'}, closeDialog);
   }
   return true;
 };
@@ -292,9 +291,7 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
     // @todo: Watch for experience in the way we compute the size of the
     // iframed document. There are many ways to do it, and none of them
     // seem to be perfect. Note though, that the size of the iframe itself
-    // may affect the size of the child document, specially on fluid layouts.
-    // If you get in trouble, then I would suggest to choose a known dialog
-    // size and disable the option autoFit.
+    // may affect the size of the child document, especially on fluid layouts.
     self.iframe.documentSize = {width: $iFrameDocument.width(), height: $iFrameWindow('body').height() + 25 };
 
     // Adjust overlay to fit the iframe content?
@@ -363,6 +360,11 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
     });
 
     var autoResize = function() {
+      if (typeof self.iframe.$element == 'undefined') {
+        autoResizing = false;
+        $(window).unbind('resize', windowResize);
+        return;
+      }
       var iframeElement = self.iframe.$element.get(0);
       var iframeDocument = (iframeElement.contentWindow || iframeElement.contentDocument);
       if (iframeDocument.document) {
@@ -381,9 +383,22 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
       setTimeout(autoResize, 150);
     };
 
+    var windowResize = function() {
+      var width = $(this).width()
+      var change = lastWidth - width;
+      var currentWidth = self.iframe.$element.width();
+      var newWidth = currentWidth - change;
+      lastWidth = width;
+      self.iframe.$element.css('width', newWidth);
+      self.iframe.$container.css('width', newWidth);
+      self.iframe.$container.parent().css('width', newWidth);
+    }
+
     if (!autoResizing) {
       autoResizing = true;
       autoResize();
+      var lastWidth = $(window).width();
+      $(window).resize(windowResize);
     }
 
     // When the focus is captured by the parent document, then try

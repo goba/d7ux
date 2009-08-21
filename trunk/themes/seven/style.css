@@ -172,9 +172,13 @@ div.breadcrumb a {
 /**
  * Console.
  */
-#page .console {
+#console {
   border-top: 1px solid #ccc;
   padding: 9px 0 10px;
+}
+
+body.overlay #console {
+  margin: 0 20px;
 }
 
 /**
