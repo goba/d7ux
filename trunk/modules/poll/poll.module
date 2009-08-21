@@ -1,5 +1,5 @@
 <?php
-// $Id: poll.module,v 1.303 2009/08/17 07:12:16 webchick Exp $
+// $Id: poll.module,v 1.306 2009/08/21 00:35:31 webchick Exp $
 
 /**
  * @file
@@ -54,8 +54,7 @@ function poll_theme() {
  * Implement hook_permission().
  */
 function poll_permission() {
-  $perms = node_list_permissions('poll');
-  $perms += array(
+  $perms = array(
     'vote on polls' => array(
       'title' => t('Vote on polls'),
       'description' => t('Cast votes on polls.'),
@@ -71,20 +70,6 @@ function poll_permission() {
   );
 
   return $perms;
-}
-
-/**
- * Implement hook_access().
- */
-function poll_access($op, $node, $account) {
-  switch ($op) {
-    case 'create':
-      return user_access('create poll content', $account);
-    case 'update':
-      return user_access('edit any poll content', $account) || (user_access('edit own poll content', $account) && ($node->uid == $account->uid));
-    case 'delete':
-      return user_access('delete any poll content', $account) || (user_access('delete own poll content', $account) && ($node->uid == $account->uid));
-  }
 }
 
 /**
@@ -196,6 +181,28 @@ function poll_node_info() {
       'has_body' => FALSE,
     )
   );
+}
+
+/**
+ * Implement hook_field_extra_fields().
+ */
+function poll_field_extra_fields($bundle) {
+  $extra = array();
+
+  if ($bundle == 'poll') {
+    $extra['choice_wrapper'] = array(
+      'label' => t('Poll choices'),
+      'description' => t('Poll module choices.'),
+      'weight' => -4,
+    );
+    $extra['settings'] = array(
+      'label' => t('Poll settings'),
+      'description' => t('Poll module settings.'),
+      'weight' => -3,
+    );
+  }
+
+  return $extra;
 }
 
 /**
@@ -371,8 +378,6 @@ function _poll_choice_form($key, $chid = NULL, $value = '', $votes = 0, $weight 
 function poll_choice_js($form, $form_state) {
   $choice_form = $form['tabs']['content']['choice_wrapper']['choice'];
 
-  // Prevent duplicate wrappers.
-  unset($choice_form['#prefix'], $choice_form['#suffix']);
   return theme('status_messages') . drupal_render($choice_form);
 }
 

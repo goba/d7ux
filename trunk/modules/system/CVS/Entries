@@ -4,7 +4,6 @@
 /system-menus-rtl.css/1.1/Fri Oct  5 14:50:25 2007//
 /system-menus.css/1.1/Fri Oct  5 14:50:25 2007//
 /system.queue.inc/1.2/Sun May 24 17:39:34 2009//
-/system.info/1.14/Mon Jun 22 09:37:00 2009//
 /admin-rtl.css/1.6/Mon Aug  3 11:40:47 2009//
 /admin.css/1.21/Mon Aug  3 11:40:47 2009//
 /maintenance-page.tpl.php/1.8/Mon Aug  3 11:40:47 2009//
@@ -12,11 +11,13 @@
 /system.js/1.30/Thu Aug 13 08:08:10 2009//
 /image.gd.inc/1.8/Tue Aug 18 08:58:52 2009//
 /system-rtl.css/1.16/Tue Aug 18 08:58:52 2009//
-/system.admin.inc/1.180/Result of merge//
-/system.api.php/1.62/Result of merge//
 /system.css/1.60/Tue Aug 18 08:58:53 2009//
-/system.install/1.370/Tue Aug 18 08:58:53 2009//
-/system.module/1.750/Result of merge//
 /system.tar.inc/1.2/Tue Aug 18 08:58:53 2009//
-/system.test/1.64/Tue Aug 18 08:58:53 2009//
+/system.admin.inc/1.182/Result of merge//
+/system.api.php/1.62/Fri Aug 21 15:37:50 2009//
+/system.info/1.15/Fri Aug 21 15:38:19 2009//
+/system.install/1.373/Fri Aug 21 15:38:19 2009//
+/system.module/1.757/Result of merge//
+/system.test/1.65/Fri Aug 21 15:38:19 2009//
+/system.tokens.inc/1.1/Wed Aug 19 20:19:37 2009//
 D

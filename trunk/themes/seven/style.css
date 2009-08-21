@@ -1,4 +1,4 @@
-/* $Id: style.css,v 1.9 2009/08/12 23:51:19 webchick Exp $ */
+/* $Id: style.css,v 1.12 2009/08/21 07:59:47 webchick Exp $ */
 
 /**
  * Generic elements
@@ -15,6 +15,10 @@ body {
 a {
   color: #0074BD;
   text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
 }
 
 div.box, p {
@@ -60,15 +64,9 @@ legend {
   background-color: #e0e0d8;
 }
 
-#branding div.back-to-site {
-  background: url(images/arrow-prev.png) no-repeat left center;
-  padding-left: 8px;
-  font-size: 11px;
-}
-
 #branding div.breadcrumb {
-  float: left;
-  font-size: 12px;
+  font-size: 11px;
+  padding-bottom: 5px;
 }
 
 #branding div.block {
@@ -98,14 +96,6 @@ legend {
 #branding div.block form input.form-submit {
   text-align: center;
   width: 80px;
-}
-
-/**
- * Breadcrumbs.
- */
-div.breadcrumb a {
-  padding: 0 10px 0 0;
-  color: #fff;
 }
 
 /**
@@ -332,11 +322,11 @@ ul.secondary li.active a.active {
 #block-system-main ul.admin-list li {
   position: relative;
   padding-left: 30px;
-  padding-bottom: 9px;
-  border-bottom: 1px solid #ccc;
+  padding-top: 9px;
+  border-top: 1px solid #ccc;
   margin-left: 0;
   margin-bottom: 10px;
-  background: url(images/list-item.png) no-repeat 0 3px;
+  background: url(images/list-item.png) no-repeat 0 11px;
   list-style-type: none;
   list-style-image: none;
 }
@@ -653,9 +643,8 @@ div.admin-panel {
 #block-system-main div.admin-panel h3 {
   font-size: 12px;
   text-transform: uppercase;
-  margin: 0 0 10px;
+  margin: 0;
   padding-bottom: 9px;
-  border-bottom: 1px solid #ccc;
 }
 
 .container-inline fieldset {

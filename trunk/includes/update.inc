@@ -1,5 +1,5 @@
 <?php
-// $Id: update.inc,v 1.2 2009/08/03 19:37:38 webchick Exp $
+// $Id: update.inc,v 1.4 2009/08/21 07:50:07 webchick Exp $
 
 /**
  * @file
@@ -255,7 +255,77 @@ function update_fix_d7_requirements() {
     }
   }
 
+  update_fix_d7_install_profile();
+
   return $ret;
+}
+
+/**
+ * Register the currently installed profile in the system table.
+ *
+ * Install profiles are now treated as modules by Drupal, and have an upgrade path
+ * based on their schema version in the system table.
+ * 
+ * The install profile will be set to schema_version 0, as it has already been
+ * installed. Any other hook_update_N functions provided by the install profile
+ * will be run by update.php.
+ */
+function update_fix_d7_install_profile() {
+  $profile = drupal_get_profile();
+
+
+  $results = db_select('system', 's')
+    ->fields('s', array('name', 'schema_version'))
+    ->condition('name', $profile)
+    ->condition('type', 'module')
+    ->execute()
+    ->fetchAll();
+
+  if (empty($results)) {
+    $filename = 'profiles/' . $profile . '/' . $profile . '.profile';
+
+    // Read profile info file
+    $info = drupal_parse_info_file(dirname($filename) . '/' . $profile . '.info');
+
+    // Merge in defaults.
+    $info = $info + array(
+      'dependencies' => array(),
+      'dependents' => array(),
+      'description' => '',
+      'package' => 'Other',
+      'version' => NULL,
+      'php' => DRUPAL_MINIMUM_PHP,
+      'files' => array(),
+    );
+
+    // The install profile is always required.
+    $file->info['required'] = TRUE;
+
+    $values = array(
+      'filename' => $filename,
+      'name' => $profile,
+      'info' => serialize($info),
+      'schema_version' => 0,
+      'type' => 'module',
+      'status' => 1,
+      'owner' => '',
+    );
+
+    // Install profile hooks are always executed last by the module system
+    $values['weight'] = 1000;
+
+    // Initializing the system table entry for the install profile
+    db_insert('system')
+      ->fields(array_keys($values))
+      ->values($values)
+      ->execute();
+
+    // Reset the cached schema version.
+    drupal_get_installed_schema_version($profile, TRUE);
+
+    // Load the updates again to make sure the install profile updates are loaded
+    drupal_load_updates();
+  }
 }
 
 /**
@@ -415,5 +485,65 @@ function update_finished($success, $results, $operations) {
     variable_set('site_offline', FALSE);
     unset($_SESSION['site_offline']);
   }
+}
+
+/**
+ * Return a list of all the pending database updates.
+ *
+ * @return
+ *   An associative array keyed by module name which contains all information
+ *   about database updates that need to be run, and any updates that are not
+ *   going to proceed due to missing requirements. The system module will
+ *   always be listed first.
+ *
+ *   The subarray for each module can contain the following keys:
+ *   - start: The starting update that is to be processed. If this does not
+ *       exist then do not process any updates for this module as there are
+ *       other requirements that need to be resolved.
+ *   - warning: Any warnings about why this module can not be updated.
+ *   - pending: An array of all the pending updates for the module including
+ *       the update number and the description from source code comment for
+ *       each update function. This array is keyed by the update number.
+ */
+function update_get_update_list() {
+  // Make sure that the system module is first in the list of updates.
+  $ret = array('system' => array());
+  
+  $modules = drupal_get_installed_schema_version(NULL, FALSE, TRUE);
+  foreach ($modules as $module => $schema_version) {
+    $pending = array();
+    $updates = drupal_get_schema_versions($module);
+    // Skip incompatible module updates, otherwise test schema versions.
+    if (!update_check_incompatibility($module) && $updates !== FALSE && $schema_version >= 0) {
+      // module_invoke returns NULL for nonexisting hooks, so if no updates
+      // are removed, it will == 0.
+      $last_removed = module_invoke($module, 'update_last_removed');
+      if ($schema_version < $last_removed) {
+        $ret[$module]['warning'] = '<em>' . $module . '</em> module can not be updated. Its schema version is ' . $schema_version . '. Updates up to and including ' . $last_removed . ' have been removed in this release. In order to update <em>' . $module . '</em> module, you will first <a href="http://drupal.org/upgrade">need to upgrade</a> to the last version in which these updates were available.';
+        continue;
+      }
+      
+      $updates = drupal_map_assoc($updates);
+      foreach (array_keys($updates) as $update) {
+        if ($update > $schema_version) {
+          // The description for an update comes from its Doxygen.
+          $func = new ReflectionFunction($module . '_update_' . $update);
+          $description = str_replace(array("\n", '*', '/'), '', $func->getDocComment());
+          $ret[$module]['pending'][$update] = "$update - $description";
+          if (!isset($ret[$module]['start'])) {
+            $ret[$module]['start'] = $update;
+          }
+        }
+      }
+      if (!isset($ret[$module]['start']) && isset($ret[$module]['pending'])) {
+        $ret[$module]['start'] = $schema_version;
+      }
+    }
+  }
+  
+  if (empty($ret['system'])) {
+    unset($ret['system']);
+  }
+  return $ret;
 }
 

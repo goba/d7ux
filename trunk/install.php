@@ -1,5 +1,5 @@
 <?php
-// $Id: install.php,v 1.193 2009/08/17 19:14:39 webchick Exp $
+// $Id: install.php,v 1.195 2009/08/21 07:50:07 webchick Exp $
 
 /**
  * Root directory of Drupal installation.
@@ -733,6 +733,11 @@ function install_system_module(&$install_state) {
     // variable_set() can be used now that system.module is installed and
     // Drupal is bootstrapped.
     $modules = $install_state['profile_info']['dependencies'];
+
+    // The install profile is also a module, which needs to be installed
+    // after all the dependencies have been installed.
+    $modules[] = drupal_get_profile();
+
     variable_set('install_profile_modules', array_diff($modules, array('system')));
     $install_state['database_tables_exist'] = TRUE;
 }
@@ -1424,7 +1429,14 @@ function install_finished(&$install_state) {
     _drupal_flush_css_js();
 
     // Remember the profile which was used.
-    variable_set('install_profile', $install_state['parameters']['profile']);
+    variable_set('install_profile', drupal_get_profile());
+
+    // Install profiles are always loaded last
+    db_update('system')
+      ->fields(array('weight' => 1000))
+      ->condition('type', 'module')
+      ->condition('name', drupal_get_profile())
+      ->execute();
 
     // Cache a fully-built schema.
     drupal_get_schema(NULL, TRUE);
@@ -1696,7 +1708,7 @@ function install_configure_form_submit($form, &$form_state) {
 // file to be included by command line scripts so that it can be used as an
 // API. It should be removed after the API functions in this file have been
 // moved out to a separate, reusable location.
-if (realpath($_SERVER['SCRIPT_FILENAME']) == __FILE__) {
+if (php_sapi_name() != 'cli' && !empty($_SERVER['REMOTE_ADDR'])) {
   // Start the installer.
   install_drupal();
 }

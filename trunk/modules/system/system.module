@@ -1,5 +1,5 @@
 <?php
-// $Id: system.module,v 1.750 2009/08/17 19:14:41 webchick Exp $
+// $Id: system.module,v 1.757 2009/08/21 14:28:52 dries Exp $
 
 /**
  * @file
@@ -96,7 +96,7 @@ function system_help($path, $arg) {
       $output .= '<li>' . t('support for enabling and disabling <a href="@themes">themes</a>, which determine the design and presentation of your site. Drupal comes packaged with several core themes and additional contributed themes are available at the <a href="@drupal-themes">Drupal.org theme page</a>.', array('@themes' => url('admin/appearance'), '@drupal-themes' => 'http://drupal.org/project/themes')) . '</li>';
       $output .= '<li>' . t('a robust <a href="@cache-settings">caching system</a> that allows the efficient re-use of previously-constructed web pages and web page components. Drupal stores the pages requested by anonymous users in a compressed format; depending on your site configuration and the amount of your web traffic tied to anonymous visitors, Drupal\'s caching system may significantly increase the speed of your site.', array('@cache-settings' => url('admin/config/development/performance'))) . '</li>';
       $output .= '<li>' . t('a set of routine administrative operations that rely on a correctly-configured <a href="@cron">cron maintenance task</a> to run automatically. A number of other modules, including the feed aggregator, and search also rely on <a href="@cron">cron maintenance tasks</a>. For more information, see the online handbook entry for <a href="@handbook">configuring cron jobs</a>.', array('@cron' => url('admin/reports/status'), '@handbook' => 'http://drupal.org/cron')) . '</li>';
-      $output .= '<li>' . t('basic configuration options for your site, including <a href="@regional-settings">date and time settings</a>, <a href="@file-system">file system settings</a>, <a href="@clean-url">clean URL support</a>, <a href="@site-info">site name and other information</a>, and a <a href="@maintenance-mode">maintenance mode</a> for taking your site temporarily offline.', array('@regional-settings' => url('admin/settings/regional-settings'), '@file-system' => url('admin/settings/file-system'), '@clean-url' => url('admin/settings/clean-urls'), '@site-info' => url('admin/settings/site-information'), '@maintenance-mode' => url('admin/config/development/maintenance'))) . '</li></ul>';
+      $output .= '<li>' . t('basic configuration options for your site, including <a href="@regional-settings">date and time settings</a>, <a href="@file-system">file system settings</a>, <a href="@clean-url">clean URL support</a>, <a href="@site-info">site name and other information</a>, and a <a href="@maintenance-mode">maintenance mode</a> for taking your site temporarily offline.', array('@regional-settings' => url('admin/config/regional/settings'), '@file-system' => url('admin/config/media/file-system'), '@clean-url' => url('admin/settings/clean-urls'), '@site-info' => url('admin/settings/site-information'), '@maintenance-mode' => url('admin/config/development/maintenance'))) . '</li></ul>';
       $output .= '<p>' . t('For more information, see the online handbook entry for <a href="@system">System module</a>.', array('@system' => 'http://drupal.org/handbook/modules/system/')) . '</p>';
       return $output;
     case 'admin/by-module':
@@ -112,8 +112,8 @@ function system_help($path, $arg) {
     case 'admin/appearance/settings':
       return '<p>' . t('These options control the default display settings for your entire site, across all themes. Unless they have been overridden by a specific theme, these settings will be used.') . '</p>';
     case 'admin/config/modules':
-      $output = '<p>' . t('Modules are plugins that extend Drupal\'s core functionality. To further extend your site\'s functionality, a number of <a href="@modules">contributed modules</a> are available for download.', array('@permissions' => url('admin/settings/permissions'), '@modules' => 'http://drupal.org/project/modules')) . '</p>';
-      $output .= '<p>' . t('Module-related tasks can be located on the <a href="@by-module">administration by module page</a>. New <a href="@permissions">module-related permissions</a> may also become available as new modules are enabled.', array('@by-module' => url('admin/by-module'), '@permissions' => url('admin/settings/permissions'))) . '</p>';
+      $output = '<p>' . t('Modules are plugins that extend Drupal\'s core functionality. To further extend your site\'s functionality, a number of <a href="@modules">contributed modules</a> are available for download.', array('@permissions' => url('admin/config/people/permissions'), '@modules' => 'http://drupal.org/project/modules')) . '</p>';
+      $output .= '<p>' . t('Module-related tasks can be located on the <a href="@by-module">administration by module page</a>. New <a href="@permissions">module-related permissions</a> may also become available as new modules are enabled.', array('@by-module' => url('admin/by-module'), '@permissions' => url('admin/config/people/permissions'))) . '</p>';
       $output .= '<p>' . t('Each time a module is updated, it is important that <a href="@update-php">update.php</a> is run. To help manage the update process, the <em>Update status</em> module, if enabled, provides <a href="@updates">information on new versions of modules (and themes)</a> as they are released. Regular review of the <a href="@updates">available updates page</a> is essential to maintaining a secure and current site.', array('@update-php' => $base_url . '/update.php', '@updates' => url('admin/reports/updates'))) . '</p>';
       return $output;
     case 'admin/config/modules/uninstall':
@@ -560,9 +560,11 @@ function system_menu() {
   // Appearance.
   $items['admin/appearance'] = array(
     'title' => 'Appearance',
+    'description' => 'Select and configure your site theme.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('system_themes_form'),
     'access arguments' => array('administer site configuration'),
+    'position' => 'left',
     'weight' => -6,
   );
   $items['admin/appearance/select'] = array(
@@ -718,7 +720,60 @@ function system_menu() {
     'page arguments' => array('system_performance_settings'),
     'access arguments' => array('administer site configuration'),
   );
-
+  $items['admin/config/media'] = array(
+   'title' => 'Media',
+   'description' => 'Media tools.',
+   'position' => 'left',
+   'weight' => 10,
+   'page callback' => 'system_admin_menu_block_page',
+   'access callback' => 'system_admin_menu_block_access',
+   'access arguments' => array('admin/config/media', 'access administration pages'),
+  );
+  $items['admin/config/media/file-system'] = array(
+    'title' => 'File-system',
+    'description' => 'Tell Drupal where to store uploaded files and how they are accessed.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('system_file_system_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+    $items['admin/config/media/image-toolkit'] = array(
+    'title' => 'Image toolkit',
+    'description' => 'Choose which image toolkit to use if you have installed optional toolkits.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('system_image_toolkit_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+    $items['admin/config/development/logging'] = array(
+    'title' => 'Logging and errors',
+    'description' => "Settings for logging and alerts modules. Various modules can route Drupal's system events to different destinations, such as syslog, database, email, etc.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('system_logging_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  $items['admin/config/regional'] = array(
+   'title' => 'Regional and language',
+   'description' => 'Regional settings, localization and translation.',
+   'position' => 'left',
+   'weight' => -7,
+   'page callback' => 'system_admin_menu_block_page',
+   'access callback' => 'system_admin_menu_block_access',
+   'access arguments' => array('admin/config/regional', 'access administration pages'),
+  );
+  $items['admin/config/regional/settings'] = array(
+    'title' => 'Regional settings',
+    'description' => "Settings for how Drupal displays date and time, as well as the system's default time zone.",
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('system_regional_settings'),
+    'access arguments' => array('administer site configuration'),
+    'weight' => -10,
+  );
+  $items['admin/config/regional/settings/lookup'] = array(
+    'title' => 'Date and time lookup',
+    'type' => MENU_CALLBACK,
+    'page callback' => 'system_date_time_lookup',
+    'access arguments' => array('administer site configuration'),
+  );
+  
   // Settings.
   $items['admin/settings/site-information'] = array(
     'title' => 'Site information',
@@ -727,45 +782,11 @@ function system_menu() {
     'page arguments' => array('system_site_information_settings'),
     'access arguments' => array('administer site configuration'),
   );
-  $items['admin/config/development/logging'] = array(
-    'title' => 'Logging and errors',
-    'description' => "Settings for logging and alerts modules. Various modules can route Drupal's system events to different destinations, such as syslog, database, email, etc.",
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('system_logging_settings'),
-    'access arguments' => array('administer site configuration'),
-  );
-  $items['admin/settings/file-system'] = array(
-    'title' => 'File system',
-    'description' => 'Tell Drupal where to store uploaded files and how they are accessed.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('system_file_system_settings'),
-    'access arguments' => array('administer site configuration'),
-  );
-  $items['admin/settings/image-toolkit'] = array(
-    'title' => 'Image toolkit',
-    'description' => 'Choose which image toolkit to use if you have installed optional toolkits.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('system_image_toolkit_settings'),
-    'access arguments' => array('administer site configuration'),
-  );
   $items['admin/settings/rss-publishing'] = array(
     'title' => 'RSS publishing',
     'description' => 'Configure the site description, the number of items per feed and whether feeds should be titles/teasers/full-text.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('system_rss_feeds_settings'),
-    'access arguments' => array('administer site configuration'),
-  );
-  $items['admin/settings/regional-settings'] = array(
-    'title' => 'Regional settings',
-    'description' => "Settings for how Drupal displays date and time, as well as the system's default time zone.",
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('system_regional_settings'),
-    'access arguments' => array('administer site configuration'),
-  );
-  $items['admin/settings/regional-settings/lookup'] = array(
-    'title' => 'Date and time lookup',
-    'type' => MENU_CALLBACK,
-    'page callback' => 'system_date_time_lookup',
     'access arguments' => array('administer site configuration'),
   );
   $items['admin/settings/clean-urls'] = array(
@@ -1773,6 +1794,15 @@ function _system_get_module_data() {
   // Find modules
   $modules = drupal_system_listing('/\.module$/', 'modules', 'name', 0);
 
+  // Include the install profile in modules that are loaded.
+  $profile = drupal_get_profile();
+  $modules[$profile]->name = $profile;
+  $modules[$profile]->uri = 'profiles/' . $profile . '/' . $profile . '.profile';
+  $modules[$profile]->filename = $profile . '.profile';
+
+  // Install profile hooks are always executed last.
+  $modules[$profile]->weight = 1000;
+
   // Set defaults for module info.
   $defaults = array(
     'dependencies' => array(),
@@ -1802,6 +1832,9 @@ function _system_get_module_data() {
     // modify the data in the .info files if necessary.
     drupal_alter('system_info', $modules[$key]->info, $modules[$key]);
   }
+
+  // The install profile is required.
+  $modules[$profile]->info['required'] = TRUE;
 
   return $modules;
 }
@@ -2250,7 +2283,7 @@ function system_get_module_admin_tasks($module) {
   $admin_task_count = 0;
   // Check for permissions.
   if (in_array($module, module_implements('permission')) && $admin_access) {
-    $admin_tasks[-1] = l(t('Configure permissions'), 'admin/settings/permissions', array('fragment' => 'module-' . $module));
+    $admin_tasks[-1] = l(t('Configure permissions'), 'admin/config/people/permissions', array('fragment' => 'module-' . $module));
   }
 
   // Check for menu items that are admin links.
@@ -2670,7 +2703,7 @@ function system_send_email_action_form($context) {
     '#title' => t('Recipient'),
     '#default_value' => $context['recipient'],
     '#maxlength' => '254',
-    '#description' => t('The email address to which the message should be sent OR enter %author if you would like to send an e-mail to the author of the original post.', array('%author' => '%author')),
+    '#description' => t('The email address to which the message should be sent OR enter [node:author:mail], [comment:author:mail], etc. if you would like to send an e-mail to the author of the original post.'),
   );
   $form['subject'] = array(
     '#type' => 'textfield',
@@ -2685,7 +2718,7 @@ function system_send_email_action_form($context) {
     '#default_value' => $context['message'],
     '#cols' => '80',
     '#rows' => '20',
-    '#description' => t('The message that should be sent. You may include the following variables: %site_name, %username, %node_url, %node_type, %title, %teaser, %body, %term_name, %term_description, %term_id, %vocabulary_name, %vocabulary_description, %vocabulary_id. Not all variables will be available in all contexts.'),
+    '#description' => t('The message that should be sent. You may include placeholders like [node:title], [user:name], and [comment:body] to represent data that will be different each time message is sent. Not all placeholders will be available in all contexts.'),
   );
   return $form;
 }
@@ -2721,59 +2754,14 @@ function system_send_email_action_submit($form, $form_state) {
  * Implement a configurable Drupal action. Sends an email.
  */
 function system_send_email_action($object, $context) {
-  global $user;
-
-  switch ($context['hook']) {
-    case 'node':
-      // Because this is not an action of type 'node' the node
-      // will not be passed as $object, but it will still be available
-      // in $context.
-      $node = $context['node'];
-      break;
-    // The comment hook provides nid, in $context.
-    case 'comment':
-      $comment = $context['comment'];
-      $node = node_load($comment->nid);
-      break;
-    case 'user':
-      // Because this is not an action of type 'user' the user
-      // object is not passed as $object, but it will still be available
-      // in $context.
-      $account = $context['account'];
-      if (isset($context['node'])) {
-        $node = $context['node'];
-      }
-      elseif ($context['recipient'] == '%author') {
-        // If we don't have a node, we don't have a node author.
-        watchdog('error', 'Cannot use %author token in this context.');
-        return;
-      }
-      break;
-    default:
-      // We are being called directly.
-      $node = $object;
+  if (empty($context['node'])) {
+    $context['node'] = $object;
   }
 
-  $recipient = $context['recipient'];
-
-  if (isset($node)) {
-    if (!isset($account)) {
-      $account = user_load($node->uid);
-    }
-    if ($recipient == '%author') {
-      $recipient = $account->mail;
-    }
-  }
-
-  if (!isset($account)) {
-    $account = $user;
-
-  }
+  $recipient = token_replace($context['recipient'], $context);
+  
   $language = user_preferred_language($account);
-  $params = array('account' => $account, 'object' => $object, 'context' => $context);
-  if (isset($node)) {
-    $params['node'] = $node;
-  }
+  $params = array('context' => $context);
 
   if (drupal_mail('system', 'action_send_email', $recipient, $language, $params)) {
     watchdog('action', 'Sent email to %recipient', array('%recipient' => $recipient));
@@ -2787,39 +2775,11 @@ function system_send_email_action($object, $context) {
  * Implement hook_mail().
  */
 function system_mail($key, &$message, $params) {
-  $account = $params['account'];
   $context = $params['context'];
-  $variables = array(
-    '%site_name' => variable_get('site_name', 'Drupal'),
-    '%username' => $account->name,
-  );
-  if ($context['hook'] == 'taxonomy') {
-    $object = $params['object'];
-    $vocabulary = taxonomy_vocabulary_load($object->vid);
-    $variables += array(
-      '%term_name' => $object->name,
-      '%term_description' => $object->description,
-      '%term_id' => $object->tid,
-      '%vocabulary_name' => $vocabulary->name,
-      '%vocabulary_description' => $vocabulary->description,
-      '%vocabulary_id' => $vocabulary->vid,
-    );
-  }
 
-  // Node-based variable translation is only available if we have a node.
-  if (isset($params['node'])) {
-    $node = $params['node'];
-    $variables += array(
-      '%uid' => $node->uid,
-      '%node_url' => url('node/' . $node->nid, array('absolute' => TRUE)),
-      '%node_type' => node_type_get_name($node),
-      '%title' => $node->title,
-      '%teaser' => $node->teaser,
-      '%body' => $node->body,
-    );
-  }
-  $subject = strtr($context['subject'], $variables);
-  $body = strtr($context['message'], $variables);
+  $subject = token_replace($context['subject'], $context);
+  $body = token_replace($context['message'], $context);
+
   $message['subject'] .= str_replace(array("\r", "\n"), '', $subject);
   $message['body'][] = drupal_html_to_text($body);
 }
@@ -2831,7 +2791,7 @@ function system_message_action_form($context) {
     '#default_value' => isset($context['message']) ? $context['message'] : '',
     '#required' => TRUE,
     '#rows' => '8',
-    '#description' => t('The message to be displayed to the current user. You may include the following variables: %site_name, %username, %node_url, %node_type, %title, %teaser, %body, %term_name, %term_description, %term_id, %vocabulary_name, %vocabulary_description, %vocabulary_id. Not all variables will be available in all contexts.'),
+    '#description' => t('The message to be displayed to the current user. You may include placeholders like [node:title], [user:name], and [comment:body] to represent data that will be different each time message is sent. Not all placeholders will be available in all contexts.'),
   );
   return $form;
 }
@@ -2844,56 +2804,11 @@ function system_message_action_submit($form, $form_state) {
  * A configurable Drupal action. Sends a message to the current user's screen.
  */
 function system_message_action(&$object, $context = array()) {
-  global $user;
-  $variables = array(
-    '%site_name' => variable_get('site_name', 'Drupal'),
-    '%username' => $user->name ? $user->name : variable_get('anonymous', t('Anonymous')),
-  );
-
-  // This action can be called in any context, but if placeholders
-  // are used a node object must be present to be the source
-  // of substituted text.
-  switch ($context['hook']) {
-    case 'node':
-      // Because this is not an action of type 'node' the node
-      // will not be passed as $object, but it will still be available
-      // in $context.
-      $node = $context['node'];
-      break;
-    // The comment hook also provides the node, in context.
-    case 'comment':
-      $comment = $context['comment'];
-      $node = node_load($comment->nid);
-      break;
-    case 'taxonomy':
-      $vocabulary = taxonomy_vocabulary_load($object->vid);
-      $variables = array_merge($variables, array(
-        '%term_name' => $object->name,
-        '%term_description' => $object->description,
-        '%term_id' => $object->tid,
-        '%vocabulary_name' => $vocabulary->name,
-        '%vocabulary_description' => $vocabulary->description,
-        '%vocabulary_id' => $vocabulary->vid,
-        )
-      );
-      break;
-    default:
-      // We are being called directly.
-      $node = $object;
+  if (empty($context['node'])) {
+    $context['node'] = $object;
   }
 
-  if (isset($node) && is_object($node)) {
-    $variables = array_merge($variables, array(
-      '%uid' => $node->uid,
-      '%node_url' => url('node/' . $node->nid, array('absolute' => TRUE)),
-      '%node_type' => check_plain(node_type_get_name($node)),
-      '%title' => filter_xss($node->title),
-      '%teaser' => filter_xss($node->teaser),
-      '%body' => filter_xss($node->body),
-      )
-    );
-  }
-  $context['message'] = strtr($context['message'], $variables);
+  $context['message'] = token_replace($context['message'], $context);
   drupal_set_message($context['message']);
 }
 
@@ -2918,7 +2833,7 @@ function system_goto_action_submit($form, $form_state) {
 }
 
 function system_goto_action($object, $context) {
-  drupal_goto($context['url']);
+  drupal_goto(token_replace($context['url'], $context));
 }
 
 /**
