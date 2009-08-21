@@ -17,7 +17,7 @@ define('OVERLAY_PARENT', 0);
 define('OVERLAY_CHILD', 1);
 
 /**
- * Implementation of hook_init().
+ * Implement of hook_init().
  */
 function overlay_init() {
   global $custom_theme;
@@ -43,7 +43,7 @@ function overlay_init() {
 }
 
 /**
- * Implementation of hook_elements().
+ * Implement of hook_elements().
  */
 function overlay_elements() {
   $types = array();

@@ -48,6 +48,14 @@ function toolbar_install() {
       'weight' => $weight,
     );
 
+    if (module_exists('overlay') && $path == 'edit-mode/toggle') {
+      $link['options'] = array(
+        'attributes' => array(
+          'class' => 'overlay-exclude',
+        ),
+      );
+    }
+
     // Check for an existing menu item before attempting to create a new one.
     $menu_link = db_query("SELECT mlid FROM {menu_links} WHERE link_path = :path AND menu_name = :menu_name", array(
       ':path' => $link['link_path'],

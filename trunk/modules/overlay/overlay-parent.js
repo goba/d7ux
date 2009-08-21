@@ -6,7 +6,7 @@ Drupal.behaviors.keepOverlay = {
   attach: function(context, settings) {
 
     // Attach on the .to-overlay class.
-    $('a.to-overlay:not(.overlay-processed)').addClass('overlay-processed').click(function() {
+    $('a.to-overlay:not(.overlay-processed,.overlay-exclude)').addClass('overlay-processed').click(function() {
 
       // Remove the active class from where it was, and add the active class to
       // this link, so the button keeps highlighting where we are. Only
