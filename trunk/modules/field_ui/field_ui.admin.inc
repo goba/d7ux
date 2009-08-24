@@ -1,5 +1,5 @@
 <?php
-// $Id: field_ui.admin.inc,v 1.2 2009/08/21 02:54:46 webchick Exp $
+// $Id: field_ui.admin.inc,v 1.7 2009/08/24 00:14:20 webchick Exp $
 
 /**
  * @file
@@ -22,7 +22,7 @@ function field_ui_fields_list() {
       $rows[$field_name]['data'][0] = $field['locked'] ? t('@field_name (Locked)', array('@field_name' => $field_name)) : $field_name;
       $rows[$field_name]['data'][1] = t($field_types[$field['type']]['label']);
       $rows[$field_name]['data'][2][] = l($bundles[$bundle]['label'], $admin_path . '/fields');
-      $rows[$field_name]['class'] = $field['locked'] ? 'menu-disabled' : '';
+      $rows[$field_name]['class'] = $field['locked'] ? array('menu-disabled') : array('');
     }
   }
   foreach ($rows as $field_name => $cell) {
@@ -298,19 +298,19 @@ function template_preprocess_field_ui_field_overview_form(&$vars) {
     $row = new stdClass();
 
     // Add target classes for the tabledrag behavior.
-    $element['weight']['#attributes']['class'] = 'field-weight';
-    $element['hidden_name']['#attributes']['class'] = 'field-name';
+    $element['weight']['#attributes']['class'][] = 'field-weight';
+    $element['hidden_name']['#attributes']['class'][] = 'field-name';
     // Add target classes for the update selects behavior.
     switch ($element['#row_type']) {
       case 'add_new_field':
-        $element['type']['#attributes']['class'] = 'field-type-select';
-        $element['widget_type']['#attributes']['class'] = 'widget-type-select';
+        $element['type']['#attributes']['class'][] = 'field-type-select';
+        $element['widget_type']['#attributes']['class'][] = 'widget-type-select';
         break;
 
       case 'add_existing_field':
-        $element['field_name']['#attributes']['class'] = 'field-select';
-        $element['widget_type']['#attributes']['class'] = 'widget-type-select';
-        $element['label']['#attributes']['class'] = 'label-textfield';
+        $element['field_name']['#attributes']['class'][] = 'field-select';
+        $element['widget_type']['#attributes']['class'][] = 'widget-type-select';
+        $element['label']['#attributes']['class'][] = 'label-textfield';
         break;
     }
     foreach (element_children($element) as $child) {
@@ -1205,9 +1205,9 @@ function field_ui_default_value_widget($field, $instance, &$form, &$form_state) 
       'instance' => $instance,
     ),
   );
-  drupal_function_exists('field_default_form');
+  function_exists('field_default_form');
   // @todo Allow multiple values (requires more work on 'add more' JS handler).
-  $widget_form = field_default_form(NULL, NULL, $field, $instance, $items, $form, $form_state, 0);
+  $widget_form = field_default_form(NULL, NULL, $field, $instance, FIELD_LANGUAGE_NONE, $items, $form, $form_state, 0);
   $form['instance']['default_value_widget'] += $widget_form;
   $form['#fields'][$field['field_name']]['form_path'] = array(
     'instance',
@@ -1257,7 +1257,7 @@ function field_ui_field_edit_form_validate($form, &$form_state) {
 
       // Widget now does its own validation, should be no need to add anything
       // for widget validation here.
-      if (drupal_function_exists($field_function)) {
+      if (function_exists($field_function)) {
         $field_function('validate', $node, $field, $default_value, $form, NULL);
       }
       // The field validation routine won't set an error on the right field, so

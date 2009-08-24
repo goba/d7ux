@@ -1,5 +1,5 @@
 <?php
-// $Id: list.module,v 1.8 2009/08/19 13:31:13 webchick Exp $
+// $Id: list.module,v 1.12 2009/08/24 00:14:20 webchick Exp $
 
 /**
  * @file
@@ -151,7 +151,7 @@ function list_allowed_values($field) {
   $allowed_values[$field['field_name']] = array();
 
   $function = $field['settings']['allowed_values_function'];
-  if (!empty($function) && drupal_function_exists($function)) {
+  if (!empty($function) && function_exists($function)) {
     $allowed_values[$field['field_name']] = $function($field);
   }
   elseif (!empty($field['settings']['allowed_values'])) {
@@ -228,12 +228,12 @@ function list_allowed_values_validate($element, &$form_state) {
  * Possible error codes:
  * - 'list_illegal_value': The value is not part of the list of allowed values.
  */
-function list_field_validate($obj_type, $object, $field, $instance, $items, &$errors) {
+function list_field_validate($obj_type, $object, $field, $instance, $langcode, $items, &$errors) {
   $allowed_values = list_allowed_values($field);
   foreach ($items as $delta => $item) {
     if (!empty($item['value'])) {
       if (count($allowed_values) && !array_key_exists($item['value'], $allowed_values)) {
-        $errors[$field['field_name']][$delta][] = array(
+        $errors[$field['field_name']][$langcode][$delta][] = array(
           'error' => 'list_illegal_value',
           'message' => t('%name: illegal value.', array('%name' => t($instance['label']))),
         );

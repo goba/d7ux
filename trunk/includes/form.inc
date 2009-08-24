@@ -1,5 +1,5 @@
 <?php
-// $Id: form.inc,v 1.359 2009/08/19 08:15:36 webchick Exp $
+// $Id: form.inc,v 1.364 2009/08/24 03:11:34 webchick Exp $
 
 /**
  * @defgroup forms Form builder functions
@@ -418,7 +418,7 @@ function drupal_retrieve_form($form_id, &$form_state) {
 
   // We first check to see if there's a function named after the $form_id.
   // If there is, we simply pass the arguments on to it to get the form.
-  if (!drupal_function_exists($form_id)) {
+  if (!function_exists($form_id)) {
     // In cases where many form_ids need to share a central constructor function,
     // such as the node editing form, modules can implement hook_forms(). It
     // maps one or more form_ids to the correct constructor functions.
@@ -439,7 +439,6 @@ function drupal_retrieve_form($form_id, &$form_state) {
     }
     if (isset($form_definition['callback'])) {
       $callback = $form_definition['callback'];
-      drupal_function_exists($callback);
     }
   }
 
@@ -613,13 +612,13 @@ function drupal_prepare_form($form_id, &$form, &$form_state) {
   $form += array('#tree' => FALSE, '#parents' => array());
 
   if (!isset($form['#validate'])) {
-    if (drupal_function_exists($form_id . '_validate')) {
+    if (function_exists($form_id . '_validate')) {
       $form['#validate'] = array($form_id . '_validate');
     }
   }
 
   if (!isset($form['#submit'])) {
-    if (drupal_function_exists($form_id . '_submit')) {
+    if (function_exists($form_id . '_submit')) {
       // We set submit here so that it can be altered.
       $form['#submit'] = array($form_id . '_submit');
     }
@@ -794,7 +793,7 @@ function _form_validate($elements, &$form_state, $form_id = NULL) {
     // #value data.
     elseif (isset($elements['#element_validate'])) {
       foreach ($elements['#element_validate'] as $function) {
-        if (drupal_function_exists($function))  {
+        if (function_exists($function))  {
           $function($elements, $form_state, $form_state['complete form']);
         }
       }
@@ -831,7 +830,7 @@ function form_execute_handlers($type, &$form, &$form_state) {
   }
 
   foreach ($handlers as $function) {
-    if (drupal_function_exists($function))  {
+    if (function_exists($function))  {
       // Check to see if a previous _submit handler has set a batch, but
       // make sure we do not react to a batch that is already being processed
       // (for instance if a batch operation performs a drupal_form_submit()).
@@ -970,7 +969,7 @@ function form_builder($form_id, $element, &$form_state) {
   // checkboxes and files.
   if (isset($element['#process']) && !$element['#processed']) {
     foreach ($element['#process'] as $process) {
-      if (drupal_function_exists($process)) {
+      if (function_exists($process)) {
         $element = $process($element, $form_state, $form_state['complete form']);
       }
     }
@@ -1097,7 +1096,7 @@ function _form_builder_handle_input_element($form_id, &$element, &$form_state) {
       // If we have input for the current element, assign it to the #value property.
       if (!$form_state['programmed'] || isset($input)) {
         // Call #type_value to set the form value;
-        if (drupal_function_exists($value_callback)) {
+        if (function_exists($value_callback)) {
           $element['#value'] = $value_callback($element, $input, $form_state);
         }
         if (!isset($element['#value']) && isset($input)) {
@@ -1112,7 +1111,7 @@ function _form_builder_handle_input_element($form_id, &$element, &$form_state) {
     // Load defaults.
     if (!isset($element['#value'])) {
       // Call #type_value without a second argument to request default_value handling.
-      if (drupal_function_exists($value_callback)) {
+      if (function_exists($value_callback)) {
         $element['#value'] = $value_callback($element, FALSE, $form_state);
       }
       // Final catch. If we haven't set a value yet, use the explicit default value.
@@ -1595,12 +1594,12 @@ function theme_fieldset($element) {
     drupal_add_js('misc/collapse.js');
 
     if (!isset($element['#attributes']['class'])) {
-      $element['#attributes']['class'] = '';
+      $element['#attributes']['class'] = array();
     }
 
-    $element['#attributes']['class'] .= ' collapsible';
+    $element['#attributes']['class'][] = 'collapsible';
     if (!empty($element['#collapsed'])) {
-      $element['#attributes']['class'] .= ' collapsed';
+      $element['#attributes']['class'][] = 'collapsed';
     }
   }
   $element['#attributes']['id'] = $element['#id'];
@@ -1649,8 +1648,8 @@ function theme_radio($element) {
  */
 function theme_radios($element) {
   $class = 'form-radios';
-  if (isset($element['#attributes']['class'])) {
-    $class .= ' ' . $element['#attributes']['class'];
+  if (!empty($element['#attributes']['class'])) {
+    $class .= ' ' . implode(' ', $element['#attributes']['class']);
   }
   $element['#children'] = '<div class="' . $class . '">' . (!empty($element['#children']) ? $element['#children'] : '') . '</div>';
 
@@ -1666,14 +1665,14 @@ function form_process_password_confirm($element) {
     '#title' => t('Password'),
     '#value' => empty($element['#value']) ? NULL : $element['#value']['pass1'],
     '#required' => $element['#required'],
-    '#attributes' => array('class' => 'password-field'),
+    '#attributes' => array('class' => array('password-field')),
   );
   $element['pass2'] =  array(
     '#type' => 'password',
     '#title' => t('Confirm password'),
     '#value' => empty($element['#value']) ? NULL : $element['#value']['pass2'],
     '#required' => $element['#required'],
-    '#attributes' => array('class' => 'password-confirm'),
+    '#attributes' => array('class' => array('password-confirm')),
   );
   $element['#element_validate'] = array('password_confirm_validate');
   $element['#tree'] = TRUE;
@@ -1986,8 +1985,8 @@ function theme_checkbox($element) {
  */
 function theme_checkboxes($element) {
   $class = 'form-checkboxes';
-  if (isset($element['#attributes']['class'])) {
-    $class .= ' ' . $element['#attributes']['class'];
+  if (!empty($element['#attributes']['class'])) {
+    $class .= ' ' . implode(' ', $element['#attributes']['class']);
   }
   $element['#children'] = '<div class="' . $class . '">' . (!empty($element['#children']) ? $element['#children'] : '') . '</div>';
 
@@ -2078,9 +2077,9 @@ function form_add_accordion($form) {
  * @code
  * $options = array();
  * $options[0]['title'] = "A red row"
- * $options[0]['#attributes'] = array ('class' => 'red-row');
+ * $options[0]['#attributes'] = array ('class' => array('red-row'));
  * $options[1]['title'] = "A blue row"
- * $options[1]['#attributes'] = array ('class' => 'blue-row');
+ * $options[1]['#attributes'] = array ('class' => array('blue-row'));
  *
  * $form['myselector'] = array (
  * '#type' => 'tableselect',
@@ -2307,7 +2306,7 @@ function form_process_vertical_tabs($element, &$form_state) {
   $element[$name . '__active_tab'] = array(
     '#type' => 'hidden',
     '#default_value' => $element['#default_tab'],
-    '#attributes' => array('class' => 'vertical-tabs-active-tab'),
+    '#attributes' => array('class' => array('vertical-tabs-active-tab')),
   );
 
   return $element;
@@ -2504,13 +2503,7 @@ function theme_submit($element) {
  * @ingroup themeable
  */
 function theme_button($element) {
-  // Make sure not to overwrite classes.
-  if (isset($element['#attributes']['class'])) {
-    $element['#attributes']['class'] = 'form-' . $element['#button_type'] . ' ' . $element['#attributes']['class'];
-  }
-  else {
-    $element['#attributes']['class'] = 'form-' . $element['#button_type'];
-  }
+  $element['#attributes']['class'][] = 'form-' . $element['#button_type'];
 
   return '<input type="submit" ' . (empty($element['#name']) ? '' : 'name="' . $element['#name'] . '" ') . 'id="' . $element['#id'] . '" value="' . check_plain($element['#value']) . '" ' . drupal_attributes($element['#attributes']) . " />\n";
 }
@@ -2526,13 +2519,7 @@ function theme_button($element) {
  * @ingroup themeable
  */
 function theme_image_button($element) {
-  // Make sure not to overwrite classes.
-  if (isset($element['#attributes']['class'])) {
-    $element['#attributes']['class'] = 'form-' . $element['#button_type'] . ' ' . $element['#attributes']['class'];
-  }
-  else {
-    $element['#attributes']['class'] = 'form-' . $element['#button_type'];
-  }
+  $element['#attributes']['class'][] = 'form-' . $element['#button_type'];
 
   return '<input type="image" name="' . $element['#name'] . '" ' .
     (!empty($element['#value']) ? ('value="' . check_plain($element['#value']) . '" ') : '') .
@@ -2726,10 +2713,10 @@ function theme_form_element($element) {
   // Add element's #type and #name as class to aid with JS/CSS selectors.
   $class = array('form-item');
   if (!empty($element['#type'])) {
-    $class[] = 'form-item-' . strtr($element['#type'], array('_' => '-'));
+    $class[] = 'form-type-' . strtr($element['#type'], '_', '-');
   }
   if (!empty($element['#name'])) {
-    $class[] = strtr($element['#name'], array(' ' => '-', '_' => '-', '[' => '-', ']' => '')) . '-wrapper';
+    $class[] = 'form-item-' . strtr($element['#name'], array(' ' => '-', '_' => '-', '[' => '-', ']' => ''));
   }
 
   $output = '<div class="' . implode(' ', $class) . '">' . "\n";
@@ -2767,16 +2754,18 @@ function theme_form_element($element) {
  *   Array of new class names to be added.
  */
 function _form_set_class(&$element, $class = array()) {
+  if (!empty($class)) {
+    if (!isset($element['#attributes']['class'])) {
+      $element['#attributes']['class'] = array();
+    }
+    $element['#attributes']['class'] = array_merge($element['#attributes']['class'], $class);
+  }
   if ($element['#required']) {
-    $class[] = 'required';
+    $element['#attributes']['class'][] = 'required';
   }
   if (form_get_error($element)) {
-    $class[] = 'error';
+    $element['#attributes']['class'][] = 'error';
   }
-  if (isset($element['#attributes']['class'])) {
-    $class[] = $element['#attributes']['class'];
-  }
-  $element['#attributes']['class'] = implode(' ', $class);
 }
 
 /**

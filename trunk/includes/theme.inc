@@ -1,5 +1,5 @@
 <?php
-// $Id: theme.inc,v 1.507 2009/08/20 15:18:09 webchick Exp $
+// $Id: theme.inc,v 1.514 2009/08/24 00:34:11 webchick Exp $
 
 /**
  * @file
@@ -189,7 +189,7 @@ function _drupal_theme_initialize($theme, $base_theme = array(), $registry_callb
     }
   }
 
-  if (drupal_function_exists($registry_callback)) {
+  if (function_exists($registry_callback)) {
     $registry_callback($theme, $base_theme, $theme_engine);
   }
 }
@@ -322,7 +322,6 @@ function _theme_process_registry(&$cache, $name, $type, $theme, $path) {
 
   if (function_exists($function)) {
     $result = $function($cache, $type, $theme, $path);
-
     foreach ($result as $hook => $info) {
       $result[$hook]['type'] = $type;
       $result[$hook]['theme path'] = $path;
@@ -336,12 +335,14 @@ function _theme_process_registry(&$cache, $name, $type, $theme, $path) {
       // functions on behalf of core .include files.
       // All files are included to be safe. Conditionally included
       // files can prevent them from getting registered.
-      if (isset($info['file']) && !isset($info['path'])) {
-        $result[$hook]['file'] = $path . '/' . $info['file'];
-        include_once DRUPAL_ROOT . '/' . $result[$hook]['file'];
+      if (isset($cache[$hook]['includes'])) {
+        $result[$hook]['includes'] = $cache[$hook]['includes'];
       }
-      elseif (isset($info['file']) && isset($info['path'])) {
-        include_once DRUPAL_ROOT . '/' . $info['path'] . '/' . $info['file'];
+      if (isset($info['file'])) {
+        $include_file = isset($info['path']) ? $info['path'] : $path;
+        $include_file .= '/' . $info['file'];
+        include_once DRUPAL_ROOT . '/' . $include_file;
+        $result[$hook]['includes'][] = $include_file;
       }
 
       // If 'arguments' have been defined previously, carry them forward.
@@ -760,12 +761,10 @@ function theme() {
   $theme_path = $info['theme path'];
 
   // Include a file if the theme function or variable processor is held elsewhere.
-  if (!empty($info['file'])) {
-    $include_file = $info['file'];
-    if (isset($info['path'])) {
-      $include_file = $info['path'] . '/' . $include_file;
+  if (!empty($info['includes'])) {
+    foreach ($info['includes'] as $include_file) {
+      include_once DRUPAL_ROOT . '/' . $include_file;
     }
-    include_once DRUPAL_ROOT . '/' . $include_file;
   }
   if (isset($info['function'])) {
     // The theme call is a function.
@@ -804,7 +803,7 @@ function theme() {
         foreach (array('preprocess functions', 'process functions') as $phase) {
           if (!empty($info[$phase])) {
             foreach ($info[$phase] as $processor_function) {
-              if (drupal_function_exists($processor_function)) {
+              if (function_exists($processor_function)) {
                 $processor_function($variables, $hook_clone);
               }
             }
@@ -830,7 +829,7 @@ function theme() {
           $suggestions[] = $variables['theme_function'];
         }
         foreach (array_reverse($suggestions) as $suggestion) {
-          if (drupal_function_exists($suggestion)) {
+          if (function_exists($suggestion)) {
             $info['function'] = $suggestion;
             break;
           }
@@ -842,7 +841,7 @@ function theme() {
     }
 
     // Call the function.
-    if (drupal_function_exists($info['function'])) {
+    if (function_exists($info['function'])) {
       $output = call_user_func_array($info['function'], $args);
     }
   }
@@ -889,10 +888,10 @@ function theme() {
     // call_user_func_array.
     $args = array(&$variables, $hook);
     // Template functions in two phases.
-    foreach (array('preprocess functions', 'process functions') as $template_phase) {
-      foreach ($info[$template_phase] as $template_function) {
-        if (drupal_function_exists($template_function)) {
-          $result = call_user_func_array($template_function, $args);
+    foreach (array('preprocess functions', 'process functions') as $phase) {
+      foreach ($info[$phase] as $processor_function) {
+        if (drupal_function_exists($processor_function)) {
+          $result = call_user_func_array($processor_function, $args);
           // Allow process functions to abort rendering the item by returning
           // FALSE.
           if ($result === FALSE) {
@@ -1394,34 +1393,54 @@ function theme_status_messages($display = NULL) {
  *    - href: the link URL. If omitted, the 'title' is shown as a plain text item in the links list.
  *    - html: (optional) set this to TRUE if 'title' is HTML so it will be escaped.
  *   Array items are passed on to the l() function's $options parameter when creating the link.
+ * @param $heading
+ *   An optional keyed array for a heading to precede the links:
+ *    - text: the heading text
+ *    - level: the heading level (e.g. 'h2', 'h3')
+ *    - class: (optional) space-separated classes for the heading
+ *   Headings should be used on navigation menus and any list of links that
+ *   consistently appears on multiple pages. To make the heading invisible
+ *   use class => 'element-invisible'. Do not use 'display:none', which
+ *   removes it from screen-readers and assistive technology. Headings allow
+ *   screen-reader and keyboard only users to navigate to or skip the links.
+ *   See http://juicystudio.com/article/screen-readers-display-none.php
+ *   and http://www.w3.org/TR/WCAG-TECHS/H42.html for more information.
  * @param $attributes
  *   A keyed array of attributes.
  * @return
  *   A string containing an unordered list of links.
  */
-function theme_links($links, $attributes = array('class' => 'links')) {
+function theme_links($links, $heading = array(), $attributes = array('class' => array('links'))) {
   global $language;
   $output = '';
 
   if (count($links) > 0) {
-    $output = '<ul' . drupal_attributes($attributes) . '>';
+    $output = '';
+    if (!empty($heading['text']) && !empty($heading['level'])) {
+      $output .= '<' . $heading['level'] . (!empty($heading['class']) ?
+        drupal_attributes(array('class' => $heading['class'])) : '') . '>';
+      $output .= check_plain($heading['text']);
+      $output .= '</' . $heading['level'] . '>';
+    }
+
+    $output .= '<ul' . drupal_attributes($attributes) . '>';
 
     $num_links = count($links);
     $i = 1;
 
     foreach ($links as $key => $link) {
-      $class = $key;
+      $class = array($key);
 
       // Add first, last and active classes to the list of links to help out themers.
       if ($i == 1) {
-        $class .= ' first';
+        $class[] = 'first';
       }
       if ($i == $num_links) {
-        $class .= ' last';
+        $class[] = 'last';
       }
       if (isset($link['href']) && ($link['href'] == $_GET['q'] || ($link['href'] == '<front>' && drupal_is_front_page()))
           && (empty($link['language']) || $link['language']->language == $language->language)) {
-        $class .= ' active';
+        $class[] = 'active';
       }
       $output .= '<li' . drupal_attributes(array('class' => $class)) . '>';
 
@@ -1556,7 +1575,7 @@ function theme_submenu($links) {
  *     ),
  *     // Row with attributes on the row and some of its cells.
  *     array(
- *       'data' => array('Cell 1', array('data' => 'Cell 2', 'colspan' => 2)), 'class' => 'funky'
+ *       'data' => array('Cell 1', array('data' => 'Cell 2', 'colspan' => 2)), 'class' => array('funky')
  *     )
  *   );
  *   @endverbatim
@@ -1578,17 +1597,17 @@ function theme_submenu($links) {
  *     // COLGROUP with one COL element.
  *     array(
  *       array(
- *         'class' => 'funky', // Attribute for the COL element.
+ *         'class' => array('funky'), // Attribute for the COL element.
  *       ),
  *     ),
  *     // Colgroup with attributes and inner COL elements.
  *     array(
  *       'data' => array(
  *         array(
- *           'class' => 'funky', // Attribute for the COL element.
+ *           'class' => array('funky'), // Attribute for the COL element.
  *         ),
  *       ),
- *       'class' => 'jazzy', // Attribute for the COLGROUP element.
+ *       'class' => array('jazzy'), // Attribute for the COLGROUP element.
  *     ),
  *   );
  *   @endverbatim
@@ -1607,7 +1626,7 @@ function theme_table($header, $rows, $attributes = array(), $caption = NULL, $co
     drupal_add_js('misc/tableheader.js');
     // Add 'sticky-enabled' class to the table to identify it for JS.
     // This is needed to target tables constructed by this function.
-    $attributes['class'] = empty($attributes['class']) ? 'sticky-enabled' : ($attributes['class'] . ' sticky-enabled');
+    $attributes['class'][] = 'sticky-enabled';
   }
 
   $output = '<table' . drupal_attributes($attributes) . ">\n";
@@ -1715,12 +1734,7 @@ function theme_table($header, $rows, $attributes = array(), $caption = NULL, $co
       if (count($cells)) {
         // Add odd/even class
         $class = $flip[$class];
-        if (isset($attributes['class'])) {
-          $attributes['class'] .= ' ' . $class;
-        }
-        else {
-          $attributes['class'] = $class;
-        }
+        $attributes['class'][] = $class;
 
         // Build row
         $output .= ' <tr' . drupal_attributes($attributes) . '>';
@@ -1745,7 +1759,7 @@ function theme_table($header, $rows, $attributes = array(), $caption = NULL, $co
 function theme_table_select_header_cell() {
   drupal_add_js('misc/tableselect.js');
 
-  return array('class' => 'select-all');
+  return array('class' => array('select-all'));
 }
 
 /**
@@ -1837,10 +1851,10 @@ function theme_item_list($items = array(), $title = NULL, $type = 'ul', $attribu
         $data .= theme_item_list($children, NULL, $type, $attributes); // Render nested list
       }
       if ($i == 0) {
-        $attributes['class'] = empty($attributes['class']) ? 'first' : ($attributes['class'] . ' first');
+        $attributes['class'][] = 'first';
       }
       if ($i == $num_items - 1) {
-        $attributes['class'] = empty($attributes['class']) ? 'last' : ($attributes['class'] . ' last');
+        $attributes['class'][] = 'last';
       }
       $output .= '<li' . drupal_attributes($attributes) . '>' . $data . "</li>\n";
     }
@@ -1866,7 +1880,7 @@ function theme_more_help_link($url) {
  *   A descriptive title of the feed.
   */
 function theme_feed_icon($url, $title) {
-  if ($image = theme('image', 'misc/feed.png', t('Syndicate content'), $title)) {
+  if ($image = theme('image', 'misc/feed.png', t('Subscribe to %feed-title', array('%feed-title' => $title)))) {
     return '<a href="' . check_url($url) . '" class="feed-icon">' . $image . '</a>';
   }
 }
@@ -2160,6 +2174,7 @@ function template_preprocess_page(&$variables) {
   $variables['messages']          = $variables['show_messages'] ? theme('status_messages') : '';
   $variables['main_menu']         = theme_get_setting('toggle_main_menu') ? menu_main_menu() : array();
   $variables['secondary_menu']    = theme_get_setting('toggle_secondary_menu') ? menu_secondary_menu() : array();
+  $variables['action_links']      = menu_local_actions();
   $variables['search_box']        = (theme_get_setting('toggle_search') ? drupal_render(drupal_get_form('search_theme_form')) : '');
   $variables['site_name']         = (theme_get_setting('toggle_name') ? filter_xss_admin(variable_get('site_name', 'Drupal')) : '');
   $variables['site_slogan']       = (theme_get_setting('toggle_slogan') ? filter_xss_admin(variable_get('site_slogan', '')) : '');

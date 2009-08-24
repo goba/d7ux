@@ -1,5 +1,5 @@
 <?php
-// $Id: block.module,v 1.360 2009/08/20 10:56:33 dries Exp $
+// $Id: block.module,v 1.366 2009/08/24 00:14:19 webchick Exp $
 
 /**
  * @file
@@ -125,6 +125,7 @@ function block_menu() {
     'description' => 'Configure what block content appears in your site\'s sidebars and other regions.',
     'page callback' => 'block_admin_display',
     'access arguments' => array('administer blocks'),
+    'file' => 'block.admin.inc',
   );
   $items['admin/structure/block/list'] = array(
     'title' => 'List',
@@ -136,6 +137,7 @@ function block_menu() {
     'page callback' => 'block_admin_display_js',
     'access arguments' => array('administer blocks'),
     'type' => MENU_CALLBACK,
+    'file' => 'block.admin.inc',
   );
   $items['admin/structure/block/configure'] = array(
     'title' => 'Configure block',
@@ -143,6 +145,7 @@ function block_menu() {
     'page arguments' => array('block_admin_configure'),
     'access arguments' => array('administer blocks'),
     'type' => MENU_CALLBACK,
+    'file' => 'block.admin.inc',
   );
   $items['admin/structure/block/delete'] = array(
     'title' => 'Delete block',
@@ -150,13 +153,15 @@ function block_menu() {
     'page arguments' => array('block_box_delete'),
     'access arguments' => array('administer blocks'),
     'type' => MENU_CALLBACK,
+    'file' => 'block.admin.inc',
   );
   $items['admin/structure/block/add'] = array(
     'title' => 'Add block',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('block_add_block_form'),
     'access arguments' => array('administer blocks'),
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'block.admin.inc',
   );
   $default = variable_get('theme_default', 'garland');
   foreach (list_themes() as $key => $theme) {
@@ -167,6 +172,7 @@ function block_menu() {
       'weight' => $key == $default ? -10 : 0,
       'access callback' => '_block_themes_access',
       'access arguments' => array($theme),
+      'file' => 'block.admin.inc',
     );
   }
   return $items;
@@ -198,7 +204,7 @@ function block_block_list() {
 /**
  * Implement hook_block_configure().
  */
-function block_block_configure($delta = 0, $edit = array()) {
+function block_block_configure($delta = 0) {
   $box = array('format' => FILTER_FORMAT_DEFAULT);
   if ($delta) {
     $box = block_box_get($delta);
@@ -523,16 +529,15 @@ function block_theme_initialize($theme) {
     $default_theme = variable_get('theme_default', 'garland');
     $regions = system_region_list($theme);
     $result = db_query("SELECT * FROM {block} WHERE theme = :theme", array(':theme' => $default_theme), array('fetch' => PDO::FETCH_ASSOC));
-    $query = db_insert('block')->fields(array('module', 'delta', 'theme', 'status', 'weight', 'region', 'visibility', 'pages', 'custom', 'cache'));
     foreach ($result as $block) {
       // If the region isn't supported by the theme, assign the block to the theme's default region.
       if (!array_key_exists($block['region'], $regions)) {
         $block['region'] = system_default_region($theme);
       }
       $block['theme'] = $theme;
-      $query->values($block);
+      unset($block['bid']);
+      drupal_write_record('block', $block);
     }
-    $query->execute();
   }
 }
 

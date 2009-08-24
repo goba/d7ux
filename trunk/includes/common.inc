@@ -1,5 +1,5 @@
 <?php
-// $Id: common.inc,v 1.965 2009/08/21 07:50:07 webchick Exp $
+// $Id: common.inc,v 1.971 2009/08/24 00:14:18 webchick Exp $
 
 /**
  * @file
@@ -390,8 +390,8 @@ function drupal_goto($path = '', $query = NULL, $fragment = NULL, $http_response
 function drupal_site_offline() {
   drupal_maintenance_theme();
   drupal_set_header('503 Service unavailable');
-  drupal_set_title(t('Site offline'));
-  print theme('maintenance_page', filter_xss_admin(variable_get('site_offline_message',
+  drupal_set_title(t('Site under maintenance'));
+  print theme('maintenance_page', filter_xss_admin(variable_get('maintenance_mode_message',
     t('@site is currently under maintenance. We should be back shortly. Thank you for your patience.', array('@site' => variable_get('site_name', 'Drupal'))))));
 }
 
@@ -1219,7 +1219,7 @@ function t($string, array $args = array(), array $options = array()) {
     $string = $custom_strings[$options['langcode']][$options['context']][$string];
   }
   // Translate with locale module if enabled.
-  // We don't use drupal_function_exists() here, because it breaks the testing
+  // We don't use function_exists() here, because it breaks the testing
   // framework if the locale module is enabled in the parent site (we cannot
   // unload functions in PHP).
   elseif (function_exists('locale') && $options['langcode'] != 'en') {
@@ -2286,12 +2286,7 @@ function l($text, $path, array $options = array()) {
   // Append active class.
   if (($path == $_GET['q'] || ($path == '<front>' && drupal_is_front_page())) &&
       (empty($options['language']) || $options['language']->language == $language->language)) {
-    if (isset($options['attributes']['class'])) {
-      $options['attributes']['class'] .= ' active';
-    }
-    else {
-      $options['attributes']['class'] = 'active';
-    }
+    $options['attributes']['class'][] = 'active';
   }
 
   // Remove all HTML and PHP tags from a tooltip. For best performance, we act only
@@ -2324,7 +2319,6 @@ function drupal_page_footer() {
     ob_flush();
   }
 
-  module_implements(MODULE_IMPLEMENTS_WRITE_CACHE);
   _registry_check_code(REGISTRY_WRITE_LOOKUP_CACHE);
   drupal_cache_system_paths();
 }
@@ -2873,7 +2867,7 @@ function drupal_clear_css_cache() {
  *   - 'file': Path to the file relative to base_path().
  *   - 'inline': The JavaScript code that should be placed in the given scope.
  *   - 'external': The absolute path to an external JavaScript file that is not
- *     hosted on the local server. These files will not be aggregated if 
+ *     hosted on the local server. These files will not be aggregated if
  *     JavaScript aggregation is enabled.
  *   - 'setting': An array with configuration options as associative array. The
  *       array is directly placed in Drupal.settings. All modules should wrap
@@ -3265,7 +3259,7 @@ function drupal_get_library($module, $name) {
  * In a situation where a single weight column is being sorted in the table, the
  * classes could be added like this (in the theme function):
  * @code
- * $form['my_elements'][$delta]['weight']['#attributes']['class'] = "my-elements-weight";
+ * $form['my_elements'][$delta]['weight']['#attributes']['class'] = array('my-elements-weight');
  * @endcode
  *
  * Each row of the table must also have a class of "draggable" in order to enable the
@@ -3274,7 +3268,7 @@ function drupal_get_library($module, $name) {
  * $row = array(...);
  * $rows[] = array(
  *   'data' => $row,
- *   'class' => 'draggable',
+ *   'class' => array('draggable'),
  * );
  * @endcode
  *
@@ -3292,7 +3286,7 @@ function drupal_get_library($module, $name) {
  * the block regions on the admin/structure/block page), a separate subgroup class
  * must also be added to differentiate the groups.
  * @code
- * $form['my_elements'][$region][$delta]['weight']['#attributes']['class'] = "my-elements-weight my-elements-weight-" . $region;
+ * $form['my_elements'][$region][$delta]['weight']['#attributes']['class'] = array('my-elements-weight', 'my-elements-weight-' . $region);
  * @endcode
  *
  * $group is still 'my-element-weight', and the additional $subgroup variable
@@ -3580,14 +3574,6 @@ function _drupal_bootstrap_full() {
   set_error_handler('_drupal_error_handler');
   set_exception_handler('_drupal_exception_handler');
 
-  if (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'simpletest') !== FALSE) {
-    // Valid SimpleTest user-agent, log fatal errors to test specific file
-    // directory. The user-agent is validated in DRUPAL_BOOTSTRAP_DATABASE
-    // phase so as long as it is a SimpleTest user-agent it is valid.
-    ini_set('log_errors', 1);
-    ini_set('error_log', file_directory_path() . '/error.log');
-  }
-
   // Emit the correct charset HTTP header.
   drupal_set_header('Content-Type', 'text/html; charset=utf-8');
   // Detect string handling method
@@ -3598,6 +3584,14 @@ function _drupal_bootstrap_full() {
   module_load_all();
   // Make sure all stream wrappers are registered.
   file_get_stream_wrappers();
+  if (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'simpletest') !== FALSE) {
+    // Valid SimpleTest user-agent, log fatal errors to test specific file
+    // directory. The user-agent is validated in DRUPAL_BOOTSTRAP_DATABASE
+    // phase so as long as it is a SimpleTest user-agent it is valid.
+    ini_set('log_errors', 1);
+    ini_set('error_log', file_directory_path() . '/error.log');
+  }
+
   // Let all modules take action before menu system handles the request
   // We do not want this while running update.php.
   if (!defined('MAINTENANCE_MODE') || MAINTENANCE_MODE != 'update') {
@@ -3772,7 +3766,7 @@ function drupal_system_listing($mask, $directory, $key = 'name', $min_depth = 1)
     $searchdir[] = "$config/$directory";
   }
 
-  // If the database is not available, we can't use drupal_function_exists(), so
+  // If the database is not available, we can't use function_exists(), so
   // we load the file_scan_directory function definition manually.
   if (!function_exists('file_scan_directory')) {
     require_once DRUPAL_ROOT . '/includes/file.inc';
@@ -3974,7 +3968,7 @@ function drupal_render(&$elements) {
   // element is rendered into the final text.
   if (isset($elements['#pre_render'])) {
     foreach ($elements['#pre_render'] as $function) {
-      if (drupal_function_exists($function)) {
+      if (function_exists($function)) {
         $elements = $function($elements);
       }
     }
@@ -4008,7 +4002,7 @@ function drupal_render(&$elements) {
   // which allows the output'ed text to be filtered.
   if (isset($elements['#post_render'])) {
     foreach ($elements['#post_render'] as $function) {
-      if (drupal_function_exists($function)) {
+      if (function_exists($function)) {
         $elements['#children'] = $function($elements['#children'], $elements);
       }
     }
@@ -4137,6 +4131,7 @@ function element_info($type) {
   if (!isset($cache)) {
     $basic_defaults = element_basic_defaults();
     $cache = array();
+
     foreach (module_implements('elements') as $module) {
       $elements = module_invoke($module, 'elements');
       if (isset($elements) && is_array($elements)) {
@@ -4274,7 +4269,7 @@ function drupal_common_theme() {
       'arguments' => array('display' => NULL),
     ),
     'links' => array(
-      'arguments' => array('links' => NULL, 'attributes' => array('class' => 'links')),
+      'arguments' => array('links' => NULL, 'attributes' => array('class' => array('links'))),
     ),
     'action_links' => array(
       'arguments' => array('link' => NULL, 'element' => NULL),
@@ -4362,6 +4357,9 @@ function drupal_common_theme() {
     ),
     'menu_local_task' => array(
       'arguments' => array('link' => NULL, 'active' => FALSE),
+    ),
+    'menu_local_action' => array(
+      'arguments' => array('link' => NULL),
     ),
     'menu_local_tasks' => array(
       'arguments' => array(),
@@ -5075,3 +5073,32 @@ function drupal_check_incompatibility($v, $current_version) {
     }
   }
 }
+
+/**
+ * Performs one or more XML-RPC request(s).
+ *
+ * @param $url
+ *   An absolute URL of the XML-RPC endpoint.
+ *     Example:
+ *     http://www.example.com/xmlrpc.php
+ * @param ...
+ *   For one request:
+ *     The method name followed by a variable number of arguments to the method.
+ *   For multiple requests (system.multicall):
+ *     An array of call arrays. Each call array follows the pattern of the single
+ *     request: method name followed by the arguments to the method.
+ * @return
+ *   For one request:
+ *     Either the return value of the method on success, or FALSE.
+ *     If FALSE is returned, see xmlrpc_errno() and xmlrpc_error_msg().
+ *   For multiple requests:
+ *     An array of results. Each result will either be the result
+ *     returned by the method called, or an xmlrpc_error object if the call
+ *     failed. See xmlrpc_error().
+ */
+function xmlrpc($url) {
+  require_once DRUPAL_ROOT . '/includes/xmlrpc.inc';
+  $args = func_get_args();
+  return call_user_func_array('_xmlrpc', $args);
+}
+

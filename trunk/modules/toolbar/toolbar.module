@@ -1,5 +1,5 @@
 <?php
-// $Id: toolbar.module,v 1.5 2009/08/14 15:30:59 webchick Exp $
+// $Id: toolbar.module,v 1.6 2009/08/22 14:34:22 webchick Exp $
 
 /**
  * @file
@@ -153,10 +153,10 @@ function toolbar_menu_navigation_links($tree) {
       $link += $item['link']['options'];
       $link['attributes']['id'] = 'toolbar-link-' . $id;
       if (isset($link['attributes']['class'])) {
-        $link['attributes']['class'] .= ' to-overlay';
+        $link['attributes']['class'][] = ' to-overlay';
       }
       else {
-        $link['attributes']['class'] = 'to-overlay';
+        $link['attributes']['class'] = array('to-overlay');
       }
       $link['html'] = TRUE;
 

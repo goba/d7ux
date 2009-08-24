@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.140 2009/08/21 07:50:07 webchick Exp $
+// $Id: drupal_web_test_case.php,v 1.144 2009/08/24 00:14:21 webchick Exp $
 
 /**
  * Base class for Drupal tests.
@@ -519,7 +519,7 @@ abstract class DrupalTestCase {
  *
  * These tests can not access the database nor files. Calling any Drupal
  * function that needs the database will throw exceptions. These include
- * watchdog(), drupal_function_exists(), module_implements(),
+ * watchdog(), function_exists(), module_implements(),
  * module_invoke_all() etc.
  */
 class DrupalUnitTestCase extends DrupalTestCase {
@@ -549,7 +549,7 @@ class DrupalUnitTestCase extends DrupalTestCase {
     if (isset($module_list['locale'])) {
       $this->originalModuleList = $module_list;
       unset($module_list['locale']);
-      module_list(TRUE, FALSE, $module_list);
+      module_list(TRUE, FALSE, FALSE, $module_list);
     }
   }
 
@@ -561,7 +561,7 @@ class DrupalUnitTestCase extends DrupalTestCase {
       $db_prefix = $this->originalPrefix;
       // Restore modules if necessary.
       if (isset($this->originalModuleList)) {
-        module_list(TRUE, FALSE, $this->originalModuleList);
+        module_list(TRUE, FALSE, FALSE, $this->originalModuleList);
       }
     }
   }
@@ -693,7 +693,7 @@ class DrupalWebTestCase extends DrupalTestCase {
   protected function drupalCreateNode($settings = array()) {
     // Populate defaults array.
     $settings += array(
-      'body'      => array(array()),
+      'body'      => array(FIELD_LANGUAGE_NONE => array(array())),
       'title'     => $this->randomName(8),
       'comment'   => 2,
       'changed'   => REQUEST_TIME,
@@ -730,7 +730,7 @@ class DrupalWebTestCase extends DrupalTestCase {
       'value' => $this->randomName(32),
       'format' => FILTER_FORMAT_DEFAULT
     );
-    $settings['body'][0] += $body;
+    $settings['body'][FIELD_LANGUAGE_NONE][0] += $body;
 
     $node = (object) $settings;
     node_save($node);
@@ -1203,7 +1203,7 @@ class DrupalWebTestCase extends DrupalTestCase {
       // Reload module list and implementations to ensure that test module hooks
       // aren't called after tests.
       module_list(TRUE);
-      module_implements(MODULE_IMPLEMENTS_CLEAR_CACHE);
+      module_implements('', FALSE, TRUE);
 
       // Reset the Field API.
       field_cache_clear();

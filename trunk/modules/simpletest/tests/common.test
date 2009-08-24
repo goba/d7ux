@@ -1,5 +1,5 @@
 <?php
-// $Id: common.test,v 1.65 2009/08/21 14:28:52 dries Exp $
+// $Id: common.test,v 1.67 2009/08/24 00:31:59 webchick Exp $
 
 /**
  * Tests for the l() function.
@@ -374,7 +374,7 @@ class CascadingStylesheetsTestCase extends DrupalWebTestCase {
     // Create a node, using the PHP filter that tests drupal_add_css().
     $settings = array(
       'type' => 'page',
-      'body' => array(array('value' => t('This tests the inline CSS!') . "<?php drupal_add_css('$css', 'inline'); ?>", 'format' => 3)), // PHP filter.
+      'body' => array(FIELD_LANGUAGE_NONE => array(array('value' => t('This tests the inline CSS!') . "<?php drupal_add_css('$css', 'inline'); ?>", 'format' => 3))), // PHP filter.
       'promote' => 1,
     );
     $node = $this->drupalCreateNode($settings);
@@ -1100,7 +1100,7 @@ class DrupalDataApiTest extends DrupalWebTestCase {
 }
 
 /**
- * Tests Simpletest error and exception collecter.
+ * Tests Simpletest error and exception collector.
  */
 class DrupalErrorCollectionUnitTest extends DrupalWebTestCase {
 
@@ -1116,8 +1116,8 @@ class DrupalErrorCollectionUnitTest extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => 'SimpleTest error collecter',
-      'description' => 'Performs tests on the Simpletest error and exception collecter.',
+      'name' => 'SimpleTest error collector',
+      'description' => 'Performs tests on the Simpletest error and exception collector.',
       'group' => 'SimpleTest',
     );
   }

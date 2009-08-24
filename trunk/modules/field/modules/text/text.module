@@ -1,5 +1,5 @@
 <?php
-// $Id: text.module,v 1.19 2009/08/20 10:56:33 dries Exp $
+// $Id: text.module,v 1.23 2009/08/24 00:37:25 webchick Exp $
 
 /**
  * @file
@@ -12,9 +12,6 @@
 function text_theme() {
   return array(
     'text_textarea' => array(
-      'arguments' => array('element' => NULL),
-    ),
-    'text_textarea_with_summary' => array(
       'arguments' => array('element' => NULL),
     ),
     'text_textfield' => array(
@@ -180,7 +177,7 @@ function text_field_instance_settings_form($field, $instance) {
  * - 'text_value_max_length': The value exceeds the maximum length.
  * - 'text_summary_max_length': The summary exceeds the maximum length.
  */
-function text_field_validate($obj_type, $object, $field, $instance, $items, &$errors) {
+function text_field_validate($obj_type, $object, $field, $instance, $langcode, $items, &$errors) {
   foreach ($items as $delta => $item) {
     foreach (array('value' => t('full text'), 'summary' => t('summary')) as $column => $desc) {
       if (!empty($item[$column])) {
@@ -193,7 +190,7 @@ function text_field_validate($obj_type, $object, $field, $instance, $items, &$er
               $message = t('%name: the summary may not be longer than %max characters.', array('%name' => $instance['label'], '%max' => $field['settings']['max_length']));
               break;
           }
-          $errors[$field['field_name']][$delta][] = array(
+          $errors[$field['field_name']][$langcode][$delta][] = array(
             'error' => "text_{$column}_length",
             'message' => $message,
           );
@@ -211,9 +208,7 @@ function text_field_validate($obj_type, $object, $field, $instance, $items, &$er
  * separately.
  * @see text_field_sanitize().
  */
-function text_field_load($obj_type, $objects, $field, $instances, &$items) {
-  global $language;
-
+function text_field_load($obj_type, $objects, $field, $instances, $langcode, &$items) {
   foreach ($objects as $id => $object) {
     foreach ($items[$id] as $delta => $item) {
       if (!empty($instances[$id]['settings']['text_processing'])) {
@@ -221,10 +216,9 @@ function text_field_load($obj_type, $objects, $field, $instances, &$items) {
         // handled by text_field_sanitize().
         $format = $item['format'];
         if (filter_format_allowcache($format)) {
-          $lang = isset($object->language) ? $object->language : $language->language;
-          $items[$id][$delta]['safe'] = isset($item['value']) ? check_markup($item['value'], $format, $lang, FALSE) : '';
+          $items[$id][$delta]['safe'] = isset($item['value']) ? check_markup($item['value'], $format, $langcode, FALSE) : '';
           if ($field['type'] == 'text_with_summary') {
-            $items[$id][$delta]['safe_summary'] = isset($item['summary']) ? check_markup($item['summary'], $format, $lang, FALSE) : '';
+            $items[$id][$delta]['safe_summary'] = isset($item['summary']) ? check_markup($item['summary'], $format, $langcode, FALSE) : '';
           }
         }
       }
@@ -243,8 +237,7 @@ function text_field_load($obj_type, $objects, $field, $instances, &$items) {
  *
  * @see text_field_load()
  */
-function text_field_sanitize($obj_type, $object, $field, $instance, &$items) {
-  global $language;
+function text_field_sanitize($obj_type, $object, $field, $instance, $langcode, &$items) {
   foreach ($items as $delta => $item) {
     // Only sanitize items which were not already processed inside
     // text_field_load(), i.e. items with uncacheable text formats, or coming
@@ -252,10 +245,9 @@ function text_field_sanitize($obj_type, $object, $field, $instance, &$items) {
     if (!isset($items[$delta]['safe'])) {
       if (!empty($instance['settings']['text_processing'])) {
         $format = $item['format'];
-        $lang = isset($object->language) ? $object->language : $language->language;
-        $items[$delta]['safe'] = isset($item['value']) ? check_markup($item['value'], $format, $lang) : '';
+        $items[$delta]['safe'] = isset($item['value']) ? check_markup($item['value'], $format, $langcode) : '';
         if ($field['type'] == 'text_with_summary') {
-          $items[$delta]['safe_summary'] = isset($item['summary']) ? check_markup($item['summary'], $format, $lang) : '';
+          $items[$delta]['safe_summary'] = isset($item['summary']) ? check_markup($item['summary'], $format, $langcode) : '';
         }
       }
       else {
@@ -406,7 +398,7 @@ function text_summary($text, $format = NULL, $size = NULL) {
   // parse errors.
   if (isset($format)) {
     $filters = filter_list_format($format);
-    if (isset($filters['php/0']) && strpos($text, '<?') !== FALSE) {
+    if (isset($filters['php/php_code']) && strpos($text, '<?') !== FALSE) {
       return $text;
     }
   }
@@ -445,7 +437,7 @@ function text_summary($text, $format = NULL, $size = NULL) {
   $line_breaks = array('<br />' => 6, '<br>' => 4);
   // Newline only indicates a line break if line break converter
   // filter is present.
-  if (isset($filters['filter/1'])) {
+  if (isset($filters['filter/filter_autop'])) {
     $line_breaks["\n"] = 1;
   }
   $break_points[] = $line_breaks;
@@ -473,7 +465,7 @@ function text_summary($text, $format = NULL, $size = NULL) {
   }
 
   // If the htmlcorrector filter is present, apply it to the generated summary.
-  if (isset($filters['filter/3'])) {
+  if (isset($filters['filter/filter_htmlcorrector'])) {
     $summary = _filter_htmlcorrector($summary);
   }
 
@@ -572,7 +564,7 @@ function text_elements() {
       '#input' => TRUE,
       '#columns' => array('value', 'format', 'summary'), '#delta' => 0,
       '#process' => array('text_textarea_with_summary_process'),
-      '#theme_wrappers' => array('text_textarea_with_summary'),
+      '#theme_wrappers' => array('text_textarea'),
       '#filter_value' => FILTER_FORMAT_DEFAULT,
     ),
   );
@@ -663,7 +655,7 @@ function text_textfield_elements_process($element, $form_state, $form) {
     '#default_value' => isset($element['#value'][$field_key]) ? $element['#value'][$field_key] : NULL,
     '#autocomplete_path' => $element['#autocomplete_path'],
     '#size' => $instance['widget']['settings']['size'],
-    '#attributes' => array('class' => 'text'),
+    '#attributes' => array('class' => array('text')),
     '#title' => $element['#title'],
     '#description' => $element['#description'],
     '#required' => $element['#required'],
@@ -799,22 +791,3 @@ function theme_text_textfield($element) {
 function theme_text_textarea($element) {
   return $element['#children'];
 }
-
-function theme_text_textarea_with_summary($element) {
-  // If displaying both a textarea and a summary field, wrap them
-  // in a fieldset to make it clear they belong together.
-  $field_key = $element['#columns'][1];
-  if (!empty($element[$field_key]['#display'])) {
-    $fieldset = array(
-      '#title' => $element['#title'],
-      '#value' => $element['#children'],
-      '#attributes' => array('class' => 'text-textarea'),
-      '#id' => str_replace('_', '-', $element['#field_name']) . '-summary-wrapper',
-    );
-    return theme('fieldset', $fieldset);
-  }
-  else {
-    return $element['#children'];
-  }
-}
-
