@@ -289,7 +289,7 @@ function node_form(&$form_state, $node) {
     '#value' => t('Save'),
     '#weight' => 5,
     '#submit' => array('node_form_submit'),
-    '#attributes' => array('class' => 'node-form-button'),
+    '#attributes' => array('class' => array('node-form-button')),
   );
   $form['buttons']['preview'] = array(
     '#access' => variable_get('node_preview_' . $node->type, 1) != DRUPAL_DISABLED,
@@ -297,7 +297,7 @@ function node_form(&$form_state, $node) {
     '#value' => t('Preview'),
     '#weight' => 10,
     '#submit' => array('node_form_build_preview'),
-    '#attributes' => array('class' => 'node-form-button'),
+    '#attributes' => array('class' => array('node-form-button')),
   );
   if (!empty($node->nid) && node_access('delete', $node)) {
     $form['buttons']['delete'] = array(
@@ -305,7 +305,7 @@ function node_form(&$form_state, $node) {
       '#value' => t('Delete'),
       '#weight' => 15,
       '#submit' => array('node_form_delete_submit'),
-      '#attributes' => array('class' => 'node-form-button'),
+      '#attributes' => array('class' => array('node-form-button')),
     );
   }
   // Make a copy of the buttons for the floating buttons.
