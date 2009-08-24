@@ -150,9 +150,12 @@ function toolbar_menu_navigation_links($tree) {
       // Add icon placeholder.
       $link['title'] = '<span class="icon"></span>' . $item['link']['title'];
       // Add admin link ID and to-overlay class for the overlay.
-      $link += $item['link']['options'];
+      #$link += $item['link']['options'];
       $link['attributes']['id'] = 'toolbar-link-' . $id;
       if (isset($link['attributes']['class'])) {
+        if (!is_array($link['attributes']['class'])) {
+          $link['attributes']['class'] = array($link['attributes']['class']);
+        }
         $link['attributes']['class'][] = ' to-overlay';
       }
       else {
