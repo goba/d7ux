@@ -890,7 +890,7 @@ function theme() {
     // Template functions in two phases.
     foreach (array('preprocess functions', 'process functions') as $phase) {
       foreach ($info[$phase] as $processor_function) {
-        if (drupal_function_exists($processor_function)) {
+        if (function_exists($processor_function)) {
           $result = call_user_func_array($processor_function, $args);
           // Allow process functions to abort rendering the item by returning
           // FALSE.

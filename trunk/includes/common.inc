@@ -3956,7 +3956,7 @@ function drupal_render(&$elements) {
   // not it is editable by the current user.
   if (isset($elements['#actions'])) {
     foreach ($elements['#actions'] as $key => $data) {
-      if (!isset($data['access']) && drupal_function_exists('menu_get_item')) {
+      if (!isset($data['access']) && function_exists('menu_get_item')) {
         $item = menu_get_item($data['href']);
         $elements['#actions'][$key]['access'] = !empty($item['access']);
       }
