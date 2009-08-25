@@ -1,5 +1,5 @@
 <?php
-// $Id: system.admin.inc,v 1.191 2009/08/24 00:14:22 webchick Exp $
+// $Id: system.admin.inc,v 1.194 2009/08/25 10:37:36 dries Exp $
 
 /**
  * @file
@@ -1161,7 +1161,7 @@ function system_ip_blocking() {
   foreach ($result as $ip) {
     $rows[] = array(
       $ip->ip,
-      l(t('delete'), "admin/settings/ip-blocking/delete/$ip->iid"),
+      l(t('delete'), "admin/config/people/ip-blocking/delete/$ip->iid"),
     );
   }
 
@@ -1220,7 +1220,7 @@ function system_ip_blocking_form_submit($form, &$form_state) {
     ->fields(array('ip' => $ip))
     ->execute();
   drupal_set_message(t('The IP address %ip has been blocked.', array('%ip' => $ip)));
-  $form_state['redirect'] = 'admin/settings/ip-blocking';
+  $form_state['redirect'] = 'admin/config/people/ip-blocking';
   return;
 }
 
@@ -1234,7 +1234,7 @@ function system_ip_blocking_delete(&$form_state, $iid) {
     '#type' => 'value',
     '#value' => $iid,
   );
-  return confirm_form($form, t('Are you sure you want to delete %ip?', array('%ip' => $iid['ip'])), 'admin/settings/ip-blocking', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
+  return confirm_form($form, t('Are you sure you want to delete %ip?', array('%ip' => $iid['ip'])), 'admin/config/people/ip-blocking', t('This action cannot be undone.'), t('Delete'), t('Cancel'));
 }
 
 /**
@@ -1247,7 +1247,7 @@ function system_ip_blocking_delete_submit($form, &$form_state) {
     ->execute();
   watchdog('user', 'Deleted %ip', array('%ip' => $blocked_ip['ip']));
   drupal_set_message(t('The IP address %ip was deleted.', array('%ip' => $blocked_ip['ip'])));
-  $form_state['redirect'] = 'admin/settings/ip-blocking';
+  $form_state['redirect'] = 'admin/config/people/ip-blocking';
 }
 
 /**
@@ -1839,7 +1839,7 @@ function system_clean_url_settings() {
     $available = TRUE;
   }
   else {
-    $request = drupal_http_request($base_url . '/admin/settings/clean-urls/check');
+    $request = drupal_http_request($base_url . '/admin/config/search/clean-urls/check');
     if (isset($request->code) && $request->code == 200) {
       $available = TRUE;
     }
@@ -1859,7 +1859,7 @@ function system_clean_url_settings() {
   else {
     drupal_add_js(drupal_get_path('module', 'system') . '/system.js');
 
-    $form['#redirect'] = $base_url . '/admin/settings/clean-urls';
+    $form['#redirect'] = $base_url . '/admin/config/search/clean-urls';
     $form['clean_url_description'] = array(
       '#type' => 'markup',
       '#markup' => '<p>' . t('Use URLs like <code>example.com/user</code> instead of <code>example.com/?q=user</code>.') . ' ' . t('If you are directed to a <em>Page not found (404)</em> error after testing for clean URLs, see the <a href="@handbook">online handbook</a>.', array('@handbook' => 'http://drupal.org/node/15365')) . '</p>',
@@ -1955,7 +1955,7 @@ function system_batch_page() {
  */
 function theme_admin_block($block) {
   // Don't display the block if it has no content to display.
-  if (!$block['show']) {
+  if (empty($block['show'])) {
     return '';
   }
 
@@ -2080,6 +2080,7 @@ function theme_system_admin_by_module($menu_items) {
       $block['title'] = $module;
       $block['content'] = theme('item_list', $items);
       $block['description'] = t($description);
+      $block['show'] = TRUE;
 
       if ($block_output = theme('admin_block', $block)) {
         if (!isset($block['position'])) {
