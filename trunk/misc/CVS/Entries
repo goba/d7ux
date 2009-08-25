@@ -2,7 +2,6 @@
 /batch.js/1.9/Mon Apr 27 20:19:35 2009//
 /collapse.js/1.23/Mon Apr 27 20:19:35 2009//
 /favicon.ico/1.3/Mon Sep 17 08:41:57 2007/-kb/
-/form.js/1.9/Mon Apr 27 20:19:35 2009//
 /jquery.form.js/1.4/Sun Mar  8 03:16:26 2009//
 /menu-expanded.png/1.1/Sun Jun 20 20:04:27 2004/-kb/
 /print-rtl.css/1.1/Sun Jun 10 08:55:55 2007//
@@ -16,7 +15,6 @@
 /timezone.js/1.6/Mon Apr 27 20:19:35 2009//
 /vertical-tabs-rtl.css/1.2/Tue May 19 06:03:25 2009//
 /vertical-tabs.css/1.6/Sun May 31 00:51:41 2009//
-/vertical-tabs.js/1.5/Sun May 31 00:51:41 2009//
 D/ui////
 /jquery.cookie.js/1.1/Wed Jul  1 12:16:48 2009//
 /jquery.js/1.17/Wed Jul  1 13:31:24 2009//
@@ -54,3 +52,5 @@ D/farbtastic////
 /watchdog-error.png/1.2/Mon Aug 24 08:57:02 2009/-kb/
 /watchdog-ok.png/1.2/Mon Aug 24 08:57:02 2009/-kb/
 /watchdog-warning.png/1.2/Mon Aug 24 08:57:02 2009/-kb/
+/form.js/1.10/Tue Aug 25 16:03:48 2009//
+/vertical-tabs.js/1.6/Tue Aug 25 16:03:48 2009//
