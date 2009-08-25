@@ -134,10 +134,10 @@ class BlockTestCase extends DrupalWebTestCase {
    * Test configuring and moving a module-define block to specific regions.
    */
   function testBlock() {
-    // Select the Powered-by block to be configured and moved.
+    // Select the Management block to be configured and moved.
     $block = array();
     $block['module'] = 'system';
-    $block['delta'] = 'powered-by';
+    $block['delta'] = 'management';
     $block['title'] = $this->randomName(8);
 
     // Set block title to confirm that interface works and override any custom titles.

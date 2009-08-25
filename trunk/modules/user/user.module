@@ -3060,6 +3060,7 @@ function user_modules_installed($modules) {
   }
 }
 
+
 /**
  * Implement hook_modules_uninstalled().
  */
