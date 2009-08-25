@@ -378,12 +378,6 @@ function node_admin_content($form_state) {
   $form[] = node_filter_form();
   $form['#submit'][] = 'node_filter_form_submit';
   $form['#theme'] = 'node_filter_form';
-
-  $form['#accordion'] = array(
-    'table' => '#node-admin-nodes-table',
-    'links' => '.node-operations',
-  );
-
   $form['admin'] = node_admin_nodes();
 
   return $form;
@@ -449,10 +443,8 @@ function node_admin_nodes() {
 
   $languages = language_list();
   $destination = drupal_get_destination();
-  $i = 0;
   $nodes = array();
   foreach ($result as $node) {
-    $i++;
     $nodes[$node->nid] = '';
     $options = empty($node->language) ? array() : array('language' => $languages[$node->language]);
     // Set a class to flag to the overlay, if present, not to open the link in
@@ -466,12 +458,7 @@ function node_admin_nodes() {
     if ($multilanguage) {
       $form['language'][$node->nid] = array('#markup' => empty($node->language) ? t('Language neutral') : t($languages[$node->language]->name));
     }
-    $form['operations'][$node->nid] = array('#prefix' => '<div class="node-operations" id="node-accordion-' . $i . '">', '#suffix' => '</div>');
-    $form['operations'][$node->nid]['edit'] = array(
-      '#markup' => l(t('edit'), 'node/' . $node->nid . '/edit', array('query' => $destination, 'attributes' => array('id' => 'node-edit-' . $node->nid))),
-      '#prefix' => '<div class="option">',
-      '#suffix' => '</div>',
-    );
+    $form['operations'][$node->nid] = array('#markup' => l(t('edit'), 'node/' . $node->nid . '/edit', array('query' => $destination)));
   }
   $form['nodes'] = array(
     '#type' => 'checkboxes',
@@ -560,7 +547,7 @@ function theme_node_admin_nodes($form) {
     );
   }
 
-  $output .= theme('table', $header, $rows, array('id' => 'node-admin-nodes-table'));
+  $output .= theme('table', $header, $rows);
 
   if ($form['pager']['#markup']) {
     $output .= drupal_render($form['pager']);

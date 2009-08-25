@@ -3040,24 +3040,6 @@ function _user_forms(&$edit, $account, $category, $hook = 'form') {
 }
 
 /**
- * Implement hook_inline_edit_callback().
- */
-function user_inline_edit_callback($op, $uid) {
-  $user = user_load($uid);
-  if (empty($user) || empty($user->uid) || empty($uid)) {
-    return;
-  }
-  $output = '';
-  if ($op == 'edit' && drupal_function_exists('user_edit')) {
-    $output = drupal_render(user_edit($user, 'account'));
-  }
-  elseif ($op == 'cancel') {
-    $output = drupal_render(drupal_get_form('user_cancel_confirm_form', $user));
-  }
-  return $output;
-}
-
-/**
  * Implementation of hook_modules_installed().
  */
 function user_modules_installed($modules) {

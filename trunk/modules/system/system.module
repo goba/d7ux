@@ -274,7 +274,7 @@ function system_elements() {
   $type['form'] = array(
     '#method' => 'post',
     '#action' => request_uri(),
-    '#process' => array('form_expand_horizontal_tabs', 'form_add_accordion'),
+    '#process' => array('form_expand_horizontal_tabs'),
     '#theme_wrappers' => array('form'),
   );
 
@@ -919,13 +919,6 @@ function system_menu() {
     'access arguments' => array('administer site configuration'),
     'type' => MENU_CALLBACK,
     'file' => 'system.admin.inc',
-  );
-  // Dispatcher for inline editing.
-  $items['edit/inline'] = array(
-    'title' => 'Edit stuff',
-    'page callback' => 'edit_inline',
-    'access arguments' => array('administer site configuration'),
-    'type' => MENU_CALLBACK,
   );
   // Default page for batch operations.
   $items['batch'] = array(
@@ -2322,7 +2315,7 @@ function confirm_form($form, $question, $path, $description = NULL, $yes = NULL,
     $fragment = isset($path['fragment']) ? $path['fragment'] : NULL;
     $path = isset($path['path']) ? $path['path'] : NULL;
   }
-  $cancel = l($no ? $no : t('Cancel'), $path, array('query' => $query, 'fragment' => $fragment, 'attributes' => array('class' => 'cancel-link')));
+  $cancel = l($no ? $no : t('Cancel'), $path, array('query' => $query, 'fragment' => $fragment));
 
   drupal_set_title($question, PASS_THROUGH);
 
