@@ -1,5 +1,5 @@
 <?php
-// $Id: system.module,v 1.771 2009/08/25 10:07:19 dries Exp $
+// $Id: system.module,v 1.777 2009/08/26 10:53:45 dries Exp $
 
 /**
  * @file
@@ -107,7 +107,7 @@ function system_help($path, $arg) {
     case 'admin/by-module':
       return '<p>' . t('This page shows you all available administration tasks for each module.') . '</p>';
     case 'admin/appearance':
-      $output = '<p>' . t('Select which themes are available to your users and specify the default theme. To configure site-wide display settings, click the "configure" task above. Alternatively, to override these settings in a specific theme, click the "configure" link for that theme. Note that different themes may have different regions available for displaying content; for consistency in presentation, you may wish to enable only one theme.') . '</p>';
+      $output = '<p>' . t('Select the default theme for Drupal. To configure site-wide display settings, click the "configure" task above. Alternatively, to override these settings in a specific theme, click the "configure" link for that theme. Note that different themes may have different regions available for displaying content.') . '</p>';
       $output .= '<p>' . t('To change the appearance of your site, a number of <a href="@themes">contributed themes</a> are available.', array('@themes' => 'http://drupal.org/project/themes')) . '</p>';
       return $output;
     case 'admin/appearance/settings/' . $arg[4]:
@@ -236,10 +236,6 @@ function system_permission() {
       'title' => t('Access site reports'),
       'description' => t('View reports from system logs and other status information.'),
     ),
-    'select different theme' => array(
-      'title' => t('Select different theme'),
-      'description' => t('Select a theme other than the default theme set by the site administrator.'),
-    ),
     'block IP addresses' => array(
       'title' => t('Block IP addresses'),
       'description' => t('Block IP addresses from accessing your site.'),
@@ -267,6 +263,22 @@ function system_rdf_namespaces() {
 }
 
 /**
+ * Implement hook_entity_info().
+ */
+function system_entity_info() {
+  return array(
+    'file' => array(
+      'label' => t('File'),
+      'base table' => 'file',
+      'object keys' => array(
+        'id' => 'fid',
+      ),
+      'static cache' => FALSE,
+    ),
+  );
+}
+
+/**
  * Implement hook_elements().
  */
 function system_elements() {
@@ -280,7 +292,6 @@ function system_elements() {
 
   $type['page'] = array(
     '#show_messages' => TRUE,
-    '#show_blocks' => TRUE,
     '#theme' => 'page',
   );
 
@@ -810,15 +821,7 @@ function system_menu() {
     'access arguments' => array('administer site configuration'),
     'file' => 'system.admin.inc',
   );
-  $items['admin/settings/performance'] = array(
-    'title' => 'Performance',
-    'description' => 'Enable or disable page caching for anonymous users and set CSS and JS bandwidth optimization options.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('system_performance_settings'),
-    'access arguments' => array('administer site configuration'),
-    'file' => 'system.admin.inc',
-  );
-    $items['admin/config/development/logging'] = array(
+  $items['admin/config/development/logging'] = array(
     'title' => 'Logging and errors',
     'description' => "Settings for logging and alerts modules. Various modules can route Drupal's system events to different destinations, such as syslog, database, email, etc.",
     'page callback' => 'drupal_get_form',
@@ -951,6 +954,19 @@ function system_library() {
     'version' => '2.16',
     'js' => array(
       'misc/jquery.form.js' => array(),
+    ),
+  );
+
+  // Vertical Tabs.
+  $libraries['vertical-tabs'] = array(
+    'title' => 'Vertical Tabs',
+    'website' => 'http://drupal.org/node/323112',
+    'version' => '1.0',
+    'js' => array(
+      'misc/vertical-tabs.js' => array(),
+    ),
+    'css' => array(
+      'misc/vertical-tabs.css' => array(),
     ),
   );
 
@@ -2213,7 +2229,8 @@ function _system_settings_form_automatic_defaults($form) {
  * @param $form
  *   An associative array containing the structure of the form.
  * @param $automatic_defaults
- *   Automatically load the saved values for each field from the system variables (defaults to TRUE).
+ *   Automatically load the saved values for each field from the system variables
+ *   (defaults to TRUE).
  * @return
  *   The form structure.
  */

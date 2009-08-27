@@ -1,5 +1,5 @@
 <?php
-// $Id: field_test.module,v 1.16 2009/08/22 00:58:54 webchick Exp $
+// $Id: field_test.module,v 1.19 2009/08/27 00:33:52 webchick Exp $
 
 define('FIELD_TEST_ELEMENT_ID', 1);
 define('FIELD_TEST_BUNDLE', 'test_bundle');
@@ -60,7 +60,7 @@ function field_test_menu() {
 /**
  * Define a test fieldable entity.
  */
-function field_test_fieldable_info() {
+function field_test_entity_info() {
   $bundles = variable_get('field_test_bundles', array('test_bundle' => array('label' => 'Test Bundle')));
   return array(
     'test_entity' => array(
@@ -72,6 +72,7 @@ function field_test_fieldable_info() {
       ),
       'cacheable' => FALSE,
       'bundles' => $bundles,
+      'fieldable' => TRUE,
     ),
     // This entity type doesn't get form handling for now...
     'test_cacheable_entity' => array(
@@ -81,6 +82,7 @@ function field_test_fieldable_info() {
         'revision' => 'ftvid',
         'bundle' => 'fttype',
       ),
+      'fieldable' => TRUE,
       'cacheable' => TRUE,
       'bundles' => $bundles,
     ),
@@ -493,7 +495,7 @@ function field_test_field_widget_info() {
  * @return
  *   the form item for a single element for this field
  */
-function field_test_field_widget(&$form, &$form_state, $field, $instance, $items, $delta = 0) {
+function field_test_field_widget(&$form, &$form_state, $field, $instance, $langcode, $items, $delta = 0) {
   $element = array(
     'value' => array(
       '#title' => $instance['label'],
@@ -669,7 +671,7 @@ function field_test_fieldable_info_translatable($obj_type = NULL, $translatable 
  *   for that key.
  */
 function field_test_memorize($key = NULL, $value = NULL) {
-  $memorize =& drupal_static(__FUNCTION__, NULL);
+  $memorize = &drupal_static(__FUNCTION__, NULL);
 
   if (is_null($key)) {
     $ret = $memorize;
