@@ -1,0 +1,3 @@
+Overlay patch from http://drupal.org/node/517688#comment-2024872
+with images from http://drupal.org/node/517688#comment-2024878
+

@@ -1,0 +1,285 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Displays the Drupal administration interface in an overlay.
+ */
+
+/**
+ * Displaying an overlay parent window.
+ */
+define('OVERLAY_PARENT', 0);
+
+/**
+ * Displaying an overlay child window.
+ */
+define('OVERLAY_CHILD', 1);
+
+/**
+ * Implement hook_init().
+ */
+function overlay_init() {
+  global $custom_theme;
+  // Only act if the user has access to administration pages. Other modules can
+  // also enable the overlay directly for other uses of the JavaScript.
+  if (user_access('access administration pages')) {
+    if (isset($_GET['render']) && $_GET['render'] == 'overlay') {
+      $admin_theme = variable_get('admin_theme', 0);
+      if ($custom_theme != $admin_theme) {
+        // If system module did not switch the theme yet (i.e. this is not an
+        // admin page, per se), we should switch the theme here.
+        $custom_theme = $admin_theme;
+        drupal_add_css(drupal_get_path('module', 'system') . '/admin.css');
+      }
+      overlay_mode(OVERLAY_CHILD);
+    }
+    else {
+      // Otherwise add overlay parent code and our behavior.
+      overlay_mode(OVERLAY_PARENT);
+    }
+  }
+}
+
+/**
+ * Implement hook_elements().
+ */
+function overlay_elements() {
+  $types = array();
+  foreach (array('submit', 'button', 'image_button', 'form') as $type) {
+    $types[$type]['#after_build'][] = 'overlay_form_after_build';
+  }
+  return $types;
+}
+
+/**
+ * Implement hook_drupal_goto_alter().
+ */
+function overlay_drupal_goto_alter(&$args) {
+  if (overlay_mode() == OVERLAY_CHILD) {
+    if (!empty($args['query'])) {
+      if (is_array($args['query'])) {
+        // Query is an array, add our marker as a key.
+        $args['query']['render'] = 'overlay';
+      }
+      else {
+        // Query is not an array, add our marker as string.
+        $args['query'] .= '&render=overlay';
+      }
+    }
+    else {
+      $args['query'] = array('render' => 'overlay');
+    }
+  }
+}
+
+/**
+ * Implement hook_block_info_alter().
+ */
+function overlay_block_info_alter(&$blocks) {
+  if (overlay_mode() == OVERLAY_CHILD) {
+    // Don't show any blocks except the main page content and the help text if
+    // we're in the overlay.
+    foreach ($blocks as $bid => $block) {
+      if (!($block->module == 'system' && in_array($block->delta, array('main', 'help')))) {
+        unset($blocks[$bid]);  
+      }
+    }
+  }
+}
+
+/**
+ * Preprocess template variables for page.tpl.php.
+ */
+function overlay_preprocess_page(&$variables) {
+  if (overlay_mode() == OVERLAY_CHILD) {
+    // Add overlay class, so themes can react to being displayed in the overlay.
+    $variables['classes_array'][] = 'overlay';
+    // Do not include site name or slogan in the overlay title.
+    $variables['head_title'] = drupal_get_title();
+    // Remove 'Home' from the breadcrumbs and add the current page title at the end.
+    $overlay_breadcrumb = drupal_get_breadcrumb();
+    array_shift($overlay_breadcrumb);
+    if ($overlay_breadcrumb) {
+      $overlay_breadcrumb[] = $variables['title'];
+    }
+    $variables['breadcrumb'] = theme('breadcrumb', $overlay_breadcrumb);
+  }
+}
+
+/**
+ * Form after build callback.
+ *
+ * Ok, all hook_form_alter() have been processed. Now, if someone has enabled
+ * the global variable $GLOBALS['overlay_page_template'], then we want to
+ * scan the form structure in search of elements with submit handlers.
+ *
+ * @see _form_builder_handle_input_element()
+ * @see _form_builder_ie_cleanup()
+ * @see form_execute_handlers()
+ * @see form_builder()
+ *
+ * @ingroup forms
+ */
+function overlay_form_after_build($form, &$form_state) {
+  if (isset($_GET['render']) && $_GET['render'] == 'overlay') {
+    // Form API may have already captured submit handlers from the submitted
+    // button before after_build callback is invoked. This may have been done
+    // by _form_builder_handle_input_element().
+    // If so, the list of submit handlers is stored in the $form_state array
+    // which is something we can also alter from here, luckily.
+    // Rememeber: our goal here is set $form_state['redirect'] is set to FALSE
+    // if the API overlay_close_dialog() has been invoked. That's because we
+    // want to tell the parent window to close the overlay.
+    if (!empty($form_state['submit_handlers']) && !in_array('overlay_form_submit', $form_state['submit_handlers'])) {
+      $form_state['submit_handlers'][] = 'overlay_form_submit';
+    }
+    // If this element has submit handlers, then append our own.
+    if (isset($form['#submit'])) {
+      $form['#submit'][] = 'overlay_form_submit';
+    }
+  }
+  return $form;
+}
+
+/**
+ * Implement hook_node_insert().
+ */
+function overlay_node_insert($node) {
+  // If we are within the overlay, close the dialog. This cannot be done within
+  // hook_form_alter() because the node module forces the submit handlers to
+  // run before the node form submit handler, so the node would not be saved if
+  // the overlay forced the page to print and close the overlay and redirect
+  // early.
+  if (overlay_mode() == OVERLAY_CHILD) {
+    overlay_close_dialog(TRUE);
+  }
+}
+
+/**
+ * Implement hook_node_update().
+ */
+function overlay_node_update($node) {
+  // If we are within the overlay, close the dialog. This cannot be done within
+  // hook_form_alter() because the node module forces the submit handlers to
+  // run before the node form submit handler, so the node would not be saved if
+  // the overlay forced the page to print and close the overlay and redirect
+  // early.
+  if (overlay_mode() == OVERLAY_CHILD) {
+    overlay_close_dialog(TRUE);
+  }
+}
+
+/**
+ * Generic form submit handler.
+ *
+ * When we are requested to close an overlay, we don't want Form API to
+ * perform any redirection once the submitted form has been processed.
+ *
+ * When $form_state['redirect'] is set to FALSE, then Form API will simply
+ * re-render the form with the values still in its fields. And this is all
+ * we need to output the JavaScript that will tell the parent window to close
+ * the child dialog.
+ *
+ * @ingroup forms
+ */
+function overlay_form_submit($form, &$form_state) {
+  // Close the overlay only if specifically requested.
+  if (overlay_close_dialog()) {
+    $settings = array(
+      'overlayChild' => array(
+        'closeOverlay' => TRUE,
+        'statusMessages' => theme('status_messages'),
+        'redirect' => $form_state['redirect'] ? url($form_state['redirect']) : $form_state['redirect'],
+      ),
+    );
+    drupal_add_js($settings, array('type' => 'setting'));
+    // Print the page with no content to avoid a flash of the reloaded page in
+    // the overlay.
+    print drupal_render_page('');
+    drupal_page_footer();
+    exit();
+  }
+}
+
+/**
+ * Set overlay mode and add proper JavaScript and styles to the page.
+ *
+ * @param $mode
+ *   To set the mode, pass in an overlay constant, either OVERLAY_PARENT or
+ *   OVERLAY_CHILD. OVERLAY_PARENT is used in the context of a parent overlay
+ *   window, where the overlay may appear, and JavaScript is added accordingly
+ *   to present an overlay dialog. OVERLAY_CHILD is used in the context of the
+ *   child overlay window, the one actually appearing within the overlay, and
+ *   certain JavaScript and CSS is added so that Drupal behaves nicely from
+ *   within the overlay. This parameter is optional, and if omitted, the
+ *   current mode will be returned with no action taken.
+ * @return
+ *   The current mode, if any has been set, or NULL if no mode has been set.
+ * @ingroup overlay_api
+ */
+function overlay_mode($mode = NULL) {
+  global $base_path;
+  $overlay_mode = &drupal_static(__FUNCTION__);
+
+  // Make sure external resources are not included more than once. Also return
+  // current mode, if no mode was specified.
+  if (isset($overlay_mode) || !isset($mode)) {
+    return $overlay_mode;
+  }
+  $overlay_mode = $mode;
+  $module_path = drupal_get_path('module', 'overlay');
+
+  switch ($mode) {
+    case OVERLAY_PARENT:
+      // Add required jQuery UI elements. Note that we don't use
+      // drupal_add_library() here, since we have no use for the CSS files added
+      // by the library.
+      drupal_add_js('misc/ui/ui.core.js', array('weight' => JS_LIBRARY + 5));
+      drupal_add_js('misc/ui/ui.dialog.js', array('weight' => JS_LIBRARY + 6));
+
+      drupal_add_css($module_path . '/overlay-parent.css');
+      drupal_add_js($module_path . '/overlay-parent.js');
+
+      // Allow modules to act upon overlay events.
+      module_invoke_all('overlay_parent_initialize');
+      break;
+
+    case OVERLAY_CHILD:
+      // Disable admin toolbar, which is something child windows don't need and
+      // shouldn't have.
+      if (module_exists('toolbar')) {
+        toolbar_enabled(FALSE);
+      }
+
+      // This is required to get access to jQuery UI extensions to jQuery itself,
+      // such as the ':focusable' and ':tabbable' selectors. No need for the whole
+      // library, so not using drupal_add_library().
+      drupal_add_js('misc/ui/ui.core.js', array('weight' => JS_LIBRARY + 5));
+
+      // Add JavaScript to the child page.
+      drupal_add_js($module_path . '/overlay-child.js');
+
+      // Allow modules to act upon overlay events.
+      module_invoke_all('overlay_child_initialize');
+      break;
+  }
+  return $overlay_mode;
+}
+
+/**
+ * Callback to close the overlay dialog.
+ *
+ * @param $set
+ *   If set, will set the current close dialog mode to the given boolean.
+ * @return
+ *   The current overlay close dialog mode, TRUE if the overlay should close or
+ *   FALSE if it should not (default).
+ */
+function overlay_close_dialog($set = NULL) {
+  $close = &drupal_static(__FUNCTION__, FALSE);
+  if (isset($set)) {
+    $close = $set;
+  }
+  return $close;
+}
