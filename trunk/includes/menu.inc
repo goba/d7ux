@@ -1,5 +1,5 @@
 <?php
-// $Id: menu.inc,v 1.341 2009/08/24 01:49:41 webchick Exp $
+// $Id: menu.inc,v 1.343 2009/09/11 01:28:34 webchick Exp $
 
 /**
  * @file
@@ -781,7 +781,7 @@ function menu_get_object($type = 'node', $position = 1, $path = NULL) {
 }
 
 /**
- * Returns a menu tree based on the current path.
+ * Render a menu tree based on the current path.
  *
  * The tree is expanded based on the current path and dynamic paths are also
  * changed according to the defined to_arg functions (for example the 'My account'
@@ -790,30 +790,28 @@ function menu_get_object($type = 'node', $position = 1, $path = NULL) {
  * @param $menu_name
  *   The name of the menu.
  * @return
- *   An array representing the menu on the current page, suitable for
- *   rendering with drupal_render().
+ *   The rendered HTML of that menu on the current page.
  */
 function menu_tree($menu_name) {
-  $menu_tree = &drupal_static(__FUNCTION__, array());
+  $menu_output = &drupal_static(__FUNCTION__, array());
 
-  if (!isset($menu_tree[$menu_name])) {
+  if (!isset($menu_output[$menu_name])) {
     $tree = menu_tree_page_data($menu_name);
-    $menu_tree[$menu_name] = menu_tree_unrendered($tree);
+    $menu_output[$menu_name] = menu_tree_output($tree);
   }
-  return $menu_tree[$menu_name];
+  return $menu_output[$menu_name];
 }
 
 /**
- * Returns an array representing a menu, suitable for rendering.
+ * Returns a rendered menu tree.
  *
  * @param $tree
  *   A data structure representing the tree as returned from menu_tree_data.
  * @return
- *  A structured array representing the menu, suitable for rendering with
- *  drupal_render().
+ *   The rendered HTML of that data structure.
  */
-function menu_tree_unrendered($tree) {
-  $content = '';
+function menu_tree_output($tree) {
+  $output = '';
   $items = array();
 
   // Pull out just the menu items we are going to render so that we
@@ -836,28 +834,13 @@ function menu_tree_unrendered($tree) {
     $extra_class = implode(' ', $extra_class);
     $link = theme('menu_item_link', $data['link']);
     if ($data['below']) {
-      $content .= theme('menu_item', $link, $data['link']['has_children'], menu_tree_output($data['below']), $data['link']['in_active_trail'], $extra_class);
+      $output .= theme('menu_item', $link, $data['link']['has_children'], menu_tree_output($data['below']), $data['link']['in_active_trail'], $extra_class);
     }
     else {
-      $content .= theme('menu_item', $link, $data['link']['has_children'], '', $data['link']['in_active_trail'], $extra_class);
+      $output .= theme('menu_item', $link, $data['link']['has_children'], '', $data['link']['in_active_trail'], $extra_class);
     }
   }
-  return array(
-    '#theme' => 'menu_tree',
-    '#menu' => $content,
-  );
-}
-
-/**
- * Returns a rendered menu tree.
- *
- * @param $tree
- *   A data structure representing the tree as returned from menu_tree_data.
- * @return
- *   The rendered HTML of that data structure.
- */
-function menu_tree_output($tree) {
-  return drupal_render(menu_tree_unrendered($tree));
+  return $output ? theme('menu_tree', $output) : '';
 }
 
 /**
@@ -1242,28 +1225,29 @@ function menu_tree_data(array $links, array $parents = array(), $depth = 1) {
  * the next menu link.
  */
 function _menu_tree_data(&$links, $parents, $depth) {
-  $done = FALSE;
   $tree = array();
-  while (!$done && $item = array_pop($links)) {
+  while ($item = array_pop($links)) {
     // We need to determine if we're on the path to root so we can later build
     // the correct active trail and breadcrumb.
     $item['in_active_trail'] = in_array($item['mlid'], $parents);
-    // Look ahead to the next link, but leave it on the array so it's available
-    // to other recursive function calls if we return or build a sub-tree.
-    $next = end($links);
     // Add the current link to the tree.
     $tree[$item['mlid']] = array(
       'link' => $item,
       'below' => array(),
     );
+    // Look ahead to the next link, but leave it on the array so it's available
+    // to other recursive function calls if we return or build a sub-tree.
+    $next = end($links);
     // Check whether the next link is the first in a new sub-tree.
     if ($next && $next['depth'] > $depth) {
       // Recursively call _menu_tree_data to build the sub-tree.
       $tree[$item['mlid']]['below'] = _menu_tree_data($links, $parents, $next['depth']);
+      // Fetch next link after filling the sub-tree.
+      $next = end($links);
     }
-    else {
-      // Determine if we should exit the loop and return.
-      $done = (!$next || $next['depth'] < $depth);
+    // Determine if we should exit the loop and return.
+    if (!$next || $next['depth'] < $depth) {
+      break;
     }
   }
   return $tree;
@@ -1288,7 +1272,7 @@ function theme_menu_item_link($link) {
  * @ingroup themeable
  */
 function theme_menu_tree($tree) {
-  return !empty($tree['#menu']) ? '<ul class="menu">' . $tree['#menu'] . '</ul>' : '';
+  return '<ul class="menu">' . $tree . '</ul>';
 }
 
 /**
@@ -1390,7 +1374,7 @@ function menu_get_names() {
   if (empty($names)) {
     $names = db_select('menu_links')
       ->distinct()
-      ->fields('menu_links', 'menu_name')
+      ->fields('menu_links', array('menu_name'))
       ->orderBy('menu_name')
       ->execute()->fetchCol();
   }

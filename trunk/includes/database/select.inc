@@ -1,5 +1,5 @@
 <?php
-// $Id: select.inc,v 1.20 2009/08/26 04:58:23 webchick Exp $
+// $Id: select.inc,v 1.23 2009/09/11 02:47:11 webchick Exp $
 
 /**
  * @ingroup database
@@ -35,7 +35,7 @@ interface QueryExtendableInterface {
 /**
  * Interface definition for a Select Query object.
  */
-interface SelectQueryInterface extends QueryConditionInterface, QueryAlterableInterface, QueryExtendableInterface {
+interface SelectQueryInterface extends QueryConditionInterface, QueryAlterableInterface, QueryExtendableInterface, QueryPlaceholderInterface {
 
   /* Alter accessors to expose the query data to alter hooks. */
 
@@ -112,12 +112,35 @@ interface SelectQueryInterface extends QueryConditionInterface, QueryAlterableIn
   public function &getTables();
 
   /**
+   * Returns a reference to the union queries for this query. This include
+   * queries for UNION, UNION ALL, and UNION DISTINCT.
+   *
+   * Because this method returns by reference, alter hooks may edit the tables
+   * array directly to make their changes. If just adding union queries,
+   * however, the use of the union() method is preferred.
+   *
+   * Note that this method must be called by reference as well:
+   *
+   * @code
+   * $fields =& $query->getUnion();
+   * @endcode
+   *
+   * @return
+   *   A reference to the union query array structure.
+   */
+  public function &getUnion();
+
+  /**
    * Compiles and returns an associative array of the arguments for this prepared statement.
+   *
+   * @param $queryPlaceholder
+   *   When collecting the arguments of a subquery, the main placeholder
+   *   object should be passed as this parameter.
    *
    * @return
    *   An associative array of all placeholder arguments for this query.
    */
-  public function getArguments();
+  public function getArguments(QueryPlaceholderInterface $queryPlaceholder = NULL);
 
   /* Query building operations */
 
@@ -325,6 +348,28 @@ interface SelectQueryInterface extends QueryConditionInterface, QueryAlterableIn
   public function orderBy($field, $direction = 'ASC');
 
   /**
+   * Orders the result set by a random value.
+   *
+   * This may be stacked with other orderBy() calls. If so, the query will order
+   * by each specified field, including this one, in the order called. Although
+   * this method may be called multiple times on the same query, doing so
+   * is not particularly useful.
+   *
+   * Note: The method used by most drivers may not scale to very large result
+   * sets. If you need to work with extremely large data sets, you may create
+   * your own database driver by subclassing off of an existing driver and
+   * implementing your own randomization mechanism. See
+   *
+   * http://jan.kneschke.de/projects/mysql/order-by-rand/
+   *
+   * for an example of such an alternate sorting mechanism.
+   *
+   * @return
+   *   The called object
+   */
+  public function orderRandom();
+
+  /**
    * Restricts a query to a given range in the result set.
    *
    * If this method is called with no parameters, will remove any range
@@ -339,6 +384,31 @@ interface SelectQueryInterface extends QueryConditionInterface, QueryAlterableIn
    *   The called object.
    */
   public function range($start = NULL, $length = NULL);
+
+  /**
+   * Add another Select query to UNION to this one.
+   *
+   * Union queries consist of two or more queries whose
+   * results are effectively concatenated together. Queries
+   * will be UNIONed in the order they are specified, with
+   * this object's query coming first. Duplicate columns will
+   * be discarded. All forms of UNION are supported, using
+   * the second '$type' argument.
+   *
+   * Note: All queries UNIONed together must have the same
+   * field structure, in the same order. It is up to the
+   * caller to ensure that they match properly. If they do
+   * not, an SQL syntax error will result.
+   *
+   * @param $query
+   *   The query to UNION to this query.
+   * @param $type
+   *   The type of UNION to add to the query. Defaults to plain
+   *   UNION.
+   * @return
+   *   The called object.
+   */
+  public function union(SelectQueryInterface $query, $type = '');
 
   /**
    * Groups the result set by the specified field.
@@ -400,10 +470,20 @@ class SelectQueryExtender implements SelectQueryInterface {
    */
   protected $connection;
 
+  /**
+   * The placeholder counter.
+   */
+  protected $placeholder = 0;
 
   public function __construct(SelectQueryInterface $query, DatabaseConnection $connection) {
     $this->query = $query;
     $this->connection = $connection;
+  }
+
+  /* Implementations of QueryPlaceholderInterface. */
+
+  public function nextPlaceholder() {
+    return $this->placeholder++;
   }
 
   /* Implementations of QueryAlterableInterface. */
@@ -454,8 +534,8 @@ class SelectQueryExtender implements SelectQueryInterface {
     return $this;
   }
 
-  public function compile(DatabaseConnection $connection) {
-    return $this->query->compile($connection);
+  public function compile(DatabaseConnection $connection, QueryPlaceholderInterface $queryPlaceholder = NULL) {
+    return $this->condition->compile($connection, isset($queryPlaceholder) ? $queryPlaceholder : $this);
   }
 
   /* Implmeentations of QueryConditionInterface for the HAVING clause. */
@@ -510,8 +590,12 @@ class SelectQueryExtender implements SelectQueryInterface {
     return $this->query->getTables();
   }
 
-  public function getArguments() {
-    return $this->query->getArguments();
+  public function &getUnion() {
+    return $this->query->getUnion();
+  }
+
+  public function getArguments(QueryPlaceholderInterface $queryPlaceholder = NULL) {
+    return $this->query->getArguments($queryPlaceholder);
   }
 
   public function isPrepared() {
@@ -581,8 +665,18 @@ class SelectQueryExtender implements SelectQueryInterface {
     return $this;
   }
 
+  public function orderRandom() {
+    $this->query->orderRandom();
+    return $this;
+  }
+
   public function range($start = NULL, $length = NULL) {
     $this->query->range($start, $length);
+    return $this;
+  }
+
+  public function union(SelectQueryInterface $query, $type = '') {
+    $this->query->union($query, $type);
     return $this;
   }
 
@@ -752,6 +846,19 @@ class SelectQuery extends Query implements SelectQueryInterface {
   protected $range;
 
   /**
+   * An array whose elements specify a query to UNION, and the UNION type. The
+   * 'type' key may be '', 'ALL', or 'DISTINCT' to represent a 'UNION',
+   * 'UNION ALL', or 'UNION DISTINCT' statement, respectively.
+   *
+   * All entries in this array will be applied from front to back, with the
+   * first query to union on the right of the original query, the second union
+   * to the right of the first, etc.
+   *
+   * @var array
+   */
+  protected $union = array();
+
+  /**
    * Indicates if preExecute() has already been called.
    * @var boolean
    */
@@ -826,9 +933,8 @@ class SelectQuery extends Query implements SelectQueryInterface {
     return $this;
   }
 
-
-  public function compile(DatabaseConnection $connection) {
-    return $this->where->compile($connection);
+  public function compile(DatabaseConnection $connection, QueryPlaceholderInterface $queryPlaceholder = NULL) {
+    return $this->where->compile($connection, isset($queryPlaceholder) ? $queryPlaceholder : $this);
   }
 
   /* Implmeentations of QueryConditionInterface for the HAVING clause. */
@@ -855,7 +961,7 @@ class SelectQuery extends Query implements SelectQueryInterface {
   }
 
   public function havingCompile(DatabaseConnection $connection) {
-    return $this->having->compile($connection);
+    return $this->having->compile($connection, $this);
   }
 
   /* Implementations of QueryExtendableInterface. */
@@ -897,23 +1003,38 @@ class SelectQuery extends Query implements SelectQueryInterface {
     return $this->tables;
   }
 
-  public function getArguments() {
-    $this->where->compile($this->connection);
-    $this->having->compile($this->connection);
+  public function &getUnion() {
+    return $this->union;
+  }
+
+  public function getArguments(QueryPlaceholderInterface $queryPlaceholder = NULL) {
+    if (!isset($queryPlaceholder)) {
+      $queryPlaceholder = $this;
+    }
+    $this->where->compile($this->connection, $queryPlaceholder);
+    $this->having->compile($this->connection, $queryPlaceholder);
     $args = $this->where->arguments() + $this->having->arguments();
+
     foreach ($this->tables as $table) {
       if ($table['arguments']) {
         $args += $table['arguments'];
       }
       // If this table is a subquery, grab its arguments recursively.
       if ($table['table'] instanceof SelectQueryInterface) {
-        $args += $table['table']->getArguments();
+        $args += $table['table']->getArguments($queryPlaceholder);
       }
     }
+
     foreach ($this->expressions as $expression) {
       if ($expression['arguments']) {
         $args += $expression['arguments'];
       }
+    }
+
+    // If there are any dependent queries to UNION,
+    // incorporate their arguments recursively.
+    foreach ($this->union as $union) {
+      $args += $union['query']->getArguments($queryPlaceholder);
     }
 
     return $args;
@@ -1088,8 +1209,36 @@ class SelectQuery extends Query implements SelectQueryInterface {
     return $this;
   }
 
+  public function orderRandom() {
+    $alias = $this->addExpression('RAND()', 'random_field');
+    $this->orderBy($alias);
+    return $this;
+  }
+
   public function range($start = NULL, $length = NULL) {
     $this->range = func_num_args() ? array('start' => $start, 'length' => $length) : array();
+    return $this;
+  }
+
+  public function union(SelectQueryInterface $query, $type = '') {
+    // Handle UNION aliasing.
+    switch ($type) {
+      // Fold UNION DISTINCT to UNION for better cross database support.
+      case 'DISTINCT':
+      case '':
+        $type = 'UNION';
+        break;
+      
+      case 'ALL':
+        $type = 'UNION ALL';
+      default:
+    }
+
+    $this->union[] = array(
+      'type' => $type,
+      'query' => $query,
+    );
+
     return $this;
   }
 
@@ -1179,7 +1328,7 @@ class SelectQuery extends Query implements SelectQueryInterface {
 
     // WHERE
     if (count($this->where)) {
-      $this->where->compile($this->connection);
+      $this->where->compile($this->connection, $this);
       // There is an implicit string cast on $this->condition.
       $query .= "\nWHERE " . $this->where;
     }
@@ -1191,7 +1340,7 @@ class SelectQuery extends Query implements SelectQueryInterface {
 
     // HAVING
     if (count($this->having)) {
-      $this->having->compile($this->connection);
+      $this->having->compile($this->connection, $this);
       // There is an implicit string cast on $this->having.
       $query .= "\nHAVING " . $this->having;
     }
@@ -1208,16 +1357,27 @@ class SelectQuery extends Query implements SelectQueryInterface {
 
     // RANGE is database specific, so we can't do it here.
 
+    // UNION is a little odd, as the select queries to combine are passed into
+    // this query, but syntactically they all end up on the same level.
+    if ($this->union) {
+      foreach ($this->union as $union) {
+        $query .= ' ' . $union['type'] . ' ' . (string) $union['query'];
+      }
+    }
+
     return $query;
   }
 
   public function __clone() {
-    // On cloning, also clone the conditional objects. However, we do not
+    // On cloning, also clone the dependent objects. However, we do not
     // want to clone the database connection object as that would duplicate the
     // connection itself.
 
     $this->where = clone($this->where);
     $this->having = clone($this->having);
+    foreach ($this->union as $key => $aggregate) {
+      $this->union[$key]['query'] = clone($aggregate['query']);
+    }
   }
 }
 

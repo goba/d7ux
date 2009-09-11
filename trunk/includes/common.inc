@@ -1,5 +1,5 @@
 <?php
-// $Id: common.inc,v 1.977 2009/08/26 15:00:17 dries Exp $
+// $Id: common.inc,v 1.987 2009/09/10 22:10:10 webchick Exp $
 
 /**
  * @file
@@ -75,6 +75,65 @@ define('JS_THEME', 100);
  * the specified timeout.
  */
 define('HTTP_REQUEST_TIMEOUT', 1);
+
+/**
+ * Constants defining cache granularity for blocks and renderable arrays.
+ *
+ * Modules specify the caching patterns for their blocks using binary
+ * combinations of these constants in their hook_block_info():
+ *   $block[delta]['cache'] = DRUPAL_CACHE_PER_ROLE | DRUPAL_CACHE_PER_PAGE;
+ * DRUPAL_CACHE_PER_ROLE is used as a default when no caching pattern is
+ * specified. Use DRUPAL_CACHE_CUSTOM to disable standard block cache and
+ * implement
+ *
+ * The block cache is cleared in cache_clear_all(), and uses the same clearing
+ * policy than page cache (node, comment, user, taxonomy added or updated...).
+ * Blocks requiring more fine-grained clearing might consider disabling the
+ * built-in block cache (DRUPAL_NO_CACHE) and roll their own.
+ *
+ * Note that user 1 is excluded from block caching.
+ */
+
+/**
+ * The block should not get cached. This setting should be used:
+ * - for simple blocks (notably those that do not perform any db query),
+ * where querying the db cache would be more expensive than directly generating
+ * the content.
+ * - for blocks that change too frequently.
+ */
+define('DRUPAL_NO_CACHE', -1);
+
+/**
+ * The block is handling its own caching in its hook_block_view(). From the
+ * perspective of the block cache system, this is equivalent to DRUPAL_NO_CACHE.
+ * Useful when time based expiration is needed or a site uses a node access
+ * which invalidates standard block cache.
+ */
+define('DRUPAL_CACHE_CUSTOM', -2);
+
+/**
+ * The block or element can change depending on the roles the user viewing the
+ * page belongs to. This is the default setting for blocks, used when the block
+ * does not specify anything.
+ */
+define('DRUPAL_CACHE_PER_ROLE', 0x0001);
+
+/**
+ * The block or element can change depending on the user viewing the page.
+ * This setting can be resource-consuming for sites with large number of users,
+ * and thus should only be used when DRUPAL_CACHE_PER_ROLE is not sufficient.
+ */
+define('DRUPAL_CACHE_PER_USER', 0x0002);
+
+/**
+ * The block or element can change depending on the page being viewed.
+ */
+define('DRUPAL_CACHE_PER_PAGE', 0x0004);
+
+/**
+ * The block or element is the same for every user on every page where it is visible.
+ */
+define('DRUPAL_CACHE_GLOBAL', 0x0008);
 
 /**
  * Add content to a specified region.
@@ -363,6 +422,14 @@ function drupal_goto($path = '', $query = NULL, $fragment = NULL, $http_response
   if (isset($_REQUEST['destination'])) {
     extract(parse_url(urldecode($_REQUEST['destination'])));
   }
+
+  $args = array(
+    'path' => &$path,
+    'query' => &$query,
+    'fragment' => &$fragment,
+    'http_response_code' => &$http_response_code,
+  );
+  drupal_alter('drupal_goto', $args);
 
   $url = url($path, array('query' => $query, 'fragment' => $fragment, 'absolute' => TRUE));
 
@@ -2088,6 +2155,11 @@ function _format_date_callback(array $matches = NULL, $new_langcode = NULL) {
  *   - 'language'
  *       An optional language object. Used to build the URL to link to and
  *       look up the proper alias for the link.
+ *   - 'https'
+ *       Whether this URL should point to a secure location. If not specified,
+ *       the current scheme is used, so the user stays on http or https
+ *       respectively. TRUE enforces HTTPS and FALSE enforces HTTP, but HTTPS
+ *       can only be enforced when the variable 'https' is set to TRUE.
  *   - 'base_url'
  *       Only used internally, to modify the base URL when a language dependent
  *       URL requires so.
@@ -2107,6 +2179,7 @@ function url($path = NULL, array $options = array()) {
     'query' => '',
     'absolute' => FALSE,
     'alias' => FALSE,
+    'https' => FALSE,
     'prefix' => ''
   );
   if (!isset($options['external'])) {
@@ -2144,7 +2217,7 @@ function url($path = NULL, array $options = array()) {
     return $path . $options['fragment'];
   }
 
-  global $base_url;
+  global $base_url, $base_secure_url, $base_insecure_url;
   $script = &drupal_static(__FUNCTION__);
 
   if (!isset($script)) {
@@ -2154,9 +2227,21 @@ function url($path = NULL, array $options = array()) {
     $script = (strpos($_SERVER['SERVER_SOFTWARE'], 'Apache') === FALSE) ? 'index.php' : '';
   }
 
+  // The base_url might be rewritten from the language rewrite in domain mode.
   if (!isset($options['base_url'])) {
-    // The base_url might be rewritten from the language rewrite in domain mode.
-    $options['base_url'] = $base_url;
+    if (isset($options['https']) && variable_get('https', FALSE)) {
+      if ($options['https'] === TRUE) {
+        $options['base_url'] = $base_secure_url;
+        $options['absolute'] = TRUE;
+      }
+      elseif ($options['https'] === FALSE) {
+        $options['base_url'] = $base_insecure_url;
+        $options['absolute'] = TRUE;
+      }
+    }
+    else {
+      $options['base_url'] = $base_url;
+    }
   }
 
   // Preserve the original path before aliasing.
@@ -2960,8 +3045,9 @@ function drupal_add_js($data = NULL, $options = NULL) {
           'preprocess' => TRUE,
         ),
       );
-      // jQuery itself is registered as a library.
+      // Register all required libraries.
       drupal_add_library('system', 'jquery');
+      drupal_add_library('system', 'once');
     }
 
     switch ($options['type']) {
@@ -3097,7 +3183,7 @@ function drupal_get_js($scope = 'header', $javascript = NULL) {
 
       case 'external':
         // Preprocessing for external JavaScript files is ignored.
-        $output .= '<script type="text/javascript"' . ($item['defer'] ? ' defer="defer"' : '') . ' src="' . $item['data'] . "\"></script>\n";
+        $output .= '<script type="text/javascript"' . ($item['defer'] ? ' defer="defer"' : '') . ' src="' . check_plain($item['data']) . "\"></script>\n";
         break;
     }
   }
@@ -3117,14 +3203,31 @@ function drupal_get_js($scope = 'header', $javascript = NULL) {
 }
 
 /**
- * Adds all the attached libraries, JavaScript and CSS to the page.
+ * Add to the page all structures attached to a render() structure.
  *
- * @param $libraries
- *   An array of depending libraries to be added.
- * @param $js
- *   An array of JavaScript components to add.
- * @param $css
- *   An array of cascading stylesheets to add.
+ * Libraries, JavaScript, CSS and other types of custom structures are attached
+ * to elements using the #attached property. The #attached property contains an
+ * associative array, where the keys are the the types of the structure, and
+ * the value the attached data. For example:
+ * @code
+ * $build['#attached'] = array(
+ *   'js' => array(drupal_get_path('module', 'taxonomy') . '/taxonomy.js'),
+ *   'css' => array(drupal_get_path('module', 'taxonomy') . '/taxonomy.css'),
+ * );
+ * @endcode
+ *
+ * 'js', 'css', and 'library' are types that get special handling.  For any
+ * other kind of attached data, the array key must be the full name of the
+ * callback function and each value an array of arguments. For example:
+ *
+ * @code
+ * $build['#attached']['drupal_set_header'] = array(
+ *   array('Content-Type', 'application/rss+xml; charset=utf-8'),
+ * );
+ * @endcode
+ *
+ * @param $elements
+ *   The structured array describing the data being rendered.
  * @param $weight
  *   The default weight of JavaScript and CSS being added. This is only applied
  *   to the stylesheets and JavaScript items that don't have an explicit weight
@@ -3137,12 +3240,26 @@ function drupal_get_js($scope = 'header', $javascript = NULL) {
  *   Will return FALSE if there were any missing library dependencies. TRUE will
  *   be returned if all library dependencies were met.
  *
- * @see drupal_add_library(), drupal_render()
+ * @see drupal_add_library().
+ * @see drupal_add_js().
+ * @see drupal_add_css().
+ * @see drupal_render().
  */
-function drupal_process_attached(array $libraries = array(), array $js = array(), array $css = array(), $weight = JS_DEFAULT, $dependency_check = FALSE) {
+function drupal_process_attached($elements, $weight = JS_DEFAULT, $dependency_check = FALSE) {
+  // If there is nothing to process then return. 
+  if (empty($elements['#attached'])) {
+    return;
+  }
+  // Add defaults to the special attached structures that should be processed differently.
+  $elements['#attached'] += array(
+    'library' => array(),
+    'js' => array(),
+    'css' => array(),
+  );
+
   // Add the libraries first.
   $success = TRUE;
-  foreach ($libraries as $library) {
+  foreach ($elements['#attached']['library'] as $library) {
     if (drupal_add_library($library[0], $library[1]) === FALSE) {
       $success = FALSE;
       // Exit if the dependency is missing.
@@ -3151,10 +3268,13 @@ function drupal_process_attached(array $libraries = array(), array $js = array()
       }
     }
   }
+  unset($elements['#attached']['library']);
 
   // Add both the JavaScript and the CSS.
-  foreach (array('js' => $js, 'css' => $css) as $type => $items) {
-    foreach ($items as $data => $options) {
+  // The parameters for drupal_add_js() and drupal_add_css() require special
+  // handling.
+  foreach (array('js', 'css') as $type) {
+    foreach ($elements['#attached'][$type] as $data => $options) {
       // If the value is not an array, it's a filename and passed as first
       // (and only) argument.
       if (!is_array($options)) {
@@ -3173,7 +3293,20 @@ function drupal_process_attached(array $libraries = array(), array $js = array()
       }
       call_user_func('drupal_add_' . $type, $data, $options);
     }
+    unset($elements['#attached'][$type]);
   }
+
+  // Add additional types of attachments specified in the render() structure.
+  // Libraries, Javascript and CSS have been added already, as they require
+  // special handling.
+  foreach ($elements['#attached'] as $callback => $options) {
+    if (function_exists($callback)) {
+      foreach ($elements['#attached'][$callback] as $args) {
+        call_user_func_array($callback, $args);
+      }
+    }
+  }
+
   return $success;
 }
 
@@ -3206,7 +3339,12 @@ function drupal_add_library($module, $name) {
   if (!isset($added[$module][$name])) {
     if ($library = drupal_get_library($module, $name)) {
       // Add all components within the library.
-      $added[$module][$name] = drupal_process_attached($library['dependencies'], $library['js'], $library['css'], JS_LIBRARY, TRUE);
+      $elements['#attached'] = array(
+        'library' => $library['dependencies'],
+        'js' => $library['js'],
+        'css' => $library['css'],
+      );
+      $added[$module][$name] = drupal_process_attached($elements, JS_LIBRARY, TRUE);
     }
     else {
       // Requested library does not exist.
@@ -3903,6 +4041,12 @@ function drupal_render_page($page) {
     drupal_set_page_content($page);
     $page = element_info('page');
   }
+
+  // Modules can add elements to $page as needed in hook_page_build().
+  foreach (module_implements('page_build') as $module) {
+    $function = $module . '_page_build';
+    $function($page);
+  }
   // Modules alter the $page as needed. Blocks are populated into regions like
   // 'sidebar_first', 'footer', etc.
   drupal_alter('page', $page);
@@ -3940,6 +4084,24 @@ function drupal_render_page($page) {
  * the placement of the form's children while not at all having to deal with
  * the form markup itself.
  *
+ * drupal_render() can optionally cache the rendered output of elements to
+ * improve performance. To use drupal_render() caching, set the element's #cache
+ * property to an associative array with one or several of the following keys:
+ *    - 'keys': An array of one or more keys that identify the element. If 'keys'
+ *       is set, the cache ID is created automatically from these keys.
+ *       @see drupal_render_cid_create()
+ *    - 'granularity' (optional): Define the cache granularity using binary
+ *       combinations of the cache granularity constants, e.g. DRUPAL_CACHE_PER_USER
+ *       to cache for each user seperately or
+ *       DRUPAL_CACHE_PER_PAGE | DRUPAL_CACHE_PER_ROLE to cache seperately for each
+ *       page and role. If not specified the element is cached globally for each
+ *       theme and language.
+ *    - 'cid': Specify the cache ID directly. Either 'keys' or 'cid' is required.
+ *       If 'cid' is set, 'keys' and 'granularity' are ignored. Use only if you
+ *       have special requirements.
+ *    - 'expire': Set to one of the cache lifetime constants.
+ *    - 'bin': Specify a cache bin to cache the element in. Defaults to 'cache'.
+ *
  * This function is usually called from within another function, like
  * drupal_get_form() or a theme function. Elements are sorted internally
  * using uasort(). Since this is expensive, when passing already sorted
@@ -3963,6 +4125,11 @@ function drupal_render(&$elements) {
     return;
   }
 
+  // Try to fetch the element's markup from cache and return.
+  if ($cached_output = drupal_render_cache_get($elements)) {
+    return $cached_output;
+  }
+
   // If the default values for this element have not been loaded yet, populate
   // them.
   if (isset($elements['#type']) && empty($elements['#defaults_loaded'])) {
@@ -3979,18 +4146,6 @@ function drupal_render(&$elements) {
   // This allows to specify just #markup on an element without setting the #type.
   if (!empty($elements['#markup']) && empty($elements['#theme'])) {
     $elements['#theme'] = 'markup';
-  }
-
-  // If there is are action links associated with this element but the access
-  // property has not been set, use the menu callback to determine whether or
-  // not it is editable by the current user.
-  if (isset($elements['#actions'])) {
-    foreach ($elements['#actions'] as $key => $data) {
-      if (!isset($data['access']) && function_exists('menu_get_item')) {
-        $item = menu_get_item($data['href']);
-        $elements['#actions'][$key]['access'] = !empty($item['access']);
-      }
-    }
   }
 
   // Make any final changes to the element before it is rendered. This means
@@ -4038,15 +4193,17 @@ function drupal_render(&$elements) {
     }
   }
 
-  // Add additional libraries, CSS and JavaScript associated with this element.
-  drupal_process_attached(
-    isset($elements['#attached_library']) ? $elements['#attached_library'] : array(),
-    isset($elements['#attached_js']) ? $elements['#attached_js'] : array(),
-    isset($elements['#attached_css']) ? $elements['#attached_css'] : array()
-  );
+  // Add additional libraries, CSS, JavaScript an other custom
+  // attached data associated with this element.
+  drupal_process_attached($elements);
 
   $prefix = isset($elements['#prefix']) ? $elements['#prefix'] : '';
   $suffix = isset($elements['#suffix']) ? $elements['#suffix'] : '';
+
+  // Cache the processed element if #cache is set.
+  if (isset($elements['#cache'])) {
+    drupal_render_cache_set($prefix . $elements['#children'] . $suffix, $elements);
+  }
 
   $elements['#printed'] = TRUE;
   return $prefix . $elements['#children'] . $suffix;
@@ -4126,6 +4283,128 @@ function show(&$element) {
 }
 
 /**
+ * Get the rendered output of a renderable element from cache.
+ *
+ * @see drupal_render()
+ * @see drupal_render_cache_set()
+ * 
+ * @param $elements
+ *   A renderable array.
+ * @return
+ *   A markup string containing the rendered content of the element, or FALSE
+ *   if no cached copy of the element is available.
+ */
+function drupal_render_cache_get($elements) {
+  if (!in_array($_SERVER['REQUEST_METHOD'], array('GET', 'HEAD')) || !$cid = drupal_render_cid_create($elements)) {
+    return FALSE;
+  }
+  $bin = isset($elements['#cache']['bin']) ? $elements['#cache']['bin'] : 'cache';
+
+  if (!empty($cid) && $cache = cache_get($cid, $bin)) {
+    // Add additional libraries, JavaScript, CSS and other data attached
+    // to this element.
+    drupal_process_attached($cache->data);
+    // Return the rendered output.
+    return $cache->data['#markup'];;
+  }
+  return FALSE;
+}
+
+/**
+ * Cache the rendered output of a renderable element.
+ *
+ * This is called by drupal_render() if the #cache property is set on an element.
+ *
+ * @see drupal_render()
+ * @see drupal_render_cache_get()
+ *
+ * @param $markup
+ *   The rendered output string of $elements.
+ * @param $elements
+ *   A renderable array.
+ */
+function drupal_render_cache_set($markup, $elements) {
+  // Create the cache ID for the element 
+  if (!in_array($_SERVER['REQUEST_METHOD'], array('GET', 'HEAD')) || !$cid = drupal_render_cid_create($elements)) {
+    return FALSE;
+  }
+
+  $data['#markup'] = $markup;
+  // Persist attached data associated with this element.
+  $data['#attached'] = $elements['#attached'];
+  $bin = isset($elements['#cache']['bin']) ? $elements['#cache']['bin'] : 'cache';
+  $expire = isset($elements['#cache']['expire']) ? $elements['#cache']['expire'] : CACHE_PERMANENT;
+  cache_set($cid, $data, $bin, $expire);
+}
+
+/**
+ * Helper function for building cache ids.
+ *
+ * @param $granularity
+ *   One or more cache granularity constants, e.g. DRUPAL_CACHE_PER_USER to cache
+ *   for each user seperately or DRUPAL_CACHE_PER_PAGE | DRUPAL_CACHE_PER_ROLE to
+ *   cache seperately for each page and role.
+ *
+ * @return
+ *   An array of cache ID parts, always containing the active theme. If the
+ *   locale module is enabled it also contains the active language. If
+ *   $granularity was passed in, more parts are added.
+ */
+function drupal_render_cid_parts($granularity = NULL) {
+  global $theme, $base_root, $user;
+
+  $cid_parts[] = $theme;
+  if (module_exists('locale')) {
+    global $language;
+    $cid_parts[] = $language->language;
+  }
+
+  if (!empty($granularity)) {
+    // 'PER_ROLE' and 'PER_USER' are mutually exclusive. 'PER_USER' can be a
+    // resource drag for sites with many users, so when a module is being
+    // equivocal, we favor the less expensive 'PER_ROLE' pattern.
+    if ($granularity & DRUPAL_CACHE_PER_ROLE) {
+      $cid_parts[] = 'r.' . implode(',', array_keys($user->roles));
+    }
+    elseif ($granularity & DRUPAL_CACHE_PER_USER) {
+      $cid_parts[] = "u.$user->uid";
+    }
+
+    if ($granularity & DRUPAL_CACHE_PER_PAGE) {
+      $cid_parts[] = $base_root . request_uri();
+    }
+  }
+
+  return $cid_parts;
+}
+
+/**
+ * Create the cache ID for a renderable element.
+ *
+ * This creates the cache ID string, either by returning the #cache['cid']
+ * property if present or by building the cache ID out of the #cache['keys']
+ * and, optionally, the #cache['granularity'] properties.
+ *
+ * @param $elements
+ *   A renderable array.
+ *
+ * @return
+ *   The cache ID string, or FALSE if the element may not be cached.
+ */
+function drupal_render_cid_create($elements) {
+  if (isset($elements['#cache']['cid'])) {
+    return $elements['#cache']['cid'];
+  }
+  elseif (isset($elements['#cache']['keys'])) {
+    $granularity = isset($elements['#cache']['granularity']) ? $elements['#cache']['granularity'] : NULL;
+    // Merge in additional cache ID parts based provided by drupal_render_cid_parts().
+    $cid_parts = array_merge($elements['#cache']['keys'], drupal_render_cid_parts($granularity));
+    return implode(':', $cid_parts);
+  }
+  return FALSE;
+}
+
+/**
  * Function used by uasort to sort structured arrays by weight.
  */
 function element_sort($a, $b) {
@@ -4145,25 +4424,16 @@ function element_info($type) {
 
   if (!isset($cache)) {
     $basic_defaults = element_basic_defaults();
-    $cache = array();
-
-    foreach (module_implements('elements') as $module) {
-      $elements = module_invoke($module, 'elements');
-      if (isset($elements) && is_array($elements)) {
-        $cache = array_merge_recursive($cache, $elements);
-      }
-    }
-    if (!empty($cache)) {
-      foreach ($cache as $element_type => $info) {
-        $cache[$element_type] = array_merge_recursive($basic_defaults, $info);
-        $cache[$element_type]['#type'] = $element_type;
-      }
+    $cache = module_invoke_all('element_info');
+    foreach ($cache as $element_type => $info) {
+      $cache[$element_type] = array_merge_recursive($basic_defaults, $info);
+      $cache[$element_type]['#type'] = $element_type;
     }
     // Allow modules to alter the element type defaults.
     drupal_alter('element_info', $cache);
   }
 
-  return $cache[$type];
+  return isset($cache[$type]) ? $cache[$type] : array();
 }
 
 /**
@@ -4175,6 +4445,7 @@ function element_basic_defaults() {
     '#title' => '',
     '#attributes' => array(),
     '#required' => FALSE,
+    '#attached' => array(),
   );
 }
 
@@ -4268,8 +4539,6 @@ function drupal_common_theme() {
     'maintenance_page' => array(
       'arguments' => array('content' => NULL, 'show_messages' => TRUE),
       'template' => 'maintenance-page',
-      'path' => 'includes',
-      'file' => 'theme.maintenance.inc',
     ),
     'update_page' => array(
       'arguments' => array('content' => NULL, 'show_messages' => TRUE),
@@ -4285,9 +4554,6 @@ function drupal_common_theme() {
     ),
     'links' => array(
       'arguments' => array('links' => NULL, 'attributes' => array('class' => array('links')), 'heading' => array()),
-    ),
-    'action_links' => array(
-      'arguments' => array('link' => NULL, 'element' => NULL),
     ),
     'image' => array(
       'arguments' => array('path' => NULL, 'alt' => '', 'title' => '', 'attributes' => array(), 'getsize' => TRUE),
@@ -4440,9 +4706,6 @@ function drupal_common_theme() {
     'vertical_tabs' => array(
       'arguments' => array('element' => NULL),
     ),
-    'horizontal_tabs' => array(
-      'arguments' => array('element' => NULL),
-    ),
   );
 }
 
@@ -4535,9 +4798,10 @@ function drupal_get_schema_unprocessed($module, $table = NULL) {
   if (!is_null($table) && isset($schema[$table])) {
     return $schema[$table];
   }
-  else {
+  else if (!empty($schema)) {
     return $schema;
   }
+  return array();
 }
 
 /**
@@ -4957,7 +5221,7 @@ function drupal_flush_all_caches() {
   }
 
   drupal_theme_rebuild();
-  // Rebuild content types, menu will be rebuilt as well.
+  menu_rebuild();
   node_types_rebuild();
   // Don't clear cache_form - in-progress form submissions may break.
   // Ordered so clearing the page cache will always be the last action.

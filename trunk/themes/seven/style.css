@@ -1,4 +1,4 @@
-/* $Id: style.css,v 1.14 2009/08/23 01:05:12 webchick Exp $ */
+/* $Id: style.css,v 1.17 2009/09/05 06:07:58 dries Exp $ */
 
 /**
  * Generic elements
@@ -19,10 +19,6 @@ a {
 
 a:hover {
   text-decoration: underline;
-}
-
-div.box, p {
-  margin: 0 0 20px;
 }
 
 hr {
@@ -162,13 +158,9 @@ legend {
 /**
  * Console.
  */
-#console {
+#page .console {
   border-top: 1px solid #ccc;
   padding: 9px 0 10px;
-}
-
-body.overlay #console {
-  margin: 0 20px;
 }
 
 /**
@@ -190,6 +182,7 @@ ul.primary li {
 }
 
 ul.primary li a,
+ul.primary li a.active,
 ul.primary li a:active,
 ul.primary li a:visited,
 ul.primary li a:hover {
@@ -544,6 +537,10 @@ div.form-item div.description {
   color: #666;
 }
 
+body div.form-type-radio div.description, body div.form-type-checkbox div.description {
+  margin-left: 1.5em;
+}
+
 /* Buttons */
 input.form-submit {
   cursor: pointer;
@@ -706,73 +703,9 @@ div.admin-options div.form-item {
   border: 0;
 }
 
-/* Node form */
-#edit-switch-wrapper {
-  background-color: #fff6cd;
-}
-
-a.node-admin-add-content {
-  padding-left: 15px;
-  background: url(images/add.png) no-repeat 0 center;
-  line-height: 30px;
-}
-
 /* Update status */
 .versions table.version {
   border: none;
-}
-
-/* Maintenance theming */
-body.in-maintenance #sidebar-first {
-  float: right;
-  width: 200px;
-}
-body.in-maintenance #content {
-  width: 550px;
-  padding-right: 20px;
-}
-body.in-maintenance #page {
-  width: 770px;
-  margin: 0 auto;
-  padding-top: 2em;
-}
-body.in-maintenance #branding h1 {
-  width: 770px;
-  margin: 0 auto;
-  float: none;
-}
-
-body.in-maintenance .form-type-radio {
-  display: inline-block;
-}
-
-body.in-maintenance .form-submit {
-  display: block;
-}
-
-body.in-maintenance #drupal-wordmark {
-  margin-bottom: 1.5em;
-}
-
-ol.task-list {
-  margin-left: 0; /* LTR */
-  list-style-type: none;
-  list-style-image: none;
-}
-ol.task-list li {
-  padding: 0.5em 1em 0.5em 0; /* LTR */
-  color: #adadad;
-}
-ol.task-list li.active {
-  background: transparent url(images/task-item.png) no-repeat 3px 50%; /* LTR */
-  padding: 0.5em 1em 0.5em 20px; /* LTR */
-  color: #000;
-}
-ol.task-list li.done {
-  color: #393;
-  background: transparent url(images/task-check.png) no-repeat 0px 50%; /* LTR */
-  padding: 0.5em 1em 0.5em 20px; /* LTR */
-  color: green;
 }
 
 /* Overlay theming */
@@ -789,5 +722,9 @@ body.overlay #page #footer {
 
 body.overlay #page {
   margin: 0;
+  padding: 0;
+}
+
+body.overlay #block-system-main {
   padding: 20px;
 }

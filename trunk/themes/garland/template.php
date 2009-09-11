@@ -1,5 +1,5 @@
 <?php
-// $Id: template.php,v 1.27 2009/08/25 15:39:13 webchick Exp $
+// $Id: template.php,v 1.29 2009/09/01 20:39:55 webchick Exp $
 
 /**
  * Return a themed breadcrumb trail.
@@ -65,6 +65,12 @@ function garland_preprocess_page(&$vars) {
   }
   $vars['site_html'] = implode(' ', $site_fields);
 
+}
+
+/**
+ * Override process function used to alter variables as late as possible.
+ */
+function garland_process_page(&$vars) {
   // Hook into color.module
   if (module_exists('color')) {
     _color_page_alter($vars);
@@ -77,28 +83,6 @@ function garland_preprocess_page(&$vars) {
  */
 function garland_menu_local_tasks() {
   return menu_primary_local_tasks();
-}
-
-/**
- * Format the "Submitted by username on date/time" for each comment.
- */
-function garland_comment_submitted($comment) {
-  return t('!datetime — !username',
-    array(
-      '!username' => theme('username', $comment),
-      '!datetime' => format_date($comment->timestamp)
-    ));
-}
-
-/**
- * Format the "Submitted by username on date/time" for each node.
- */
-function garland_node_submitted($node) {
-  return t('!datetime — !username',
-    array(
-      '!username' => theme('username', $node),
-      '!datetime' => format_date($node->created),
-    ));
 }
 
 /**

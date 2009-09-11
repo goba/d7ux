@@ -1,20 +1,16 @@
 <?php
-// $Id: node.tpl.php,v 1.14 2009/08/06 05:06:00 webchick Exp $
+// $Id: node.tpl.php,v 1.16 2009/09/11 06:48:03 dries Exp $
 ?>
-<div id="node-<?php print $node->nid; ?>" class="<?php print $classes; ?>">
-
-  <?php if (!$page && $action_links): ?>
-    <?php print $action_links; ?>
-  <?php endif; ?>
+<div id="node-<?php print $node->nid; ?>" class="<?php print $classes; ?>"<?php print $attributes; ?>>
 
   <?php print $user_picture; ?>
 
   <?php if (!$page): ?>
-    <h2><a href="<?php print $node_url; ?>"><?php print $title; ?></a></h2>
+    <h2<?php print $title_attributes; ?>><a href="<?php print $node_url; ?>"><?php print $title; ?></a></h2>
   <?php endif; ?>
 
-  <?php if ($submitted): ?>
-    <span class="submitted"><?php print $submitted; ?></span>
+  <?php if ($display_submitted): ?>
+    <span class="submitted"><?php print $date; ?> — <?php print $name; ?></span>
   <?php endif; ?>
 
   <div class="content clearfix">

@@ -1,5 +1,5 @@
 <?php
-// $Id: toolbar.install,v 1.3 2009/07/30 19:24:21 dries Exp $
+// $Id: toolbar.install,v 1.4 2009/08/31 17:09:01 dries Exp $
 
 /**
  * @file
@@ -25,17 +25,10 @@ function toolbar_install() {
   // Add starter convenience shortcuts.
   menu_rebuild();
   $items = array(
-    'node/add' => 'Add',
+    'node/add' => 'Add content',
     'admin/content' => 'Find content',
     'admin' => 'Dashboard',
-    'edit-mode/toggle' => '',
   );
-
-  db_delete('menu_links')
-    ->condition('link_path', 'edit-mode/toggle')
-    ->condition('menu_name', 'navigation')
-    ->execute();
-
   $weight = -20;
   foreach ($items as $path => $title) {
     $link = array(
@@ -47,14 +40,6 @@ function toolbar_install() {
       'module' => 'menu',
       'weight' => $weight,
     );
-
-    if (module_exists('overlay') && $path == 'edit-mode/toggle') {
-      $link['options'] = array(
-        'attributes' => array(
-          'class' => 'overlay-exclude',
-        ),
-      );
-    }
 
     // Check for an existing menu item before attempting to create a new one.
     $menu_link = db_query("SELECT mlid FROM {menu_links} WHERE link_path = :path AND menu_name = :menu_name", array(

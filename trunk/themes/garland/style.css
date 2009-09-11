@@ -1,4 +1,4 @@
-/* $Id: style.css,v 1.63 2009/08/17 19:05:26 dries Exp $ */
+/* $Id: style.css,v 1.64 2009/08/31 17:40:03 webchick Exp $ */
 
 /**
  * Generic elements
@@ -290,6 +290,7 @@ table .form-button, table .form-submit {
   margin: 0;
 }
 
+<<<<<<< style.css
 .box {
   margin-bottom: 2.5em;
 }
@@ -298,6 +299,8 @@ table .form-button, table .form-submit {
   font-size: 0.8em;
 }
 
+=======
+>>>>>>> 1.64
 /**
  * Layout
  */

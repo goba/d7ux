@@ -1,5 +1,5 @@
 <?php
-// $Id: filter.admin.inc,v 1.40 2009/08/26 10:28:45 dries Exp $
+// $Id: filter.admin.inc,v 1.43 2009/09/05 13:22:13 webchick Exp $
 
 /**
  * @file
@@ -32,8 +32,8 @@ function filter_admin_overview() {
     $options[$id] = '';
     $form[$id]['name'] = array('#markup' => $format->name);
     $form[$id]['roles'] = array('#markup' => $default ? t('All roles may use the default format') : ($roles ? implode(', ', $roles) : t('No roles may use this format')));
-    $form[$id]['configure'] = array('#markup' => l(t('configure'), 'admin/settings/formats/' . $id));
-    $form[$id]['delete'] = array('#markup' => $default ? '' : l(t('delete'), 'admin/settings/formats/delete/' . $id));
+    $form[$id]['configure'] = array('#markup' => l(t('configure'), 'admin/config/content/formats/' . $id));
+    $form[$id]['delete'] = array('#markup' => $default ? '' : l(t('delete'), 'admin/config/content/formats/delete/' . $id));
     $form[$id]['weight'] = array('#type' => 'weight', '#default_value' => $format->weight);
   }
   $form['default'] = array('#type' => 'radios', '#options' => $options, '#default_value' => variable_get('filter_default_format', 1));
@@ -99,7 +99,7 @@ function theme_filter_admin_overview($form) {
 function filter_admin_format_page($format = NULL) {
   if (!isset($format->name)) {
     drupal_set_title(t('Add text format'), PASS_THROUGH);
-    $format = (object)array('name' => '', 'roles' => '', 'format' => '');
+    $format = (object)array('name' => '', 'roles' => '', 'format' => FILTER_FORMAT_DEFAULT);
   }
   return drupal_get_form('filter_admin_format_form', $format);
 }
@@ -144,7 +144,7 @@ function filter_admin_format_form(&$form_state, $format) {
   }
   // Table with filters
   $filter_info = filter_get_filters();
-  $enabled = filter_list_format($format->format);
+  $filters = filter_list_format($format->format);
 
   $form['filters'] = array('#type' => 'fieldset',
     '#title' => t('Filters'),
@@ -155,7 +155,7 @@ function filter_admin_format_form(&$form_state, $format) {
     $form['filters'][$name] = array(
       '#type' => 'checkbox',
       '#title' => $filter['title'],
-      '#default_value' => isset($enabled[$name]),
+      '#default_value' => isset($filters[$name]),
       '#description' => $filter['description'],
     );
   }
@@ -201,22 +201,15 @@ function filter_admin_format_form_submit($form, &$form_state) {
   $format->format = isset($form_state['values']['format']) ? $form_state['values']['format'] : NULL;
   $status = filter_format_save($format);
 
-  // If a new filter was added, return to the main list of filters. 
-  // Otherwise, stay on edit filter page to show new changes.
-  $return = 'admin/settings/formats';
-
   switch ($status) {
     case SAVED_NEW:
       drupal_set_message(t('Added text format %format.', array('%format' => $format->name)));
-      $return .= '/' . $format->format;
       break;
+
     case SAVED_UPDATED:
       drupal_set_message(t('The text format settings have been updated.'));
       break;
   }
-
-  $form_state['redirect'] = $return;
-  return;
 }
 
 /**
@@ -232,7 +225,7 @@ function filter_admin_delete(&$form_state, $format) {
 
       return confirm_form($form,
         t('Are you sure you want to delete the text format %format?', array('%format' => $format->name)),
-        'admin/settings/formats',
+        'admin/config/content/formats',
         t('If you have any content left in this text format, it will be switched to the default text format. This action cannot be undone.'),
         t('Delete'),
         t('Cancel')
@@ -240,7 +233,7 @@ function filter_admin_delete(&$form_state, $format) {
     }
     else {
       drupal_set_message(t('The default format cannot be deleted.'));
-      drupal_goto('admin/settings/formats');
+      drupal_goto('admin/config/content/formats');
     }
   }
   else {
@@ -256,9 +249,8 @@ function filter_admin_delete_submit($form, &$form_state) {
   filter_format_delete($format);
   drupal_set_message(t('Deleted text format %format.', array('%format' => $format->name)));
 
-  $form_state['redirect'] = 'admin/settings/formats';
+  $form_state['redirect'] = 'admin/config/content/formats';
 }
-
 
 /**
  * Menu callback; display settings defined by a format's filters.
@@ -269,39 +261,66 @@ function filter_admin_configure_page($format) {
 }
 
 /**
- * Build a form to change the settings for a format's filters.
+ * Build a form to change the settings for filters in a text format.
+ *
+ * The form is built by merging the results of 'settings callback' for each
+ * enabled filter in the given format.
  *
  * @ingroup forms
  */
 function filter_admin_configure(&$form_state, $format) {
-  $list = filter_list_format($format->format);
+  $filters = filter_list_format($format->format);
   $filter_info = filter_get_filters();
-  $form = array();
-  foreach ($list as $name => $filter) {
+
+  $form['#format'] = $format;
+  foreach ($filters as $name => $filter) {
     if (isset($filter_info[$name]['settings callback']) && function_exists($filter_info[$name]['settings callback'])) {
-      $form_module = call_user_func($filter_info[$name]['settings callback'], $format->format);
-    }
-    if (isset($form_module) && is_array($form_module)) {
-      $form = array_merge($form, $form_module);
+      // Pass along stored filter settings and default settings, but also the
+      // format object and all filters to allow for complex implementations.
+      $defaults = (isset($filter_info[$name]['default settings']) ? $filter_info[$name]['default settings'] : array());
+      $settings_form = $filter_info[$name]['settings callback']($form_state, $filters[$name], $defaults, $format, $filters);
+      if (isset($settings_form) && is_array($settings_form)) {
+        $form['settings'][$name] = array(
+          '#type' => 'fieldset',
+          '#title' => check_plain($filter->title),
+        );
+        $form['settings'][$name] += $settings_form;
+      }
     }
   }
 
-  if (!empty($form)) {
-    $form = system_settings_form($form, TRUE);
-  }
-  else {
+  if (empty($form['settings'])) {
     $form['error'] = array('#markup' => t('No settings are available.'));
+    return $form;
   }
-  $form['format'] = array('#type' => 'hidden', '#value' => $format->format);
-  $form['#submit'][] = 'filter_admin_configure_submit';
+  $form['settings']['#tree'] = TRUE;
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Save configuration'));
+
   return $form;
 }
 
 /**
- * Clear the filter's cache when configuration settings are saved.
+ * Form submit handler for text format filter configuration form.
+ *
+ * @see filter_admin_configure()
  */
 function filter_admin_configure_submit($form, &$form_state) {
-  cache_clear_all($form_state['values']['format'] . ':', 'cache_filter', TRUE);
+  $format = $form['#format'];
+
+  foreach ($form_state['values']['settings'] as $name => $settings) {
+    db_update('filter')
+      ->fields(array(
+        'settings' => serialize($settings),
+      ))
+      ->condition('format', $format->format)
+      ->condition('name', $name)
+      ->execute();
+  }
+
+  // Clear the filter's cache when configuration settings are saved.
+  cache_clear_all($format->format . ':', 'cache_filter', TRUE);
+
+  drupal_set_message(t('The configuration options have been saved.'));
 }
 
 /**
@@ -366,10 +385,14 @@ function theme_filter_admin_order($form) {
  */
 function filter_admin_order_submit($form, &$form_state) {
   foreach ($form_state['values']['weights'] as $name => $weight) {
-    db_update('filter')
-      ->fields(array('weight' => $weight))
-      ->condition('format', $form_state['values']['format'])
-      ->condition('name', $name)
+    db_merge('filter')
+      ->key(array(
+        'format' => $form_state['values']['format'],
+        'name' => $name,
+      ))
+      ->fields(array(
+        'weight' => $weight,
+      ))
       ->execute();
   }
   drupal_set_message(t('The filter ordering has been saved.'));

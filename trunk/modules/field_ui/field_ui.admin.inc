@@ -1,5 +1,5 @@
 <?php
-// $Id: field_ui.admin.inc,v 1.8 2009/08/24 21:00:23 webchick Exp $
+// $Id: field_ui.admin.inc,v 1.13 2009/09/10 22:31:58 webchick Exp $
 
 /**
  * @file
@@ -66,14 +66,14 @@ function field_ui_inactive_message($bundle) {
  * Allows fields and pseudo-fields to be re-ordered.
  */
 function field_ui_field_overview_form(&$form_state, $obj_type, $bundle) {
-  $bundle = field_attach_extract_bundle($obj_type, $bundle);
+  $bundle = field_extract_bundle($obj_type, $bundle);
 
   field_ui_inactive_message($bundle);
   $admin_path = _field_ui_bundle_admin_path($bundle);
 
   // When displaying the form, make sure the list of fields is up-to-date.
   if (empty($form_state['post'])) {
-    field_cache_clear();
+    field_info_cache_clear();
   }
 
   // Gather bundle information.
@@ -542,8 +542,6 @@ function field_ui_field_overview_form_submit($form, &$form_state) {
     unset($_REQUEST['destination']);
     $form_state['redirect'] = field_ui_get_destinations($destinations);
   }
-
-  field_cache_clear();
 }
 
 /**
@@ -553,7 +551,7 @@ function field_ui_field_overview_form_submit($form, &$form_state) {
  * full build modes, and how the field labels should be rendered.
  */
 function field_ui_display_overview_form(&$form_state, $obj_type, $bundle, $build_modes_selector = 'basic') {
-  $bundle = field_attach_extract_bundle($obj_type, $bundle);
+  $bundle = field_extract_bundle($obj_type, $bundle);
 
   field_ui_inactive_message($bundle);
   $admin_path = _field_ui_bundle_admin_path($bundle);
@@ -654,13 +652,15 @@ function template_preprocess_field_ui_display_overview_form(&$vars) {
  * Submit handler for the display overview form.
  */
 function field_ui_display_overview_form_submit($form, &$form_state) {
-  module_load_include('inc', 'field', 'includes/field.crud');
   $form_values = $form_state['values'];
   foreach ($form_values as $key => $values) {
     if (in_array($key, $form['#fields'])) {
       $instance = field_info_instance($key, $form['#bundle']);
-      unset($values['weight']);
-      $instance['display'] = array_merge($instance['display'], $values);
+      foreach ($instance['display'] as $build_mode => $display) {
+        if (isset($values[$build_mode])) {
+          $instance['display'][$build_mode] = array_merge($instance['display'][$build_mode], $values[$build_mode]);
+        }
+      }
       field_update_instance($instance);
     }
   }
@@ -791,7 +791,7 @@ function field_ui_field_has_data($field) {
  * Menu callback; presents the field settings edit page.
  */
 function field_ui_field_settings_form(&$form_state, $obj_type, $bundle, $instance) {
-  $bundle = field_attach_extract_bundle($obj_type, $bundle);
+  $bundle = field_extract_bundle($obj_type, $bundle);
   $field = field_info_field($instance['field_name']);
 
   // When a field is first created, we have to get data from the db.
@@ -873,9 +873,6 @@ function field_ui_field_settings_form_submit($form, &$form_state) {
     return;
   }
 
-  // Remove the 'bundles' element added by field_info_field.
-  // @todo This is ugly, there must be a better way.
-  unset($field['bundles']);
   $bundle = $form['#bundle'];
   $instance = field_info_instance($field['field_name'], $bundle);
 
@@ -891,7 +888,7 @@ function field_ui_field_settings_form_submit($form, &$form_state) {
  * Menu callback; select a widget for the field.
  */
 function field_ui_widget_type_form(&$form_state, $obj_type, $bundle, $instance) {
-  $bundle = field_attach_extract_bundle($obj_type, $bundle);
+  $bundle = field_extract_bundle($obj_type, $bundle);
   $field = field_read_field($instance['field_name']);
 
   $field_type = field_info_field_types($field['type']);
@@ -950,7 +947,7 @@ function field_ui_widget_type_form_submit($form, &$form_state) {
  * Menu callback; present a form for removing a field from a content type.
  */
 function field_ui_field_delete_form(&$form_state, $obj_type, $bundle, $instance) {
-  $bundle = field_attach_extract_bundle($obj_type, $bundle);
+  $bundle = field_extract_bundle($obj_type, $bundle);
   $field = field_info_field($instance['field_name']);
   $admin_path = _field_ui_bundle_admin_path($bundle);
 
@@ -1004,7 +1001,7 @@ function field_ui_field_delete_form_submit($form, &$form_state) {
  * Menu callback; presents the field instance edit page.
  */
 function field_ui_field_edit_form(&$form_state, $obj_type, $bundle, $instance) {
-  $bundle = field_attach_extract_bundle($obj_type, $bundle);
+  $bundle = field_extract_bundle($obj_type, $bundle);
 
   $field = field_info_field($instance['field_name']);
   $form['#field'] = $field;
@@ -1275,26 +1272,25 @@ function field_ui_field_edit_form_validate($form, &$form_state) {
  */
 function field_ui_field_edit_form_submit($form, &$form_state) {
   $form_values = $form_state['values'];
-  $instance = $form_values['instance'];
-  $field_name = $instance['field_name'];
+  $field_values = $form_values['field'];
+  $instance_values = $form_values['instance'];
+  $field_name = $instance_values['field_name'];
 
   // Update any field settings that have changed.
-  $field = field_info_field($field_name);
-  // Remove the 'bundles' element added by field_info_field.
-  // @todo This is ugly, there must be a better way.
-  unset($field['bundles']);
-  $field = array_merge($field, $form_state['values']['field']);
+  $field = field_info_field($instance_values['field_name']);
+  $field = array_merge($field, $field_values);
   field_ui_update_field($field);
 
   // Move the default value from the sample widget to the default value field.
-  if (isset($instance['default_value_widget'])) {
+  if (isset($instance_values['default_value_widget'])) {
     $langcode = $form['instance']['default_value_widget'][$field_name]['#language'];
-    $instance['default_value'] = $instance['default_value_widget'][$field_name][$langcode];
-    unset($instance['default_value_widget']);
+    $instance_values['default_value'] = $instance_values['default_value_widget'][$field_name][$langcode];
+    unset($instance_values['default_value_widget']);
   }
 
   // Update the instance settings.
-  module_load_include('inc', 'field', 'includes/field.crud');
+  $instance = field_info_instance($instance_values['field_name'], $instance_values['bundle']);
+  $instance = array_merge($instance, $instance_values);
   field_update_instance($instance);
 
   drupal_set_message(t('Saved %label configuration.', array('%label' => $instance['label'])));

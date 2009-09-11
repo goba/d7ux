@@ -1,5 +1,5 @@
 <?php
-// $Id: field_sql_storage.module,v 1.19 2009/08/22 00:58:53 webchick Exp $
+// $Id: field_sql_storage.module,v 1.22 2009/09/10 22:31:58 webchick Exp $
 
 /**
  * @file
@@ -26,7 +26,7 @@ function field_sql_storage_help($path, $arg) {
  *   A string containing the generated name for the database table
  */
 function _field_sql_storage_tablename($field) {
-  return "field_data_{$field['field_name']}_{$field['id']}";
+  return "field_data_{$field['field_name']}" . ($field['deleted'] ? "_{$field['id']}" : '');
 }
 
 /**
@@ -38,7 +38,7 @@ function _field_sql_storage_tablename($field) {
  *   A string containing the generated name for the database table
  */
 function _field_sql_storage_revision_tablename($field) {
-  return "field_revision_{$field['field_name']}_{$field['id']}";
+  return "field_revision_{$field['field_name']}" . ($field['deleted'] ? "_{$field['id']}" : '');
 }
 
 /**
@@ -138,12 +138,6 @@ function _field_sql_storage_schema($field) {
         'not null' => FALSE,
         'description' => 'The entity revision id this data is attached to, or NULL if the entity type is not versioned',
       ),
-      'delta' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'description' => 'The sequence number for this data item, used for multi-value fields',
-      ),
       // @todo Consider storing language as integer.
       'language' => array(
         'type' => 'varchar',
@@ -152,9 +146,23 @@ function _field_sql_storage_schema($field) {
         'default' => '',
         'description' => 'The language for this data item.',
       ),
+      'delta' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'The sequence number for this data item, used for multi-value fields',
+      ),
     ),
+    // @todo Is the primary key needed at all ?
     'primary key' => array('etid', 'entity_id', 'deleted', 'delta', 'language'),
-    // TODO : index on 'bundle'
+    'indexes' => array(
+      'etid' => array('etid'),
+      'bundle' => array('bundle'),
+      'deleted' => array('deleted'),
+      'entity_id' => array('entity_id'),
+      'revision_id' => array('revision_id'),
+      'language' => array('language'),
+    ),
   );
 
   // Add field columns.
@@ -199,12 +207,24 @@ function field_sql_storage_field_storage_create_field($field) {
  * Implement hook_field_storage_delete_field().
  */
 function field_sql_storage_field_storage_delete_field($field_name) {
-  // Mark all data associated with the field for deletion.
   $field = field_info_field($field_name);
+
+  // Mark all data associated with the field for deletion.
+  $field['deleted'] = 0;
   $table = _field_sql_storage_tablename($field);
+  $revision_table = _field_sql_storage_revision_tablename($field);
   db_update($table)
     ->fields(array('deleted' => 1))
     ->execute();
+
+  // Move the table to a unique name while the table contents are being deleted.
+  $ret = array();
+  $field['deleted'] = 1;
+  $new_table = _field_sql_storage_tablename($field);
+  $revision_new_table = _field_sql_storage_revision_tablename($field);
+  db_rename_table($ret, $table, $new_table);
+  db_rename_table($ret, $revision_table, $revision_new_table);
+  drupal_get_schema(NULL, TRUE);
 }
 
 /**
@@ -218,7 +238,7 @@ function field_sql_storage_field_storage_load($obj_type, $objects, $age, $skip_f
   $field_ids = array();
   $delta_count = array();
   foreach ($objects as $obj) {
-    list($id, $vid, $bundle) = field_attach_extract_ids($obj_type, $obj);
+    list($id, $vid, $bundle) = field_extract_ids($obj_type, $obj);
 
     if ($options['deleted']) {
       $instances = field_read_instances(array('bundle' => $bundle), array('include_deleted' => $options['deleted']));
@@ -281,7 +301,7 @@ function field_sql_storage_field_storage_load($obj_type, $objects, $age, $skip_f
  * Implement hook_field_storage_write().
  */
 function field_sql_storage_field_storage_write($obj_type, $object, $op, $skip_fields) {
-  list($id, $vid, $bundle) = field_attach_extract_ids($obj_type, $object);
+  list($id, $vid, $bundle) = field_extract_ids($obj_type, $object);
   $etid = _field_sql_storage_etid($obj_type);
 
   $instances = field_info_instances($bundle);
@@ -379,7 +399,7 @@ function field_sql_storage_field_storage_write($obj_type, $object, $op, $skip_fi
  * This function deletes data for all fields for an object from the database.
  */
 function field_sql_storage_field_storage_delete($obj_type, $object) {
-  list($id, $vid, $bundle) = field_attach_extract_ids($obj_type, $object);
+  list($id, $vid, $bundle) = field_extract_ids($obj_type, $object);
   $etid = _field_sql_storage_etid($obj_type);
 
   $instances = field_info_instances($bundle);
@@ -396,7 +416,7 @@ function field_sql_storage_field_storage_delete($obj_type, $object) {
  * an object.
  */
 function field_sql_storage_field_storage_purge($obj_type, $object, $field, $instance) {
-  list($id, $vid, $bundle) = field_attach_extract_ids($obj_type, $object);
+  list($id, $vid, $bundle) = field_extract_ids($obj_type, $object);
   $etid = _field_sql_storage_etid($obj_type);
 
   $field = field_info_field_by_id($field['id']);
@@ -461,6 +481,21 @@ function field_sql_storage_field_storage_query($field_id, $conditions, $count, &
     if (in_array($column, $field_columns)) {
       $column = _field_sql_storage_columnname($field_name, $column);
     }
+    // Translate entity types into numeric ids. Expressing the condition on the
+    // local 'etid' column rather than the JOINed 'type' column avoids a
+    // filesort.
+    if ($column == 'type') {
+      $column = 't.etid';
+      if (is_array($value)) {
+        foreach (array_keys($value) as $key) {
+          $value[$key] = _field_sql_storage_etid($value[$key]);
+        }
+      }
+      else {
+        $value = _field_sql_storage_etid($value);
+      }
+    }
+
     $query->condition($column, $value, $operator);
 
     if ($column == 'deleted') {
@@ -497,7 +532,7 @@ function field_sql_storage_field_storage_query($field_id, $conditions, $count, &
       $id = ($load_current || empty($entity_type['object keys']['revision'])) ? $row->entity_id : $row->revision_id;
 
       if (!isset($return[$row->type][$id])) {
-        $return[$row->type][$id] = field_attach_create_stub_object($row->type, array($row->entity_id, $row->revision_id, $row->bundle));
+        $return[$row->type][$id] = field_create_stub_entity($row->type, array($row->entity_id, $row->revision_id, $row->bundle));
         $obj_count++;
       }
     }
@@ -518,7 +553,7 @@ function field_sql_storage_field_storage_query($field_id, $conditions, $count, &
  * This function actually deletes the data from the database.
  */
 function field_sql_storage_field_storage_delete_revision($obj_type, $object) {
-  list($id, $vid, $bundle) = field_attach_extract_ids($obj_type, $object);
+  list($id, $vid, $bundle) = field_extract_ids($obj_type, $object);
   $etid = _field_sql_storage_etid($obj_type);
 
   if (isset($vid)) {

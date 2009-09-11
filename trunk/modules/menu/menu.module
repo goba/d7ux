@@ -1,5 +1,5 @@
 <?php
-// $Id: menu.module,v 1.200 2009/08/24 00:14:21 webchick Exp $
+// $Id: menu.module,v 1.203 2009/09/05 15:05:03 dries Exp $
 
 /**
  * @file
@@ -157,10 +157,6 @@ function menu_theme() {
       'file' => 'menu.admin.inc',
       'arguments' => array('title' => NULL, 'name' => NULL, 'description' => NULL),
     ),
-    'menu_editable' => array(
-      'arguments' => array('element' => NULL),
-      'template' => 'menu-editable',
-    ),
   );
 }
 
@@ -278,9 +274,9 @@ function menu_reset_item($item) {
 }
 
 /**
- * Implement hook_block_list().
+ * Implement hook_block_info().
  */
-function menu_block_list() {
+function menu_block_info() {
   $menus = menu_get_menus(FALSE);
 
   $blocks = array();
@@ -289,7 +285,7 @@ function menu_block_list() {
     $blocks[$name]['info'] = check_plain($title);
     // Menu blocks can't be cached because each menu item can have
     // a custom access callback. menu.inc manages its own caching.
-    $blocks[$name]['cache'] = BLOCK_NO_CACHE;
+    $blocks[$name]['cache'] = DRUPAL_NO_CACHE;
   }
   return $blocks;
 }
@@ -302,32 +298,6 @@ function menu_block_view($delta = '') {
   $data['subject'] = check_plain($menus[$delta]);
   $data['content'] = menu_tree($delta);
   return $data;
-}
-
-/**
- * Implement hook_page_alter().
- */
-function menu_page_alter(&$page) {
-  // Search for every non-empty menu block on the page.
-  // TODO: This works, but cries out for something like hook_block_alter()...
-  foreach (element_children($page) as $region) {
-    $blocks = &$page[$region];
-    foreach (element_children($blocks) as $id) {
-      if (isset($blocks[$id]['#theme'])) {
-        $block = $blocks[$id]['#block'];
-        $content = &$blocks[$id];
-        if ($content['#theme'] == 'menu_tree' && !empty($content['#menu'])) {
-          // If we have a non-empty menu tree, wrap it in a theme function
-          // that will display an edit link.
-          $content['#theme_wrappers'] += array('menu_editable');
-          $content['#actions']['edit'] = array(
-            'href' => 'admin/structure/menu-customize/' . $block->delta,
-            'title' => t('Edit the @menu menu', array('@menu' => drupal_strtolower($content['#block']->subject))),
-          );
-        }
-      }
-    }
-  }
 }
 
 /**
@@ -442,10 +412,11 @@ function menu_form_alter(&$form, $form_state, $form_id) {
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       '#group' => 'additional_settings',
-      '#attached_js' => array(drupal_get_path('module', 'menu') . '/menu.js'),
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'menu') . '/menu.js'),
+      ),
       '#tree' => TRUE,
       '#weight' => -2,
-      '#group' => 'meta',
       '#attributes' => array('class' => array('menu-item-form')),
     );
     $item = $form['#node']->menu;
@@ -526,12 +497,4 @@ function menu_get_menus($all = TRUE) {
   $query->orderBy('title');
 
   return $query->execute()->fetchAllKeyed();
-}
-
-/**
- * Process variables for menu-editable.tpl.php.
- */
-function template_preprocess_menu_editable(&$variables) {
-  // Create the $content variable that templates expect.
-  $variables['content'] = $variables['element']['#children'];
 }

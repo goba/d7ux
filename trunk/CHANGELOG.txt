@@ -1,4 +1,4 @@
-// $Id: CHANGELOG.txt,v 1.336 2009/08/25 10:58:31 dries Exp $
+// $Id: CHANGELOG.txt,v 1.341 2009/09/10 06:32:53 dries Exp $
 
 Drupal 7.0, xxxx-xx-xx (development version)
 ----------------------
@@ -74,22 +74,26 @@ Drupal 7.0, xxxx-xx-xx (development version)
       to time zone names, e.g. Africa/Abidjan.
     * In some cases the upgrade and install scripts do not choose the preferred
       site default time zone. The automatically-selected time zone can be
-      corrected at admin/settings/date-time.
+      corrected at admin/config/regional/settings.
     * If your site is being upgraded from Drupal 6 and you do not have the
       contributed date or event modules installed, user time zone settings will
       fallback to the system time zone and will have to be reconfigured by each user.
 - Filter system:
+    * Revamped the filter API and text format storage.
     * Refactored the HTML corrector to take advantage of PHP 5 features.
 - Removed ping module:
     * Contributed modules with similar functionality are available.
-- Removed per-user themes:
-    * Contributed modules with similar functionality are available.
-- Refactored the "access rules" component of user module:
-    * The user module now provides a simple interface for blocking single
-      IP addresses. The previous functionality in the user module for restricting
-      certain e-mail addresses and usernames is now available as a contributed module.
-      Further, IP address range blocking is no longer supported and should be
-      implemented at the operating system level.
+- User system:
+    * Added clean API functions for creating, loading, updating, and deleting
+      user roles and permissions.
+    * Refactored the "access rules" component of user module: The user module
+      now provides a simple interface for blocking single IP addresses. The
+      previous functionality in the user module for restricting certain e-mail
+      addresses and usernames is now available as a contributed module. Further,
+      IP address range blocking is no longer supported and should be implemented
+      at the operating system level.
+    * Removed per-user themes: Contributed modules with similar functionality
+      are available.
 - Removed throttle module:
     * Alternative methods for improving performance are available in other core and
       contributed modules.
@@ -121,6 +125,11 @@ Drupal 7.0, xxxx-xx-xx (development version)
     * Rewrote file handling to use PHP stream wrappers to enable support for
       both public and private files and to support pluggable storage mechanisms
       and access to remote resources (e.g. S3 storage or Flickr photos).
+    * The mime_extension_mapping variable has been removed. Modules that need to
+      alter the default MIME type extension mappings should implement
+      hook_file_mimetype_mapping_alter().
+    * Added the hook_file_url_alter() hook, which makes it possible to serve
+      files from a CDN.
 - Image handling:
     * Improved image handling, including better support for add-on image
       libraries.

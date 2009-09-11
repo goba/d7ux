@@ -1,12 +1,11 @@
 <?php
-// $Id: comment.tpl.php,v 1.14 2009/07/28 10:09:25 dries Exp $
+// $Id: comment.tpl.php,v 1.16 2009/09/11 06:48:03 dries Exp $
 ?>
-<div class="<?php print $classes . ' ' . $zebra; ?>">
+<div class="<?php print $classes . ' ' . $zebra; ?>"<?php print $attributes; ?>>
 
   <div class="clearfix">
-  <?php if ($submitted): ?>
-    <span class="submitted"><?php print $submitted; ?></span>
-  <?php endif; ?>
+
+    <span class="submitted"><?php print $date; ?> — <?php print $author; ?></span>
 
   <?php if ($new) : ?>
     <span class="new"><?php print drupal_ucfirst($new) ?></span>
@@ -14,7 +13,7 @@
 
   <?php print $picture ?>
 
-    <h3><?php print $title ?></h3>
+    <h3<?php print $title_attributes; ?>><?php print $title ?></h3>
 
     <div class="content">
       <?php hide($content['links']); print render($content); ?>

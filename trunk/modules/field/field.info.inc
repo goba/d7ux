@@ -1,5 +1,5 @@
 <?php
-// $Id: field.info.inc,v 1.15 2009/08/25 21:53:47 dries Exp $
+// $Id: field.info.inc,v 1.18 2009/09/07 15:49:00 dries Exp $
 
 /**
  * @file
@@ -23,7 +23,7 @@
  * need to remove the purged records, but no actual field data items
  * are affected.
  */
-function _field_info_cache_clear() {
+function field_info_cache_clear() {
   _field_info_collate_types(TRUE);
   drupal_static_reset('field_build_modes');
   _field_info_collate_fields(TRUE);
@@ -150,7 +150,7 @@ function _field_info_collate_types($reset = FALSE) {
           }
         }
       }
-      drupal_alter('fieldable_info', $info['fieldable types']);
+      drupal_alter('entity_info', $info['fieldable types']);
 
       cache_set('field_info_types', $info, 'cache_field');
     }
@@ -206,7 +206,7 @@ function _field_info_collate_fields($reset = FALSE) {
     }
 
     // Populate 'fields' only with non-deleted fields.
-    $info['field'] = array();
+    $info['fields'] = array();
     foreach ($info['field_ids'] as $field) {
       if (!$field['deleted']) {
         $info['fields'][$field['field_name']] = $field;

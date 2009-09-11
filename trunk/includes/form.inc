@@ -1,5 +1,5 @@
 <?php
-// $Id: form.inc,v 1.367 2009/08/27 04:40:12 webchick Exp $
+// $Id: form.inc,v 1.372 2009/09/11 04:09:26 webchick Exp $
 
 /**
  * @defgroup forms Form builder functions
@@ -979,6 +979,14 @@ function form_builder($form_id, $element, &$form_state) {
 
   // Special handling if we're on the top level form element.
   if (isset($element['#type']) && $element['#type'] == 'form') {
+    if (!empty($element['#https']) && variable_get('https', FALSE) &&
+        !menu_path_is_external($element['#action'])) {
+      global $base_root;
+
+      // Not an external URL so ensure that it is secure.
+      $element['#action'] = str_replace('http://', 'https://', $base_root) . $element['#action'];
+    }
+
     // Store a complete copy of the form in form_state prior to building the form.
     $form_state['complete form'] = $element;
     // Set a flag if we have a correct form submission. This is always TRUE for
@@ -1625,7 +1633,6 @@ function form_get_options($element, $key) {
  */
 function theme_fieldset($element) {
   if (!empty($element['#collapsible'])) {
-    $element['#attached_js']['misc/collapse.js'] = array();
 
     if (!isset($element['#attributes']['class'])) {
       $element['#attributes']['class'] = array();
@@ -1925,7 +1932,7 @@ function form_process_radios($element) {
  *   $form_state['values']['body_format'] = 1;
  * @endcode
  *
- * @see system_elements(), filter_form()
+ * @see system_element_info(), filter_form()
  */
 function form_process_text_format($element) {
   if (isset($element['#text_format'])) {
@@ -2246,7 +2253,10 @@ function form_process_fieldset(&$element, &$form_state) {
   $element['#group_members'] = &$form_state['groups'][$parents];
 
   // Contains form element summary functionalities.
-  $element['#attached_js']['misc/form.js'] = array('weight' => JS_LIBRARY + 1);
+  $element['#attached']['js']['misc/form.js'] = array('weight' => JS_LIBRARY + 1);
+  if (!empty($element['#collapsible'])) {
+    $element['#attached']['js'][] = 'misc/collapse.js';
+  }
 
   return $element;
 }
@@ -2333,151 +2343,7 @@ function theme_vertical_tabs($element) {
   // Add required JavaScript and Stylesheet.
   drupal_add_library('system', 'vertical-tabs');
 
-  return '<div ' . drupal_attributes($element['#attributes']) . '>' . $element['#children'] . '</div>';
-}
-
-/**
- * Creates a group formatted as horizontal tabs.
- *
- * @param $element
- *   An associative array containing the properties and children of the
- *   fieldset.
- * @param $form_state
- *   The $form_state array for the form this horizontal tab widget belongs to.
- * @return
- *   The processed element.
- */
-function form_process_horizontal_tabs($element, &$form_state) {
-  // To save us from modifying the existing element and changing its #type,
-  // a new form element is created as a child. The default #process hooks
-  // are called automatically by the form renderer and we don't have to do
-  // that manually.
-  $element['group'] = array(
-    '#type' => 'fieldset',
-    '#theme_wrapper' => '',
-    '#parents' => $element['#parents'],
-  );
-
-  // The JavaScript stores the currently selected tab in this hidden
-  // field so that the active tab can be restored the next time the
-  // form is rendered, e.g. on preview pages or when form validation
-  // fails.
-  $name = implode('__', $element['#parents']);
-  if (isset($form_state['values'][$name . '__active_tab'])) {
-    $element['#default_tab'] = $form_state['values'][$name . '__active_tab'];
-  }
-  $element[$name . '__active_tab'] = array(
-    '#type' => 'hidden',
-    '#default_value' => $element['#default_tab'],
-    '#attributes' => array('class' => 'horizontal-tabs-active-tab'),
-  );
-
-  return $element;
-}
-
-/**
- * A process function for the base form element, which iterates through the
- * form elements and assigns them recursively to horizontal tabs.
- */
-function form_expand_horizontal_tabs($element, &$form_state) {
-  return isset($element['#tabs']) ? _form_expand_horizontal_tabs($element, $element['#tabs']) : $element;
-}
-
-/**
- * Expand the elements of a form such that they are sorted into the appropriate
- * horizontal tabs based on their #group attribute. Elements with no specificly
- * defined #group attribute or an invalid #group attribute will behave as their
- * parent elements behaved; if an element has no parent element either, it will
- * be sent to the primary tab. Note that this function is recursive and changes
- * the structure of the form array.
- *
- * @param $form
- *   The form to expand into proper Forms API notation for horizontal tabs.
- * @param $tabs
- *   The index of the element within the form that all items in the form are to
- *   be sorted into.
- * @param $tabs_element
- *   Internal use only.
- * @param $parent_tab
- *   Internal use only.
- * @param $path
- *   Internal use only.
- * @return
- *   The expanded form.
- */
-function _form_expand_horizontal_tabs($form, $tabs, $tabs_element = NULL, $parent_tab = NULL, $path = array()) {
-  static $full_form;
-  $root = FALSE;
-  if (!count($path)) {
-    $root = TRUE;
-    $tabs_element = $form[$tabs];
-    $full_form = $form;
-    foreach ($tabs_element['#tabs'] as $tab => $label) {
-      $full_form[$tabs][$tab] = array(
-        '#prefix' => '<div id="horizontal-tab-section-' . check_plain($tab) . '" class="horizontal-tab-section">',
-        '#suffix' => '</div>',
-      );
-    }
-  }
-  foreach (element_children($form) as $key) {
-    if (($key == $tabs) && $root) {
-      continue;
-    }
-    $element = $form[$key];
-    if ((isset($element['#group']) && !isset($tabs_element['#tabs'][$element['#group']]) && $element['#group'] != 'none') || (!isset($element['#group']) && is_null($parent_tab))) {
-      $element['#group'] = $tabs_element['#primary_tab'];
-    }
-    elseif (!isset($element['#group'])) {
-      $element['#group'] = $parent_tab;
-    }
-    if (isset($element['#group']) && $element['#group'] != 'none') {
-      $new_key = $key;
-      while (isset($full_form[$tabs][$element['#group']][$new_key])) {
-        $new_key = '_' . $new_key;
-      }
-      $full_form[$tabs][$element['#group']][$new_key] = $element;
-      unset($form[$key]);
-      $to_be_deleted = &$full_form;
-      foreach ($path as $path_part) {
-        $to_be_deleted = &$to_be_deleted[$path_part];
-      }
-      unset($to_be_deleted[$key]);
-    }
-    else {
-      $form[$key] = form_expand_horizontal_tabs($element, $tabs, $tabs_element, $element['#group'] == 'none' ? NULL : $element['#group'], array_merge($path, array($key)));
-    }
-  }
-  if ($root) {
-    return $full_form;
-  }
-  return $form;
-}
-
-/**
- * Assigns the element's children into horizontal tabs.
- *
- * @param $element
- *   An associative array containing the properties and children of the
- *   fieldset.
- */
-function theme_horizontal_tabs($element) {
-  // Add required JavaScript and Stylesheet.
-  drupal_add_js('misc/horizontal-tabs.js', array('weight' => JS_DEFAULT - 1));
-  drupal_add_css('misc/horizontal-tabs.css');
-
-  // Make sure not to overwrite classes.
-  if (isset($element['#attributes']['class'])) {
-    $element['#attributes']['class'] = 'horizontal-tabs ' . $element['#attributes']['class'];
-  }
-  else {
-    $element['#attributes']['class'] = 'horizontal-tabs';
-  }
-
-  drupal_add_js(array('horizontalTabs' => array($element['#id'] => $element['#tabs'])), 'setting');
-
-  $prefix = isset($element['#prefix']) ? $element['#prefix'] : '';
-  $suffix = isset($element['#suffix']) ? $element['#suffix'] : '';
-  return $prefix . '<div ' . drupal_attributes($element['#attributes']) . '><ul class="horizontal-tabs-panes" id ="horizontal-tabs-panes-' . $element['#id'] . '"></ul>' . $element['#children'] . '</div>' . $suffix;
+  return '<div class="vertical-tabs-panes">' . $element['#children'] . '</div>';
 }
 
 /**
@@ -3024,6 +2890,8 @@ function batch_set($batch_definition) {
 function batch_process($redirect = NULL, $url = NULL) {
   $batch =& batch_get();
 
+  drupal_theme_initialize();
+  
   if (isset($batch)) {
     // Add process information
     $url = isset($url) ? $url : 'batch';
@@ -3033,6 +2901,7 @@ function batch_process($redirect = NULL, $url = NULL) {
       'url' => isset($url) ? $url : 'batch',
       'source_page' => $_GET['q'],
       'redirect' => $redirect,
+      'theme' => $GLOBALS['theme_key'],
     );
     $batch += $process_info;
 

@@ -1,5 +1,5 @@
 <?php
-// $Id: poll.module,v 1.310 2009/08/24 00:14:21 webchick Exp $
+// $Id: poll.module,v 1.312 2009/09/10 08:43:46 dries Exp $
 
 /**
  * @file
@@ -117,9 +117,9 @@ function _poll_menu_access($node, $perm, $inspect_allowvotes) {
 }
 
 /**
- * Implement hook_block_list().
+ * Implement hook_block_info().
  */
-function poll_block_list() {
+function poll_block_info() {
   if (user_access('access content')) {
     $blocks['recent']['info'] = t('Most recent poll');
     return $blocks;
@@ -380,7 +380,7 @@ function _poll_choice_form($key, $chid = NULL, $value = '', $votes = 0, $weight 
  * Menu callback for AHAH additions. Render the new poll choices.
  */
 function poll_choice_js($form, $form_state) {
-  $choice_form = $form['tabs']['content']['choice_wrapper']['choice'];
+  $choice_form = $form['choice_wrapper']['choice'];
 
   return theme('status_messages') . drupal_render($choice_form);
 }
@@ -569,7 +569,7 @@ function poll_block_latest_poll_view($node) {
   $node->readmore = FALSE;
   $node->teaser = '';
 
-  $links = module_invoke_all('link', 'node', $node, 1);
+  $links = array();
   $links[] = array('title' => t('Older polls'), 'href' => 'poll', 'attributes' => array('title' => t('View the list of polls on this site.')));
   if ($node->allowvotes) {
     $links[] = array('title' => t('Results'), 'href' => 'node/' . $node->nid . '/results', 'attributes' => array('title' => t('View the current poll results.')));

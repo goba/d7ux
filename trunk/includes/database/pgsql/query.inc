@@ -1,5 +1,5 @@
 <?php
-// $Id: query.inc,v 1.14 2009/07/21 01:56:36 webchick Exp $
+// $Id: query.inc,v 1.16 2009/09/11 02:47:11 webchick Exp $
 
 /**
  * @ingroup database
@@ -158,7 +158,7 @@ class UpdateQuery_pgsql extends UpdateQuery {
     }
 
     if (count($this->condition)) {
-      $this->condition->compile($this->connection);
+      $this->condition->compile($this->connection, $this);
 
       $arguments = $this->condition->arguments();
       foreach ($arguments as $placeholder => &$value) {
@@ -172,4 +172,14 @@ class UpdateQuery_pgsql extends UpdateQuery {
 
     return $stmt->rowCount();
   }
+}
+
+class SelectQuery_pgsql extends SelectQuery {
+
+  public function orderRandom() {
+    $alias = $this->addExpression('RANDOM()', 'random_field');
+    $this->orderBy($alias);
+    return $this;
+  }
+
 }

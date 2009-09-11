@@ -1,5 +1,5 @@
 <?php
-// $Id: comment.module,v 1.762 2009/08/26 10:28:45 dries Exp $
+// $Id: comment.module,v 1.768 2009/09/10 12:33:44 webchick Exp $
 
 /**
  * @file
@@ -148,9 +148,6 @@ function comment_theme() {
       'template' => 'comment-wrapper',
       'arguments' => array('content' => NULL),
     ),
-    'comment_submitted' => array(
-      'arguments' => array('comment' => NULL),
-    ),
   );
 }
 
@@ -281,9 +278,9 @@ function comment_permission() {
 }
 
 /**
- * Implement hook_block_list().
+ * Implement hook_block_info().
  */
-function comment_block_list() {
+function comment_block_info() {
   $blocks['recent']['info'] = t('Recent comments');
 
   return $blocks;
@@ -593,7 +590,7 @@ function comment_node_page_additions($node) {
       $comments = comment_load_multiple($cids);
       comment_prepare_thread($comments);
       $build = comment_build_multiple($comments);
-      $build['#attached_css'][] = drupal_get_path('module', 'comment') . '/comment.css';
+      $build['#attached']['css'][] = drupal_get_path('module', 'comment') . '/comment.css';
       $build['pager']['#theme'] = 'pager';
       $additions['comments'] = $build;
     }
@@ -770,9 +767,13 @@ function comment_prepare_thread(&$comments) {
  */
 function comment_build($comment, $build_mode = 'full') {
   $node = node_load($comment->nid);
-  $comment = comment_build_content($comment, $build_mode);
+  
+  // Populate $comment->content with a render() array.
+  comment_build_content($comment, $build_mode);
 
   $build = $comment->content;
+  // We don't need duplicate rendering info in comment->content.
+  unset($comment->content);
 
   $build += array(
     '#theme' => 'comment',
@@ -815,9 +816,6 @@ function comment_build($comment, $build_mode = 'full') {
  *   A comment object.
  * @param $build_mode
  *   Build mode, e.g. 'full', 'teaser'...
- * @return
- *   A structured array containing the individual elements
- *   of the comment's content.
  */
 function comment_build_content($comment, $build_mode = 'full') {
   if (empty($comment->content)) {
@@ -844,8 +842,6 @@ function comment_build_content($comment, $build_mode = 'full') {
 
   // Allow modules to modify the structured comment.
   drupal_alter('comment_build', $comment, $build_mode);
-
-  return $comment;
 }
 
 /**
@@ -943,7 +939,9 @@ function comment_form_node_type_form_alter(&$form, $form_state) {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#group' => 'additional_settings',
-      '#attached_js' => array(drupal_get_path('module', 'comment') . '/comment-node-form.js'),
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'comment') . '/comment-node-form.js'),
+      ),
     );
     $form['comment']['comment_default_mode'] = array(
       '#type' => 'checkbox',
@@ -1009,9 +1007,10 @@ function comment_form_alter(&$form, $form_state, $form_id) {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#group' => 'additional_settings',
-      '#attached_js' => array(drupal_get_path('module', 'comment') . '/comment-node-form.js'),
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'comment') . '/comment-node-form.js'),
+       ),
       '#weight' => 30,
-      '#group' => 'meta',
     );
     $comment_count = isset($node->nid) ? db_query('SELECT comment_count FROM {node_comment_statistics} WHERE nid = :nid', array(':nid' => $node->nid))->fetchField() : 0;
     $comment_settings = ($node->comment == COMMENT_NODE_HIDDEN && empty($comment_count)) ? COMMENT_NODE_CLOSED : $node->comment;
@@ -1027,7 +1026,7 @@ function comment_form_alter(&$form, $form_state, $form_id) {
       COMMENT_NODE_OPEN => array(
         '#type' => 'radio',
         '#title' => t('Open'),
-        '#description' => theme('indentation') . t('Users with the "Post comments" permission can post comments.'),
+        '#description' => t('Users with the "Post comments" permission can post comments.'),
         '#return_value' => COMMENT_NODE_OPEN,
         '#default_value' => $comment_settings,
         '#id' => 'edit-comment-2',
@@ -1036,7 +1035,7 @@ function comment_form_alter(&$form, $form_state, $form_id) {
       COMMENT_NODE_CLOSED => array(
         '#type' => 'radio',
         '#title' => t('Closed'),
-        '#description' => theme('indentation') . t('Users cannot post comments, but existing comments will be displayed.'),
+        '#description' => t('Users cannot post comments, but existing comments will be displayed.'),
         '#return_value' => COMMENT_NODE_CLOSED,
         '#default_value' => $comment_settings,
         '#id' => 'edit-comment-1',
@@ -1045,7 +1044,7 @@ function comment_form_alter(&$form, $form_state, $form_id) {
       COMMENT_NODE_HIDDEN => array(
         '#type' => 'radio',
         '#title' => t('Hidden'),
-        '#description' => theme('indentation') . t('Comments are hidden from view.'),
+        '#description' => t('Comments are hidden from view.'),
         '#return_value' => COMMENT_NODE_HIDDEN,
         '#default_value' => $comment_settings,
         '#id' => 'edit-comment-0',
@@ -1057,7 +1056,7 @@ function comment_form_alter(&$form, $form_state, $form_id) {
     if (empty($comment_count)) {
       unset($form['comment_settings']['comment']['#options'][COMMENT_NODE_HIDDEN]);
       unset($form['comment_settings']['comment'][COMMENT_NODE_HIDDEN]);
-      $form['comment_settings']['comment'][COMMENT_NODE_CLOSED]['#description'] = theme('indentation') . t('Users cannot post comments.');
+      $form['comment_settings']['comment'][COMMENT_NODE_CLOSED]['#description'] = t('Users cannot post comments.');
     }
   }
 }
@@ -1618,7 +1617,7 @@ function comment_form(&$form_state, $comment) {
   $node = node_load($comment->nid);
 
   if (!$user->uid && variable_get('comment_anonymous_' . $node->type, COMMENT_ANONYMOUS_MAYNOT_CONTACT) != COMMENT_ANONYMOUS_MAYNOT_CONTACT) {
-    $form_state['#attached_js'][] = drupal_get_path('module', 'comment') . '/comment.js';
+    $form_state['#attached']['js'][] = drupal_get_path('module', 'comment') . '/comment.js';
   }
 
   $comment = (array) $comment;
@@ -2084,14 +2083,18 @@ function template_preprocess_comment(&$variables) {
   $variables['comment']   = $comment;
   $variables['node']      = node_load($comment->nid);
   $variables['author']    = theme('username', $comment);
-  $variables['content']   = $comment->content;
   $variables['date']      = format_date($comment->timestamp);
   $variables['new']       = !empty($comment->new) ? t('new') : '';
   $variables['picture']   = theme_get_setting('toggle_comment_user_picture') ? theme('user_picture', $comment) : '';
   $variables['signature'] = $comment->signature;
-  $variables['submitted'] = theme('comment_submitted', $comment);
   $variables['title']     = l($comment->subject, 'comment/' . $comment->cid, array('fragment' => "comment-$comment->cid"));
   $variables['template_files'][] = 'comment-' . $variables['node']->type;
+  
+  // Helpful $content variable for templates.
+  foreach (element_children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+  
   // Set status to a string representation of comment->status.
   if (isset($comment->in_preview)) {
     $variables['status']  = 'comment-preview';
@@ -2168,21 +2171,6 @@ function template_preprocess_comment_wrapper(&$variables) {
   $variables['node'] = $variables['content']['#node'];
   $variables['display_mode'] = _comment_get_display_setting('mode', $variables['node']);
   $variables['template_files'][] = 'comment-wrapper-' . $variables['node']->type;
-}
-
-/**
- * Theme a "Submitted by ..." notice.
- *
- * @param $comment
- *   The comment.
- * @ingroup themeable
- */
-function theme_comment_submitted($comment) {
-  return t('Submitted by !username on @datetime.',
-    array(
-      '!username' => theme('username', $comment),
-      '@datetime' => format_date($comment->timestamp)
-    ));
 }
 
 /**
@@ -2428,10 +2416,15 @@ function comment_ranking() {
   return array(
     'comments' => array(
       'title' => t('Number of comments'),
-      'join' => 'LEFT JOIN {node_comment_statistics} node_comment_statistics ON node_comment_statistics.nid = i.sid',
+      'join' => array(
+        'type' => 'LEFT',
+        'table' => 'node_comment_statistics',
+        'alias' => 'node_comment_statistics',
+        'on' => 'node_comment_statistics.nid = i.sid',
+      ),
       // Inverse law that maps the highest reply count on the site to 1 and 0 to 0.
-      'score' => '2.0 - 2.0 / (1.0 + node_comment_statistics.comment_count * CAST(%f AS DECIMAL))',
-      'arguments' => array(variable_get('node_cron_comments_scale', 0)),
+      'score' => '2.0 - 2.0 / (1.0 + node_comment_statistics.comment_count * CAST(:scale AS DECIMAL))',
+      'arguments' => array(':scale' => variable_get('node_cron_comments_scale', 0)),
     ),
   );
 }

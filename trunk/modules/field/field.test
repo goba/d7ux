@@ -1,5 +1,5 @@
 <?php
-// $Id: field.test,v 1.46 2009/08/27 04:40:12 webchick Exp $
+// $Id: field.test,v 1.49 2009/09/11 03:42:34 webchick Exp $
 
 /**
  * @file
@@ -1543,6 +1543,20 @@ class FieldCrudTestCase extends FieldTestCase {
     catch (FieldException $e) {
       $this->pass(t('Cannot create a field with a name longer than 32 characters.'));
     }
+
+    // Check that field name can not be an object key.
+    // "ftvid" is known as an object key from the "test_entity" type.
+    try {
+      $field_definition = array(
+        'type' => 'test_field',
+        'field_name' => 'ftvid',
+      );
+      $field = field_create_field($field_definition);
+      $this->fail(t('Cannot create a field bearing the name of an object key.'));
+    }
+    catch (FieldException $e) {
+      $this->pass(t('Cannot create a field bearing the name of an object key.'));
+    }
   }
 
   /**
@@ -1941,7 +1955,7 @@ class FieldTranslationsTestCase extends FieldTestCase {
     $this->assertTrue(count($available_languages) == 1 && $available_languages[0] === FIELD_LANGUAGE_NONE, t('Untranslatable entity: suggested language ignored.'));
 
     // Enable field translations for the entity.
-    field_test_fieldable_info_translatable('test_entity', TRUE);
+    field_test_entity_info_translatable('test_entity', TRUE);
 
     // Test hook_field_languages() invocation on a translatable field.
     $this->field['settings']['test_hook_in'] = TRUE;
@@ -2070,7 +2084,7 @@ class FieldTranslationsTestCase extends FieldTestCase {
    */
   function testTranslatableFieldSaveLoad() {
     // Enable field translations for nodes.
-    field_test_fieldable_info_translatable('node', TRUE);
+    field_test_entity_info_translatable('node', TRUE);
     $obj_info = field_info_fieldable_types('node');
     $this->assertTrue(count($obj_info['translation_handlers']), t('Nodes are translatable.'));
 
@@ -2135,7 +2149,7 @@ class FieldBulkDeleteTestCase extends FieldTestCase {
   function _generateStubObjects($obj_type, $objects, $field_name = NULL) {
     $stubs = array();
     foreach ($objects as $obj) {
-      $stub = field_attach_create_stub_object($obj_type, field_attach_extract_ids($obj_type, $obj));
+      $stub = field_create_stub_entity($obj_type, field_extract_ids($obj_type, $obj));
       if (isset($field_name)) {
         $stub->{$field_name} = $obj->{$field_name};
       }

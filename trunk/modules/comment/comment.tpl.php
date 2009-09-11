@@ -1,5 +1,5 @@
 <?php
-// $Id: comment.tpl.php,v 1.10 2009/07/28 10:09:25 dries Exp $
+// $Id: comment.tpl.php,v 1.12 2009/09/11 06:48:02 dries Exp $
 
 /**
  * @file
@@ -17,7 +17,6 @@
  * - $signature: Authors signature.
  * - $status: Comment status. Possible values are:
  *   comment-unpublished, comment-published or comment-preview.
- * - $submitted: By line with date and time.
  * - $title: Linked title.
  * - $classes: String of classes that can be used to style contextually through
  *   CSS. It can be manipulated through the variable $classes_array from
@@ -45,17 +44,20 @@
  * @see theme_comment()
  */
 ?>
-<div class="<?php print $classes; ?> clearfix">
+<div class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
   <?php print $picture ?>
 
   <?php if ($new): ?>
     <span class="new"><?php print $new ?></span>
   <?php endif; ?>
 
-  <h3><?php print $title ?></h3>
+  <h3<?php print $title_attributes; ?>><?php print $title ?></h3>
 
   <div class="submitted">
-    <?php print $submitted ?>
+    <?php
+      print t('Submitted by !username on @datetime.',
+        array('!username' => $author, '@datetime' => $date));
+    ?>
   </div>
 
   <div class="content">

@@ -1,5 +1,5 @@
 <?php
-// $Id: node.tpl.php,v 1.20 2009/08/22 00:58:54 webchick Exp $
+// $Id: node.tpl.php,v 1.22 2009/09/11 06:48:03 dries Exp $
 
 /**
  * @file
@@ -17,8 +17,7 @@
  * - $name: Themed username of node author output from theme_username().
  * - $node_url: Direct url of the current node.
  * - $terms: the themed list of taxonomy term links output from theme_links().
- * - $submitted: themed submission information output from
- *   theme_node_submitted().
+ * - $display_submitted: whether submission information should be displayed.
  * - $classes: String of classes that can be used to style contextually through
  *   CSS. It can be manipulated through the variable $classes_array from
  *   preprocess functions. The default values can be one or more of the following:
@@ -44,15 +43,6 @@
  * - $zebra: Outputs either "even" or "odd". Useful for zebra striping in
  *   teaser listings.
  * - $id: Position of the node. Increments each time it's output.
- *
- * Action links variables:
- * - $has_actions: TRUE when the node is editable by the current user.
- * - $action_links: Already-themed links to the actioni pages for the node; may
- *   be empty.
- * - $action_links_text: An array of caption for the action links of the node;
- *   may be empty.
- * - $action_links_info: An array of information describing the links to take
- *   action on the node; may be empty.
  *
  * Node status variables:
  * - $build_mode: Build mode, e.g. 'full', 'teaser'...
@@ -80,22 +70,23 @@
  * @see template_process()
  */
 ?>
-<div id="node-<?php print $node->nid; ?>" class="<?php print $classes; ?> clearfix">
+<div id="node-<?php print $node->nid; ?>" class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
 
   <?php print $user_picture; ?>
 
-  <?php if (!$page && $action_links): ?>
-    <?php print $action_links; ?>
-  <?php endif; ?>
-
   <?php if (!$page): ?>
-    <h2><a href="<?php print $node_url; ?>"><?php print $title; ?></a></h2>
+    <h2<?php print $title_attributes; ?>><a href="<?php print $node_url; ?>"><?php print $title; ?></a></h2>
   <?php endif; ?>
 
-  <?php if ($submitted || !empty($content['links']['terms'])): ?>
+  <?php if ($display_submitted || !empty($content['links']['terms'])): ?>
     <div class="meta">
-      <?php if ($submitted): ?>
-        <span class="submitted"><?php print $submitted; ?></span>
+      <?php if ($display_submitted): ?>
+        <span class="submitted">
+          <?php
+            print t('Submitted by !username on @datetime',
+              array('!username' => $name, '@datetime' => $date));
+          ?>
+        </span>
       <?php endif; ?>
 
       <?php if (!empty($content['links']['terms'])): ?>

@@ -1,5 +1,5 @@
 <?php
-// $Id: content_types.inc,v 1.91 2009/08/24 19:26:46 dries Exp $
+// $Id: content_types.inc,v 1.93 2009/09/10 22:10:10 webchick Exp $
 
 /**
  * @file
@@ -101,7 +101,9 @@ function node_type_form(&$form_state, $type = NULL) {
       '#maxlength' => 32,
       '#required' => TRUE,
       '#description' => t('The machine-readable name of this content type. This text will be used for constructing the URL of the <em>add new content</em> page for this content type. This name must contain only lowercase letters, numbers, and underscores. Underscores will be converted into hyphens when constructing the URL of the <em>add new content</em> page. This name must be unique.'),
-      '#attached_js' => array(drupal_get_path('module', 'system') . '/system.js', $js_settings),
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'system') . '/system.js', $js_settings),
+      ),
     );
   }
   else {
@@ -348,6 +350,7 @@ function node_type_form_submit($form, &$form_state) {
   }
 
   node_types_rebuild();
+  menu_rebuild();
   $t_args = array('%name' => $type->name);
 
   if ($status == SAVED_UPDATED) {
@@ -442,6 +445,7 @@ function node_type_delete_confirm_submit($form, &$form_state) {
   watchdog('menu', 'Deleted content type %name.', $t_args, WATCHDOG_NOTICE);
 
   node_types_rebuild();
+  menu_rebuild();
 
   $form_state['redirect'] = 'admin/structure/types';
   return;

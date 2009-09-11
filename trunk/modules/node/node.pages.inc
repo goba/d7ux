@@ -1,5 +1,5 @@
 <?php
-// $Id: node.pages.inc,v 1.78 2009/08/25 10:27:14 dries Exp $
+// $Id: node.pages.inc,v 1.79 2009/09/05 15:05:03 dries Exp $
 
 /**
  * @file
@@ -192,8 +192,15 @@ function node_form(&$form_state, $node) {
       '#collapsible' => TRUE,
       // Collapsed by default when "Create new revision" is unchecked
       '#collapsed' => !$node->revision,
+<<<<<<< node.pages.inc
       '#group' => 'meta',
       '#attached_js' => array(drupal_get_path('module', 'node') . '/node.js' => array('weight' => -10)),
+=======
+      '#group' => 'additional_settings',
+      '#attached' => array(
+        'js' => array(drupal_get_path('module', 'node') . '/node.js'),
+      ),
+>>>>>>> 1.79
       '#weight' => 20,
     );
     $form['revision_information']['revision'] = array(
@@ -218,8 +225,15 @@ function node_form(&$form_state, $node) {
     '#title' => t('Authoring information'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
+<<<<<<< node.pages.inc
     '#group' => 'meta',
     '#attached_js' => array(drupal_get_path('module', 'node') . '/node.js' => array('weight' => -10)),
+=======
+    '#group' => 'additional_settings',
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'node') . '/node.js'),
+    ),
+>>>>>>> 1.79
     '#weight' => 90,
   );
   $form['author']['name'] = array(
@@ -249,8 +263,15 @@ function node_form(&$form_state, $node) {
     '#title' => t('Publishing options'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
+<<<<<<< node.pages.inc
     '#group' => 'meta',
     '#attached_js' => array(drupal_get_path('module', 'node') . '/node.js' => array('weight' => -10)),
+=======
+    '#group' => 'additional_settings',
+    '#attached' => array(
+      'js' => array(drupal_get_path('module', 'node') . '/node.js'),
+    ),
+>>>>>>> 1.79
     '#weight' => 95,
   );
   $form['options']['status'] = array(

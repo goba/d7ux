@@ -1,5 +1,5 @@
 <?php
-// $Id: system.module,v 1.777 2009/08/26 10:53:45 dries Exp $
+// $Id: system.module,v 1.789 2009/09/11 02:14:20 webchick Exp $
 
 /**
  * @file
@@ -101,7 +101,7 @@ function system_help($path, $arg) {
       $output .= '<li>' . t('support for enabling and disabling <a href="@themes">themes</a>, which determine the design and presentation of your site. Drupal comes packaged with several core themes and additional contributed themes are available at the <a href="@drupal-themes">Drupal.org theme page</a>.', array('@themes' => url('admin/appearance'), '@drupal-themes' => 'http://drupal.org/project/themes')) . '</li>';
       $output .= '<li>' . t('a robust <a href="@cache-settings">caching system</a> that allows the efficient re-use of previously-constructed web pages and web page components. Drupal stores the pages requested by anonymous users in a compressed format; depending on your site configuration and the amount of your web traffic tied to anonymous visitors, Drupal\'s caching system may significantly increase the speed of your site.', array('@cache-settings' => url('admin/config/development/performance'))) . '</li>';
       $output .= '<li>' . t('a set of routine administrative operations that rely on a correctly-configured <a href="@cron">cron maintenance task</a> to run automatically. A number of other modules, including the feed aggregator, and search also rely on <a href="@cron">cron maintenance tasks</a>. For more information, see the online handbook entry for <a href="@handbook">configuring cron jobs</a>.', array('@cron' => url('admin/reports/status'), '@handbook' => 'http://drupal.org/cron')) . '</li>';
-      $output .= '<li>' . t('basic configuration options for your site, including <a href="@regional-settings">date and time settings</a>, <a href="@file-system">file system settings</a>, <a href="@clean-url">clean URL support</a>, <a href="@site-info">site name and other information</a>, and a <a href="@maintenance-mode">maintenance mode</a> for taking your site temporarily offline.', array('@regional-settings' => url('admin/config/regional/settings'), '@file-system' => url('admin/config/media/file-system'), '@clean-url' => url('admin/config/search/clean-urls'), '@site-info' => url('admin/settings/site-information'), '@maintenance-mode' => url('admin/config/development/maintenance'))) . '</li></ul>';
+      $output .= '<li>' . t('basic configuration options for your site, including <a href="@regional-settings">date and time settings</a>, <a href="@file-system">file system settings</a>, <a href="@clean-url">clean URL support</a>, <a href="@site-info">site name and other information</a>, and a <a href="@maintenance-mode">maintenance mode</a> for taking your site temporarily offline.', array('@regional-settings' => url('admin/config/regional/settings'), '@file-system' => url('admin/config/media/file-system'), '@clean-url' => url('admin/config/search/clean-urls'), '@site-info' => url('admin/config/system/site-information'), '@maintenance-mode' => url('admin/config/development/maintenance'))) . '</li></ul>';
       $output .= '<p>' . t('For more information, see the online handbook entry for <a href="@system">System module</a>.', array('@system' => 'http://drupal.org/handbook/modules/system/')) . '</p>';
       return $output;
     case 'admin/by-module':
@@ -110,8 +110,8 @@ function system_help($path, $arg) {
       $output = '<p>' . t('Select the default theme for Drupal. To configure site-wide display settings, click the "configure" task above. Alternatively, to override these settings in a specific theme, click the "configure" link for that theme. Note that different themes may have different regions available for displaying content.') . '</p>';
       $output .= '<p>' . t('To change the appearance of your site, a number of <a href="@themes">contributed themes</a> are available.', array('@themes' => 'http://drupal.org/project/themes')) . '</p>';
       return $output;
-    case 'admin/appearance/settings/' . $arg[4]:
-      $reference = explode('.', $arg[4], 2);
+    case 'admin/appearance/settings/' . $arg[3]:
+      $reference = explode('.', $arg[3], 2);
       $theme = array_pop($reference);
       return '<p>' . t('These options control the display settings for the <code>%template</code> theme. When your site is displayed using this theme, these settings will be used. By clicking "Reset to defaults," you can choose to use the <a href="@global">global settings</a> for this theme.', array('%template' => $theme, '@global' => url('admin/appearance/settings'))) . '</p>';
     case 'admin/appearance/settings':
@@ -133,15 +133,15 @@ function system_help($path, $arg) {
       if ($user->uid == 1) {
         return '<p>' . t('If you are upgrading to a newer version of Drupal or upgrading contributed modules or themes you may need to run !update-php.', array('!update-php' => l('update.php', 'update.php'))) . '</p>';
       }
-    case 'admin/settings/actions':
-    case 'admin/settings/actions/manage':
+    case 'admin/config/system/actions':
+    case 'admin/config/system/actions/manage':
       $output = '<p>' . t('Actions are individual tasks that the system can do, such as unpublishing a piece of content or banning a user. Modules, such as the trigger module, can fire these actions when certain system events happen; for example, when a new post is added or when a user logs in. Modules may also provide additional actions.') . '</p>';
       $output .= '<p>' . t('There are two types of actions: simple and advanced. Simple actions do not require any additional configuration, and are listed here automatically. Advanced actions can do more than simple actions; for example, send an e-mail to a specified address, or check for certain words within a piece of content. These actions need to be created and configured first before they may be used. To create an advanced action, select the action from the drop-down below and click the <em>Create</em> button.') . '</p>';
       if (module_exists('trigger')) {
         $output .= '<p>' . t('You may proceed to the <a href="@url">Triggers</a> page to assign these actions to system events.', array('@url' => url('admin/structure/trigger'))) . '</p>';
       }
       return $output;
-    case 'admin/settings/actions/configure':
+    case 'admin/config/system/actions/configure':
       return t('An advanced action offers additional configuration options which may be filled out below. Changing the <em>Description</em> field is recommended, in order to better identify the precise action taking place. This description will be displayed in modules such as the trigger module when assigning actions to system events, so it is best if it is as descriptive as possible (for example, "Send e-mail to Moderation Team" rather than simply "Send e-mail").');
     case 'admin/config/people/ip-blocking':
       return '<p>' . t('IP addresses listed here are blocked from your site before any modules are loaded. You may add IP addresses to the list, or delete existing entries.') . '</p>';
@@ -279,33 +279,29 @@ function system_entity_info() {
 }
 
 /**
- * Implement hook_elements().
+ * Implement hook_element_info().
  */
-function system_elements() {
-  // Top level form
-  $type['form'] = array(
+function system_element_info() {
+  // Top level elements.
+  $types['form'] = array(
     '#method' => 'post',
     '#action' => request_uri(),
     '#process' => array('form_expand_horizontal_tabs'),
     '#theme_wrappers' => array('form'),
   );
-
-  $type['page'] = array(
+  $types['page'] = array(
     '#show_messages' => TRUE,
     '#theme' => 'page',
   );
-
-  $type['list'] = array(
+  $types['list'] = array(
     '#title' => '',
     '#list_type' => 'ul',
     '#attributes' => array(),
     '#items' => array(),
   );
 
-  /**
-   * Input elements.
-   */
-  $type['submit'] = array(
+  // Input elements.
+  $types['submit'] = array(
     '#input' => TRUE,
     '#name' => 'op',
     '#button_type' => 'submit',
@@ -313,8 +309,7 @@ function system_elements() {
     '#process' => array('ajax_process_form'),
     '#theme_wrappers' => array('button'),
   );
-
-  $type['button'] = array(
+  $types['button'] = array(
     '#input' => TRUE,
     '#name' => 'op',
     '#button_type' => 'submit',
@@ -322,8 +317,7 @@ function system_elements() {
     '#process' => array('ajax_process_form'),
     '#theme_wrappers' => array('button'),
   );
-
-  $type['image_button'] = array(
+  $types['image_button'] = array(
     '#input' => TRUE,
     '#button_type' => 'submit',
     '#executes_submit_callback' => TRUE,
@@ -333,8 +327,7 @@ function system_elements() {
     '#src' => NULL,
     '#theme_wrappers' => array('image_button'),
   );
-
-  $type['textfield'] = array(
+  $types['textfield'] = array(
     '#input' => TRUE,
     '#size' => 60,
     '#maxlength' => 128,
@@ -343,8 +336,7 @@ function system_elements() {
     '#theme' => 'textfield',
     '#theme_wrappers' => array('form_element'),
   );
-
-  $type['password'] = array(
+  $types['password'] = array(
     '#input' => TRUE,
     '#size' => 60,
     '#maxlength' => 128,
@@ -352,14 +344,12 @@ function system_elements() {
     '#theme' => 'password',
     '#theme_wrappers' => array('form_element'),
   );
-
-  $type['password_confirm'] = array(
+  $types['password_confirm'] = array(
     '#input' => TRUE,
     '#process' => array('form_process_password_confirm'),
     '#theme_wrappers' => array('form_element'),
   );
-
-  $type['textarea'] = array(
+  $types['textarea'] = array(
     '#input' => TRUE,
     '#cols' => 60,
     '#rows' => 5,
@@ -368,15 +358,13 @@ function system_elements() {
     '#theme' => 'textarea',
     '#theme_wrappers' => array('form_element'),
   );
-
-  $type['radios'] = array(
+  $types['radios'] = array(
     '#input' => TRUE,
     '#process' => array('form_process_radios'),
     '#theme_wrappers' => array('radios'),
     '#pre_render' => array('form_pre_render_conditional_form_element'),
   );
-
-  $type['radio'] = array(
+  $types['radio'] = array(
     '#input' => TRUE,
     '#default_value' => NULL,
     '#process' => array('ajax_process_form'),
@@ -384,16 +372,14 @@ function system_elements() {
     '#theme_wrappers' => array('form_element'),
     '#form_element_skip_title' => TRUE,
   );
-
-  $type['checkboxes'] = array(
+  $types['checkboxes'] = array(
     '#input' => TRUE,
     '#tree' => TRUE,
     '#process' => array('form_process_checkboxes'),
     '#theme_wrappers' => array('checkboxes'),
     '#pre_render' => array('form_pre_render_conditional_form_element'),
   );
-
-  $type['checkbox'] = array(
+  $types['checkbox'] = array(
     '#input' => TRUE,
     '#return_value' => 1,
     '#process' => array('ajax_process_form'),
@@ -401,8 +387,7 @@ function system_elements() {
     '#theme_wrappers' => array('form_element'),
     '#form_element_skip_title' => TRUE,
   );
-
-  $type['select'] = array(
+  $types['select'] = array(
     '#input' => TRUE,
     '#size' => 0,
     '#multiple' => FALSE,
@@ -410,64 +395,54 @@ function system_elements() {
     '#theme' => 'select',
     '#theme_wrappers' => array('form_element'),
   );
-
-  $type['weight'] = array(
+  $types['weight'] = array(
     '#input' => TRUE,
     '#delta' => 10,
     '#default_value' => 0,
     '#process' => array('form_process_weight', 'ajax_process_form'),
   );
-
-  $type['date'] = array(
+  $types['date'] = array(
     '#input' => TRUE,
     '#element_validate' => array('date_validate'),
     '#process' => array('form_process_date'),
     '#theme' => 'date',
     '#theme_wrappers' => array('form_element'),
   );
-
-  $type['file'] = array(
+  $types['file'] = array(
     '#input' => TRUE,
     '#size' => 60,
     '#theme' => 'file',
     '#theme_wrappers' => array('form_element'),
   );
-
-  $type['tableselect'] = array(
+  $types['tableselect'] = array(
     '#input' => TRUE,
     '#js_select' => TRUE,
     '#multiple' => TRUE,
     '#process' => array('form_process_tableselect'),
     '#options' => array(),
     '#empty' => '',
-    '#theme' => 'tableselect'
+    '#theme' => 'tableselect',
   );
 
-  /**
-   * Form structure.
-   */
-  $type['item'] = array(
+  // Form structure.
+  $types['item'] = array(
     '#markup' => '',
     '#theme' => 'markup',
     '#theme_wrappers' => array('form_element'),
   );
-
-  $type['hidden'] = array(
+  $types['hidden'] = array(
     '#input' => TRUE,
     '#process' => array('ajax_process_form'),
     '#theme' => 'hidden',
   );
-
-  $type['value'] = array(
+  $types['value'] = array(
     '#input' => TRUE,
   );
-
-  $type['markup'] = array(
+  $types['markup'] = array(
     '#markup' => '',
     '#theme' => 'markup',
   );
-
-  $type['fieldset'] = array(
+  $types['fieldset'] = array(
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#value' => NULL,
@@ -475,12 +450,12 @@ function system_elements() {
     '#pre_render' => array('form_pre_render_fieldset'),
     '#theme_wrappers' => array('fieldset'),
   );
-
-  $type['vertical_tabs'] = array(
+  $types['vertical_tabs'] = array(
     '#theme_wrappers' => array('vertical_tabs'),
     '#default_tab' => '',
     '#process' => array('form_process_vertical_tabs'),
   );
+<<<<<<< system.module
 
   $type['horizontal_tabs'] = array(
     '#theme_wrappers' => array('horizontal_tabs'),
@@ -491,11 +466,14 @@ function system_elements() {
   );
 
   $type['token'] = array(
+=======
+  $types['token'] = array(
+>>>>>>> 1.789
     '#input' => TRUE,
     '#theme' => array('hidden'),
   );
 
-  return $type;
+  return $types;
 }
 
 /**
@@ -576,24 +554,13 @@ function system_menu() {
   );
 
   // Menu items that are basically just menu blocks.
-  $items['admin/settings'] = array(
-    'title' => 'Site configuration',
-    'description' => 'Configure site settings.',
-    'position' => 'right',
-    'weight' => -2,
-    'page callback' => 'system_settings_overview',
-    'access callback' => 'system_admin_menu_block_access',
-    'access arguments' => array('admin/settings', 'access administration pages'),
-    'file' => 'system.admin.inc',
-  );
   $items['admin/structure'] = array(
     'title' => 'Structure',
     'description' => 'Control how your site looks and feels.',
     'position' => 'right',
     'weight' => -8,
     'page callback' => 'system_admin_menu_block_page',
-    'access callback' => 'system_admin_menu_block_access',
-    'access arguments' => array('admin/structure', 'access administration pages'),
+    'access arguments' => array('access administration pages'),
     'file' => 'system.admin.inc',
   );
   // Appearance.
@@ -687,14 +654,14 @@ function system_menu() {
   );
 
   // Actions.
-  $items['admin/settings/actions'] = array(
+  $items['admin/config/system/actions'] = array(
     'title' => 'Actions',
     'description' => 'Manage the actions defined for your site.',
     'access arguments' => array('administer actions'),
     'page callback' => 'system_actions_manage',
     'file' => 'system.admin.inc',
   );
-  $items['admin/settings/actions/manage'] = array(
+  $items['admin/config/system/actions/manage'] = array(
     'title' => 'Manage actions',
     'description' => 'Manage the actions defined for your site.',
     'page callback' => 'system_actions_manage',
@@ -702,7 +669,7 @@ function system_menu() {
     'weight' => -2,
     'file' => 'system.admin.inc',
   );
-  $items['admin/settings/actions/configure'] = array(
+  $items['admin/config/system/actions/configure'] = array(
     'title' => 'Configure an advanced action',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('system_actions_configure'),
@@ -710,16 +677,16 @@ function system_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'system.admin.inc',
   );
-  $items['admin/settings/actions/delete/%actions'] = array(
+  $items['admin/config/system/actions/delete/%actions'] = array(
     'title' => 'Delete action',
     'description' => 'Delete an action.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('system_actions_delete_form', 4),
+    'page arguments' => array('system_actions_delete_form', 5),
     'access arguments' => array('administer actions'),
     'type' => MENU_CALLBACK,
     'file' => 'system.admin.inc',
   );
-  $items['admin/settings/actions/orphan'] = array(
+  $items['admin/config/system/actions/orphan'] = array(
     'title' => 'Remove orphans',
     'page callback' => 'system_actions_remove_orphans',
     'access arguments' => array('administer actions'),
@@ -759,8 +726,7 @@ function system_menu() {
     'position' => 'left',
     'weight' => 10,
     'page callback' => 'system_admin_menu_block_page',
-    'access callback' => 'system_admin_menu_block_access',
-    'access arguments' => array('admin/config/development', 'access administration pages'),
+    'access arguments' => array('access administration pages'),
     'file' => 'system.admin.inc',
   );
   $items['admin/config/development/maintenance'] = array(
@@ -785,8 +751,7 @@ function system_menu() {
     'position' => 'left',
     'weight' => 10,
     'page callback' => 'system_admin_menu_block_page',
-    'access callback' => 'system_admin_menu_block_access',
-    'access arguments' => array('admin/config/media', 'access administration pages'),
+    'access arguments' => array('access administration pages'),
     'file' => 'system.admin.inc',
   );
   $items['admin/config/media/file-system'] = array(
@@ -809,8 +774,7 @@ function system_menu() {
     'title' => 'Web services',
     'description' => 'Tools related to web services.',
     'page callback' => 'system_admin_menu_block_page',
-    'access callback' => 'system_admin_menu_block_access',
-    'access arguments' => array('admin/config/services', 'access administration pages'),
+    'access arguments' => array('access administration pages'),
     'file' => 'system.admin.inc',
   );
   $items['admin/config/services/rss-publishing'] = array(
@@ -835,8 +799,7 @@ function system_menu() {
     'position' => 'left',
     'weight' => -7,
     'page callback' => 'system_admin_menu_block_page',
-    'access callback' => 'system_admin_menu_block_access',
-    'access arguments' => array('admin/config/regional', 'access administration pages'),
+    'access arguments' => array('access administration pages'),
     'file' => 'system.admin.inc',
   );
   $items['admin/config/regional/settings'] = array(
@@ -859,8 +822,7 @@ function system_menu() {
     'title' => 'Search and metadata',
     'description' => 'Local site search, metadata and SEO.',
     'page callback' => 'system_admin_menu_block_page',
-    'access callback' => 'system_admin_menu_block_access',
-    'access arguments' => array('admin/config/search', 'access administration pages'),
+    'access arguments' => array('access administration pages'),
     'file' => 'system.admin.inc',
   );
   $items['admin/config/search/clean-urls'] = array(
@@ -879,15 +841,32 @@ function system_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'system.admin.inc',
   );
-
-  // Settings.
-  $items['admin/settings/site-information'] = array(
+  $items['admin/config/content'] = array(
+    'title' => 'Content authoring',
+    'description' => 'Settings related to formatting and authoring content.',
+    'position' => 'right',
+    'weight' => 5,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access administration pages'),
+    'file' => 'system.admin.inc',
+  );
+  $items['admin/config/system'] = array(
+    'title' => 'System',
+    'description' => 'General system related configuration.',
+    'position' => 'right',
+    'weight' => -5,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access administration pages'),
+    'file' => 'system.admin.inc',
+  );
+  $items['admin/config/system/site-information'] = array(
     'title' => 'Site information',
-    'description' => 'Change basic site information, such as the site name, slogan, e-mail address, mission, front page and more.',
+    'description' => 'Change basic site name, e-mail address, slogan, default front page, number of posts per page, error pages and cron.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('system_site_information_settings'),
     'access arguments' => array('administer site configuration'),
     'file' => 'system.admin.inc',
+    'weight' => -10,
   );
 
   // Reports.
@@ -895,8 +874,7 @@ function system_menu() {
     'title' => 'Reports',
     'description' => 'View reports from system logs and other status information.',
     'page callback' => 'system_admin_menu_block_page',
-    'access callback' => 'system_admin_menu_block_access',
-    'access arguments' => array('admin/reports', 'access site reports'),
+    'access arguments' => array('access site reports'),
     'weight' => 5,
     'position' => 'left',
     'file' => 'system.admin.inc',
@@ -944,6 +922,16 @@ function system_library() {
     'version' => '1.3.2',
     'js' => array(
       'misc/jquery.js' => array('weight' => JS_LIBRARY - 20),
+    ),
+  );
+
+  // jQuery Once.
+  $libraries['once'] = array(
+    'title' => 'jQuery Once',
+    'website' => 'http://plugins.jquery.com/project/once',
+    'version' => '1.2',
+    'js' => array(
+      'misc/jquery.once.js' => array('weight' => JS_LIBRARY - 19),
     ),
   );
 
@@ -1350,25 +1338,6 @@ function _system_themes_access($theme) {
 }
 
 /**
- * Menu item access callback - hides empty system settings overview pages.
- *
- * @param $path
- *   The path of the menu item to check for child menu entries.
- * @param $string
- *   The permission, such as "administer nodes", being checked for.
- * @return
- *   Boolean TRUE if the current user has the requested permission and the
- *   current menu item has children.
- */
-function system_admin_menu_block_access($path, $permission) {
-  if (!user_access($permission)) {
-    return FALSE;
-  }
-  $content = system_admin_menu_block(array('path' => $path));
-  return !empty($content);
-}
-
-/**
  * Implement hook_filetransfer_backends().
  */
 function system_filetransfer_backends() {
@@ -1600,18 +1569,18 @@ function system_user_timezone(&$edit, &$form) {
 }
 
 /**
- * Implement hook_block_list().
+ * Implement hook_block_info().
  */
-function system_block_list() {
+function system_block_info() {
   $blocks['main'] = array(
     'info' => t('Main page content'),
      // Cached elsewhere.
-    'cache' => BLOCK_NO_CACHE,
+    'cache' => DRUPAL_NO_CACHE,
   );
   $blocks['powered-by'] = array(
     'info' => t('Powered by Drupal'),
     'weight' => '10',
-    'cache' => BLOCK_NO_CACHE,
+    'cache' => DRUPAL_NO_CACHE,
   );
   $blocks['help'] = array(
     'info' => t('System help'),
@@ -1622,7 +1591,7 @@ function system_block_list() {
     $blocks[$menu_name]['info'] = t($title);
     // Menu blocks can't be cached because each menu item can have
     // a custom access callback. menu.inc manages its own caching.
-    $blocks[$menu_name]['cache'] = BLOCK_NO_CACHE;
+    $blocks[$menu_name]['cache'] = DRUPAL_NO_CACHE;
   }
   return $blocks;
 }
@@ -2560,8 +2529,8 @@ function system_actions_manage() {
     $row[] = array(
       array('data' => $action->type),
       array('data' => $action->description),
-      array('data' => $action->parameters ? l(t('configure'), "admin/settings/actions/configure/$action->aid") : ''),
-      array('data' => $action->parameters ? l(t('delete'), "admin/settings/actions/delete/$action->aid") : '')
+      array('data' => $action->parameters ? l(t('configure'), "admin/config/system/actions/configure/$action->aid") : ''),
+      array('data' => $action->parameters ? l(t('delete'), "admin/config/system/actions/delete/$action->aid") : '')
     );
   }
 
@@ -2618,7 +2587,7 @@ function system_actions_manage_form($form_state, $options = array()) {
  */
 function system_actions_manage_form_submit($form, &$form_state) {
   if ($form_state['values']['action']) {
-    $form_state['redirect'] = 'admin/settings/actions/configure/' . $form_state['values']['action'];
+    $form_state['redirect'] = 'admin/config/system/actions/configure/' . $form_state['values']['action'];
   }
 }
 
@@ -2641,7 +2610,7 @@ function system_actions_manage_form_submit($form, &$form_state) {
  */
 function system_actions_configure($form_state, $action = NULL) {
   if ($action === NULL) {
-    drupal_goto('admin/settings/actions');
+    drupal_goto('admin/config/system/actions');
   }
 
   $actions_map = actions_actions_map(actions_list());
@@ -2733,7 +2702,7 @@ function system_actions_configure_submit($form, &$form_state) {
   actions_save($function, $form_state['values']['actions_type'], $params, $form_state['values']['actions_description'], $aid);
   drupal_set_message(t('The action has been successfully saved.'));
 
-  $form_state['redirect'] = 'admin/settings/actions/manage';
+  $form_state['redirect'] = 'admin/config/system/actions/manage';
 }
 
 /**
@@ -2750,7 +2719,7 @@ function system_actions_delete_form($form_state, $action) {
   );
   return confirm_form($form,
     t('Are you sure you want to delete the action %action?', array('%action' => $action->description)),
-    'admin/settings/actions/manage',
+    'admin/config/system/actions/manage',
     t('This cannot be undone.'),
     t('Delete'), t('Cancel')
   );
@@ -2768,7 +2737,7 @@ function system_actions_delete_form_submit($form, &$form_state) {
   $description = check_plain($action->description);
   watchdog('user', 'Deleted action %aid (%action)', array('%aid' => $aid, '%action' => $description));
   drupal_set_message(t('Action %action was deleted', array('%action' => $description)));
-  $form_state['redirect'] = 'admin/settings/actions/manage';
+  $form_state['redirect'] = 'admin/config/system/actions/manage';
 }
 
 /**
@@ -2788,7 +2757,7 @@ function system_action_delete_orphans_post($orphaned) {
  */
 function system_actions_remove_orphans() {
   actions_synchronize(TRUE);
-  drupal_goto('admin/settings/actions/manage');
+  drupal_goto('admin/config/system/actions/manage');
 }
 
 /**
@@ -3129,16 +3098,18 @@ function system_retrieve_file($url, $destination = NULL, $overwrite = TRUE) {
 }
 
 /**
- * Implement hook_page_alter().
+ * Implement hook_page_build().
  */
-function system_page_alter(&$page) {
+function system_page_build(&$page) {
   // Automatic cron runs.
   // @see system_run_cron_image()
   if (system_run_cron_image_access()) {
     $page['page_bottom']['run_cron'] = array(
       // Trigger cron run via AJAX.
-      '#attached_js' => array(
-        '(function($){ $.get(' . drupal_to_js(url('system/run-cron-image')) . '); })(jQuery);' => array('type' => 'inline', 'scope' => 'header'),
+      '#attached' => array(
+        'js' => array(
+          '(function($){ $.get(' . drupal_to_js(url('system/run-cron-image')) . '); })(jQuery);' => array('type' => 'inline', 'scope' => 'header'),
+        ),
       ),
       // Trigger cron run for clients not supporting JavaScript (fall-back).
       '#markup' => theme('system_run_cron_image', 'system/run-cron-image'),
