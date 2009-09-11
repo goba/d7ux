@@ -55,7 +55,7 @@ legend {
  */
 #branding {
   overflow: hidden;
-  padding: 20px 40px 0 40px;
+  padding: 20px 20px 0 20px;
   position: relative;
   background-color: #e0e0d8;
 }
@@ -158,7 +158,7 @@ legend {
 /**
  * Console.
  */
-#page .console {
+#console {
   border-top: 1px solid #ccc;
   padding: 9px 0 10px;
 }
@@ -261,7 +261,7 @@ ul.secondary li.active a.active {
 }
 
 #block-system-main {
-  padding: 20px 0;
+  padding-bottom: 20px;
   background: #fff;
   color: #333;
 }
@@ -611,7 +611,12 @@ html.js input.throbbing {
 
 ul.action-links {
   margin: 1em 0;
+  padding: 0 20px 0 20px;
   overflow: hidden;
+}
+
+#block-system-main ul.action-links {
+  padding: 0;
 }
 
 ul.action-links li {
@@ -713,11 +718,20 @@ body.overlay {
   background: #fff;
 }
 
-body.overlay #branding,
-body.overlay #page-title,
+body.overlay .primary,
+body.overlay .page-title,
 body.overlay #page #left,
 body.overlay #page #footer {
   display: none;
+}
+
+/* Branding needs a white background to look good in the overlay. */
+body.overlay #branding {
+  background-color: #ffffff;
+}
+
+body.overlay #branding {
+  padding-top: 5px;
 }
 
 body.overlay #page {
@@ -725,6 +739,6 @@ body.overlay #page {
   padding: 0;
 }
 
-body.overlay #block-system-main {
+body.overlay #content {
   padding: 20px;
 }
