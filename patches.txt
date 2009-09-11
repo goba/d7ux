@@ -6,3 +6,5 @@ with images from http://drupal.org/node/473268#comment-1919854
 
 Shortcut editing patch from http://drupal.org/node/511286#comment-2003216
 
+Dashboard patch from http://drupal.org/node/544360#comment-2024234
+
