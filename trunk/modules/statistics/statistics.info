@@ -1,0 +1,12 @@
+; $Id: statistics.info,v 1.10 2009/08/19 20:19:36 dries Exp $
+name = Statistics
+description = Logs access statistics for your site.
+package = Core
+version = VERSION
+core = 7.x
+files[] = statistics.module
+files[] = statistics.admin.inc
+files[] = statistics.pages.inc
+files[] = statistics.install
+files[] = statistics.test
+files[] = statistics.tokens.inc

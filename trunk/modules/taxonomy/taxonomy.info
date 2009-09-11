@@ -1,0 +1,12 @@
+; $Id: taxonomy.info,v 1.10 2009/08/19 20:19:37 dries Exp $
+name = Taxonomy
+description = Enables the categorization of content.
+package = Core
+version = VERSION
+core = 7.x
+files[] = taxonomy.module
+files[] = taxonomy.admin.inc
+files[] = taxonomy.pages.inc
+files[] = taxonomy.install
+files[] = taxonomy.test
+files[] = taxonomy.tokens.inc
