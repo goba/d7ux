@@ -847,16 +847,23 @@ function theme() {
   }
   else {
     // The theme call is a template.
-    $variables = array(
-      'template_files' => array()
-    );
+    $variables = array();
     if (!empty($info['arguments'])) {
+      // Populate the variables with arguments passed to the theme function.
+      // Note that the first argument may be treated specially by template
+      // preprocess functions, so it must go into the variables array before
+      // anything else does.
       $count = 0;
       foreach ($info['arguments'] as $name => $default) {
         $variables[$name] = isset($args[$count]) ? $args[$count] : $default;
         $count++;
       }
     }
+
+    // Add an empty array of template files as a default; preprocess functions
+    // will be able to modify this. We include it last, as per the comment
+    // above.
+    $variables += array('template_files' => array());
 
     // default render function and extension.
     $render_function = 'theme_render_template';
@@ -885,7 +892,12 @@ function theme() {
       if (!empty($info[$phase])) {
         foreach ($info[$phase] as $processor_function) {
           if (function_exists($processor_function)) {
-            call_user_func_array($processor_function, $args);
+            $result = call_user_func_array($processor_function, $args);
+            // Allow process functions to abort rendering the item by returning
+            // FALSE.
+            if ($result === FALSE) {
+              return '';
+            }
           }
         }
       }
@@ -1477,6 +1489,33 @@ function theme_links($links, $attributes = array('class' => array('links')), $he
 }
 
 /**
+ * Return themed admin links for an element on a page.
+ *
+ * @param $links
+ *   An array representing the admin links to be themed, in the format
+ *   expected by theme_links(); e.g., the array can have keys including
+ *   'title', 'href', 'html', etc.
+ * @param $element
+ *   An array representing the editable page element.
+ * @return
+ *   A themed HTML string representing the edit link.
+ *
+ * @see theme_links()
+ */
+function theme_admin_links($links, $element) {
+  // Construct a CSS class which associates this edit link with the region on
+  // the page that it edits.
+  $links_array = array();
+  foreach ($links as $key => $link) {
+    $class = "admin-links-link admin-links-$key-link admin-links-at-" . str_replace('/', '-', $link['href']);
+    $links_array[$class] = $link;
+  }
+  drupal_add_js('misc/admin_links.js');
+  drupal_add_css('misc/admin_links.css');
+  return theme('links', $links_array, array('class' => 'admin-links'));
+}
+
+/**
  * Return a themed image.
  *
  * @param $path
@@ -2045,6 +2084,63 @@ function template_preprocess(&$variables, $hook) {
   // Initialize attributes for the top-level template entity and its title.
   $variables['attributes_array'] = array();
   $variables['title_attributes_array'] = array();
+
+  // Only theme admin links if edit mode is enabled.
+  if (!empty($_SESSION['edit_mode'])) {
+    // If the first item passed to the theme function is an editable page
+    // element which the current user has access to, populate useful variables
+    // for constructing edit links and other editable markup.
+    $element = reset($variables);
+    $variables['has_admin_links'] = FALSE;
+    if (is_array($element) && isset($element['#admin_links'])) {
+      foreach ($element['#admin_links'] as $key => $data) {
+        $variables['has_admin_links'] = $variables['has_admin_links'] || !empty($data['access']);
+      }
+    }
+    // Do not show edit links when the user is already on the page that is
+    // being linked to.
+    $show_admin_links = FALSE;
+    if ($variables['has_admin_links'] && isset($_GET['q'])) {
+      foreach ($element['#admin_links'] as $key => $data) {
+        $show_admin_links = $show_admin_links || ($data['href'] != $_GET['q']);
+      }
+    }
+    // Add appropriate CSS classes that define this element as editable and
+    // associate it with its edit link.
+    if ($variables['has_admin_links']) {
+      $variables['classes_array'][] = 'admin-links-enabled-region';
+      foreach ($element['#admin_links'] as $key => $data) {
+        $variables['classes_array'][] = 'admin-links-enabled-at-' . str_replace('/', '-', $data['href']);
+      }
+    }
+    if ($show_admin_links) {
+      $text_items = array();
+      $info_items = array();
+      foreach ($element['#admin_links'] as $key => $data) {
+        $check_plain = isset($data['attributes']['html']) ? !$data['attributes']['html'] : TRUE;
+        $text_items[$key] = $check_plain ? check_plain($data['title']) : $data['title'];
+        $info_items[$key] = array(
+          'title' => '<span class="admin-links-link-icon admin-links-link-icon-' . $key . '">&nbsp;</span>',
+          'href' => $data['href'],
+          'html' => TRUE,
+          // Refer users back to the current page after they have completed
+          // their edits.
+          'query' => drupal_get_destination(),
+          'attributes' => array(
+            'class' => 'admin-links-link admin-links-link-' . $key,
+            'title' => $text_items[$key],
+          ),
+        );
+      }
+      $variables['admin_links'] = theme('admin_links', $info_items, $element);
+    }
+    else {
+      $variables['admin_links'] = '';
+    }
+  }
+  else {
+    $variables['admin_links'] = '';
+  }
 
   // Set default variables that depend on the database.
   $variables['is_admin']            = FALSE;

@@ -30,12 +30,22 @@
  * - $logged_in: Flags true when the current user is a logged-in member.
  * - $is_admin: Flags true when the current user is an administrator.
  *
+ * Admin links variables:
+ * - $has_admin_lins: TRUE when the block is editable by the current user.
+ * - $admin_links: Already-themed link(s) for admin links that may be taken on the
+ *   block; may be empty.
+ *
  * @see template_preprocess()
  * @see template_preprocess_block()
  * @see template_process()
  */
 ?>
 <div id="block-<?php print $block->module . '-' . $block->delta; ?>" class="<?php print $classes; ?>"<?php print $attributes; ?>>
+ 
+ <?php if ($admin_links): ?>
+   <?php print $admin_links; ?>
+ <?php endif; ?>
+ 
 <?php if ($block->subject): ?>
   <h2<?php print $title_attributes; ?>><?php print $block->subject ?></h2>
 <?php endif;?>

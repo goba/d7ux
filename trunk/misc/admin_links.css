@@ -1,0 +1,58 @@
+/* $Id$ */
+
+/*
+** Highlighted regions for admin_links.js.
+*/
+.admin-links-link-icon {
+  -moz-border-radius-bottomleft: 3px;
+  -moz-border-radius-bottomright: 3px;
+  -moz-border-radius-topleft: 3px;
+  -moz-border-radius-topright: 3px;
+  background: #444444 none no-repeat scroll 2px 2px;
+  height: 19px;
+  width: 19px;
+  float: left;
+  display: block;
+  margin-right: 2px;
+}
+
+.admin-links-link-icon-configure {
+  background-image: url(configure.png);
+}
+
+.admin-links-link-icon-delete {
+  background-image: url(delete.png);
+}
+
+.admin-links-link-icon-edit {
+  background-image: url(edit.png);
+}
+
+.admin-links-enabled-region {
+  outline: none;
+  position: relative;
+}
+
+.active-admin-links-region {
+  outline: dashed #000000 2px;
+}
+
+ul.admin-links {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 0;
+  margin: 0;
+}
+
+ul.admin-links li {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: inline;
+  line-height: 100%;
+}
+
+ul.admin-links li a {
+  text-decoration: none;
+}

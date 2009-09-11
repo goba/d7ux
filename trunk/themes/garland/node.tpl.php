@@ -3,6 +3,10 @@
 ?>
 <div id="node-<?php print $node->nid; ?>" class="<?php print $classes; ?>"<?php print $attributes; ?>>
 
+  <?php if (!$page && $admin_links): ?>
+    <?php print $admin_links; ?>
+  <?php endif; ?>
+
   <?php print $user_picture; ?>
 
   <?php if (!$page): ?>

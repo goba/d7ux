@@ -502,6 +502,14 @@ function system_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'system.admin.inc',
   );
+
+  $items['edit-mode/toggle'] = array(
+    'title callback' => 'edit_mode_toggle_title',
+    'page callback' => 'edit_mode_toggle_page',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
   $items['admin'] = array(
     'title' => 'Administer',
     'access arguments' => array('access administration pages'),
@@ -1301,6 +1309,13 @@ function system_stream_wrappers() {
  */
 function blocked_ip_load($iid) {
   return db_query("SELECT * FROM {blocked_ips} WHERE iid = :iid", array(':iid' => $iid))->fetchAssoc();
+}
+
+/**
+ * Menu item title callback.
+ */
+function edit_mode_toggle_title() {
+  return empty($_SESSION['edit_mode']) ? t('Enable edit mode') : t('Disable edit mode');
 }
 
 /**
@@ -2956,6 +2971,20 @@ function system_timezone($abbreviation = '', $offset = -1, $is_daylight_saving_t
   $abbreviation = $abbreviation ? $abbreviation : '';
   $timezone = timezone_name_from_abbr($abbreviation, intval($offset), $is_daylight_saving_time);
   drupal_json($timezone);
+}
+
+/**
+ * Menu callback; toggle the global edit mode and redirect.
+ */
+function edit_mode_toggle_page() {
+  if (!empty($_SESSION['edit_mode'])) {
+    unset($_SESSION['edit_mode']);
+  }
+  else {
+    $_SESSION['edit_mode'] = 1;
+  }
+  $referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '<front>';
+  drupal_goto($referer);
 }
 
 /**

@@ -1038,6 +1038,16 @@ function node_build($node, $build_mode = 'full') {
   $build += array(
     '#theme' => 'node',
     '#node' => $node,
+    '#admin_links' => array(
+      'edit' => array(
+        'href' => 'node/' . $node->nid . '/edit',
+        'title' => t('Edit @type @node', array('@type' => drupal_strtolower(node_type_get_name($node)), '@node' => drupal_strtolower($node->title))),
+      ),
+      'delete' => array(
+        'href' => 'node/' . $node->nid . '/delete',
+        'title' => t('Delete @type @node', array('@type' => drupal_strtolower(node_type_get_name($node)), '@node' => drupal_strtolower($node->title))),
+      ),
+    ),
     '#build_mode' => $build_mode,
   );
   return $build;
