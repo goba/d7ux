@@ -718,8 +718,11 @@ function hook_mail_alter(&$message) {
  * @param $file
  *   Full information about the module or theme, including $file->name, and
  *   $file->filename
+ * @param $type
+ *   Either 'module' or 'theme', depending on the type of .info file that was
+ *   passed.
  */
-function hook_system_info_alter(&$info, $file) {
+function hook_system_info_alter(&$info, $file, $type) {
   // Only fill this in if the .info file does not define a 'datestamp'.
   if (empty($info['datestamp'])) {
     $info['datestamp'] = filemtime($file->filename);

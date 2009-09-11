@@ -224,32 +224,46 @@ function block_page_build(&$page) {
  *   The requested region.
  */
 function block_get_blocks_by_region($region) {
-  $weight = 0;
   $build = array();
   if ($list = block_list($region)) {
-    foreach ($list as $key => $block) {
-      $build[$key] = $block->content;
-      unset($block->content);
-      $build[$key] += array(
-        '#block' => $block,
-        '#admin_links' => array(
-          'configure' => array(
-            'href' => 'admin/structure/block/configure/' . $block->module . '/' . $block->delta,
-            'title' => !empty($block->subject) ? t('Configure the @block block', array('@block' => drupal_strtolower($block->subject))) : t('Configure this block'),
-          ),
-        ),
-        '#weight' => ++$weight,
-      );
-      // Special exception for the main system content block: it's weird and
-      // confusing to show admin links for it - what exactly is the user
-      // configuring?
-      if ($block->module == 'system' && $block->delta == 'main') {
-        unset($build[$key]['#admin_links']['configure']);
-      }
-      $build[$key]['#theme_wrappers'][] ='block';
-    }
-    $build['#sorted'] = TRUE;
+    $build = _block_get_renderable_array($list);
   }
+  return $build;
+}
+
+/**
+ * Get an array of blocks suitable for drupal_render().
+ *
+ * @param $list
+ *   A list of blocks such as that returned by block_list().
+ * @return
+ *   A renderable array.
+ */
+function _block_get_renderable_array($list = array()) {
+  $weight = 0;
+  $build = array();
+  foreach ($list as $key => $block) {
+    $build[$key] = $block->content;
+    unset($block->content);
+    $build[$key] += array(
+      '#block' => $block,
+      '#weight' => ++$weight,
+      '#admin_links' => array(
+        'configure' => array(
+          'href' => 'admin/structure/block/configure/' . $block->module . '/' . $block->delta,
+          'title' => !empty($block->subject) ? t('Configure the @block block', array('@block' => drupal_strtolower($block->subject))) : t('Configure this block'),
+        ),
+      ),
+    );
+    // Special exception for the main system content block: it's weird and
+    // confusing to show admin links for it - what exactly is the user
+    // configuring?
+    if ($block->module == 'system' && $block->delta == 'main') {
+      unset($build[$key]['#admin_links']['configure']);
+    }
+    $build[$key]['#theme_wrappers'][] ='block';
+  }
+  $build['#sorted'] = TRUE;
   return $build;
 }
 

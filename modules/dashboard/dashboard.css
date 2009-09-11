@@ -1,0 +1,83 @@
+/* $Id$ */
+
+#dashboard div.dashboard-region {
+  float: left;
+  min-height: 1px;
+}
+
+#dashboard div#dashboard_main {
+  width: 65%;
+}
+
+#dashboard div#dashboard_sidebar {
+  width: 35%;
+}
+
+#dashboard div.block {
+  margin-bottom: 20px;
+}
+
+#dashboard .dashboard-region .block {
+  clear: both;
+}
+
+#dashboard div.block h2 {
+  background-color:#e2e1dc;
+  padding: 3px 5px;
+}
+
+#dashboard div.block div.content, #dashboard .block-placeholder {
+  padding: 10px 5px 5px 5px;
+}
+
+#dashboard div.block div.content ul.menu {
+  margin-left:20px;
+}
+
+#dashboard #disabled-blocks .block, #dashboard .block-placeholder {
+  background: #e2e1dc;
+  padding: 4px;
+  margin: 3px;
+  float: left;
+  -moz-border-radius: 4px;
+}
+
+#dashboard .ui-sortable {
+  border: 3px dashed #ccc;
+  padding: 10px;
+}
+
+#dashboard .section {
+  margin: 5px;
+}
+
+#dashboard div.dragging {
+  width: 30% !important;
+}
+
+#dashboard #disabled-blocks h2 {
+  display: inline;
+  font-weight: normal;
+  white-space: nowrap;
+}
+
+#dashboard #disabled-blocks .block .content, #dashboard .ui-sortable-helper .content {
+  display: none;
+}
+
+#dashboard .ui-sortable .block {
+  cursor: move;
+}
+
+#dashboard .dashboard-region .block-placeholder {
+  margin: 0 0 20px 0;
+  padding: 0;
+  display: block;
+  height: 1.6em;
+  width: 100%;
+}
+
+#dashboard #disabled-blocks .block-placeholder {
+  width: 30px;
+  height: 1.6em;
+}
