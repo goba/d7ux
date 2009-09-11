@@ -200,8 +200,12 @@ function default_install() {
   menu_rebuild();
 
   // Save some default links.
-  $link = array('link_path' => 'admin/structure/menu-customize/main-menu/add', 'link_title' => 'Add a main menu link', 'menu_name' => 'main-menu');
-  menu_link_save($link);
+  $links = array();
+  $links[] = array('link_path' => 'edit-mode/toggle', 'link_title' => '', 'menu_name' => 'main-menu');
+  $links[] = array('link_path' => 'admin/structure/menu-customize/main-menu/add', 'link_title' => 'Add a main menu link', 'menu_name' => 'main-menu');
+  foreach ($links as $link) {
+    menu_link_save($link);
+  }
 
   // Enable the admin theme.
   db_update('system')

@@ -4148,6 +4148,18 @@ function drupal_render(&$elements) {
     $elements['#theme'] = 'markup';
   }
 
+  // If there are admin links associated with this element but the access
+  // property has not been set, use the menu callback to determine whether or
+  // not it is editable by the current user.
+  if (isset($elements['#admin_links'])) {
+    foreach ($elements['#admin_links'] as $key => $data) {
+      if (!isset($data['access']) && function_exists('menu_get_item')) {
+        $item = menu_get_item($data['href']);
+        $elements['#admin_links'][$key]['access'] = !empty($item['access']);
+      }
+    }
+  }
+
   // Make any final changes to the element before it is rendered. This means
   // that the $element or the children can be altered or corrected before the
   // element is rendered into the final text.
@@ -4554,6 +4566,9 @@ function drupal_common_theme() {
     ),
     'links' => array(
       'arguments' => array('links' => NULL, 'attributes' => array('class' => array('links')), 'heading' => array()),
+    ),
+    'admin_links' => array(
+      'arguments' => array('link' => NULL, 'element' => NULL),
     ),
     'image' => array(
       'arguments' => array('path' => NULL, 'alt' => '', 'title' => '', 'attributes' => array(), 'getsize' => TRUE),

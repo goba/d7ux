@@ -44,6 +44,15 @@
  *   teaser listings.
  * - $id: Position of the node. Increments each time it's output.
  *
+ * Admin links variables:
+ * - $has_admin_links: TRUE when the node is editable by the current user.
+ * - $admin_links: Already-themed links to the admin links pages for the node; may
+ *   be empty.
+ * - $admin_links_text: An array of caption for the admin links of the node;
+ *   may be empty.
+ * - $admin_links_info: An array of information describing the links to take
+ *   action on the node; may be empty.
+ *
  * Node status variables:
  * - $build_mode: Build mode, e.g. 'full', 'teaser'...
  * - $teaser: Flag for the teaser state (shortcut for $build_mode == 'teaser').
@@ -73,6 +82,10 @@
 <div id="node-<?php print $node->nid; ?>" class="<?php print $classes; ?> clearfix"<?php print $attributes; ?>>
 
   <?php print $user_picture; ?>
+
+  <?php if (!$page && $admin_links): ?>
+    <?php print $admin_links; ?>
+  <?php endif; ?>
 
   <?php if (!$page): ?>
     <h2<?php print $title_attributes; ?>><a href="<?php print $node_url; ?>"><?php print $title; ?></a></h2>

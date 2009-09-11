@@ -232,8 +232,20 @@ function block_get_blocks_by_region($region) {
       unset($block->content);
       $build[$key] += array(
         '#block' => $block,
+        '#admin_links' => array(
+          'configure' => array(
+            'href' => 'admin/structure/block/configure/' . $block->module . '/' . $block->delta,
+            'title' => !empty($block->subject) ? t('Configure the @block block', array('@block' => drupal_strtolower($block->subject))) : t('Configure this block'),
+          ),
+        ),
         '#weight' => ++$weight,
       );
+      // Special exception for the main system content block: it's weird and
+      // confusing to show admin links for it - what exactly is the user
+      // configuring?
+      if ($block->module == 'system' && $block->delta == 'main') {
+        unset($build[$key]['#admin_links']['configure']);
+      }
       $build[$key]['#theme_wrappers'][] ='block';
     }
     $build['#sorted'] = TRUE;
@@ -766,6 +778,22 @@ function block_flush_caches() {
 function template_preprocess_block(&$variables) {
   $block_counter = &drupal_static(__FUNCTION__, array());
   $variables['block'] = $variables['elements']['#block'];
+
+  // Create the $content variable that templates expect. If the block is
+  // empty, do not show it.
+  $variables['content'] = $variables['elements']['#children'];
+  if (empty($variables['content'])) {
+    // TODO: This is necessary to match the behavior in _block_render_blocks()
+    // when $block->content contains HTML output rather than a structured
+    // array. The inconsistency is ugly, though. It also means that the array
+    // of blocks per region inserted into the page via block_page_alter() can
+    // contain a larger number of blocks than actually will display on the
+    // page. (This part actually might not be bad, though; it means that other
+    // modules have a chance to insert content into these "empty" blocks and
+    // therefore make them appear after all, if they want to.)
+    return FALSE;
+  }
+
   // All blocks get an independent counter for each region.
   if (!isset($block_counter[$variables['block']->region])) {
     $block_counter[$variables['block']->region] = 1;
@@ -773,9 +801,6 @@ function template_preprocess_block(&$variables) {
   // Same with zebra striping.
   $variables['block_zebra'] = ($block_counter[$variables['block']->region] % 2) ? 'odd' : 'even';
   $variables['block_id'] = $block_counter[$variables['block']->region]++;
-
-  // Create the $content variable that templates expect.
-  $variables['content'] = $variables['elements']['#children'];
 
   $variables['classes_array'][] = 'block-' . $variables['block']->module;
 

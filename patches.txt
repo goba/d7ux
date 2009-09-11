@@ -1,3 +1,6 @@
 Overlay patch from http://drupal.org/node/517688#comment-2024872
 with images from http://drupal.org/node/517688#comment-2024878
 
+Edit links on everything patch from http://drupal.org/node/473268#comment-2030276
+with images from http://drupal.org/node/473268#comment-1919854
+
