@@ -16,9 +16,9 @@ function toolbar_install() {
   $t = get_t();
   $query = db_insert('menu_custom')
     ->fields(array(
-      'menu_name' => 'admin_shortcuts',
+      'menu_name' => 'admin-shortcuts',
       'title' => $t('Administration shortcuts'),
-      'description' => $t('The <em>Admininstration shortcuts</em> menu contains commonly used links for administrative tasks.')
+      'description' => $t('The <em>Administration shortcuts</em> menu contains commonly used links for administrative tasks.')
     ))
     ->execute();
 
@@ -43,7 +43,7 @@ function toolbar_install() {
       'link_title' => $title,
       'link_path' => $path,
       'router_path' => $path,
-      'menu_name' => 'admin_shortcuts',
+      'menu_name' => 'admin-shortcuts',
       'module' => 'menu',
       'weight' => $weight,
     );

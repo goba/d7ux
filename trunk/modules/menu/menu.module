@@ -80,11 +80,12 @@ function menu_menu() {
   );
   $items['admin/structure/menu-customize/%menu'] = array(
     'title' => 'Customize menu',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('menu_overview_form', 3),
+    'page callback' => 'menu_customize_menu',
+    'page arguments' => array(3),
     'title callback' => 'menu_overview_title',
     'title arguments' => array(3),
-    'access arguments' => array('administer menu'),
+    'access callback' => '_menu_custom_menu_access',
+    'access arguments' => array(3),
     'type' => MENU_CALLBACK,
     'file' => 'menu.admin.inc',
   );
@@ -97,7 +98,8 @@ function menu_menu() {
     'title' => 'Add link',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('menu_edit_item', 'add', NULL, 3),
-    'access arguments' => array('administer menu'),
+    'access callback' => '_menu_custom_menu_access',
+    'access arguments' => array(3),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'menu.admin.inc',
   );
@@ -105,7 +107,8 @@ function menu_menu() {
     'title' => 'Edit menu',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('menu_edit_menu', 'edit', 3),
-    'access arguments' => array('administer menu'),
+    'access callback' => '_menu_custom_menu_access',
+    'access arguments' => array(3),
     'type' => MENU_LOCAL_TASK,
     'file' => 'menu.admin.inc',
   );
@@ -113,7 +116,8 @@ function menu_menu() {
     'title' => 'Delete menu',
     'page callback' => 'menu_delete_menu_page',
     'page arguments' => array(3),
-    'access arguments' => array('administer menu'),
+    'access callback' => '_menu_custom_menu_access',
+    'access arguments' => array(3),
     'type' => MENU_CALLBACK,
     'file' => 'menu.admin.inc',
   );
@@ -121,7 +125,8 @@ function menu_menu() {
     'title' => 'Edit menu link',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('menu_edit_item', 'edit', 4, NULL),
-    'access arguments' => array('administer menu'),
+    'access callback' => '_menu_custom_item_access',
+    'access arguments' => array(4),
     'type' => MENU_CALLBACK,
     'file' => 'menu.admin.inc',
   );
@@ -129,7 +134,8 @@ function menu_menu() {
     'title' => 'Reset menu link',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('menu_reset_item_confirm', 4),
-    'access arguments' => array('administer menu'),
+    'access callback' => '_menu_custom_item_access',
+    'access arguments' => array(4),
     'type' => MENU_CALLBACK,
     'file' => 'menu.admin.inc',
   );
@@ -137,11 +143,36 @@ function menu_menu() {
     'title' => 'Delete menu link',
     'page callback' => 'menu_item_delete_page',
     'page arguments' => array(4),
-    'access arguments' => array('administer menu'),
+    'access callback' => '_menu_custom_item_access',
+    'access arguments' => array(4),
     'type' => MENU_CALLBACK,
     'file' => 'menu.admin.inc',
   );
   return $items;
+}
+
+/**
+ * Access callback for custom menus.
+ */
+function _menu_custom_menu_access($menu) {
+  global $user;
+  // Only menu administrators and the owner of the menu can access it.
+  return user_access('administer menu') || menu_is_personalized_for_user($menu, $user);
+}
+
+/**
+ * Access callback for custom menu links.
+ */
+function _menu_custom_item_access($menu_link) {
+  global $user;
+  // Menu administrators can access all links.
+  if (user_access('administer menu')) {
+    return TRUE;
+  }
+  // Otherwise, only the owner of the menu that the link belongs to can access
+  // it.
+  $menu = menu_load($menu_link['menu_name']);
+  return menu_is_personalized_for_user($menu, $user);
 }
 
 /**
@@ -174,7 +205,7 @@ function menu_enable() {
   $base_link = db_query("SELECT mlid AS plid, menu_name FROM {menu_links} WHERE link_path = 'admin/structure/menu' AND module = 'system'")->fetchAssoc();
   $base_link['router_path'] = 'admin/structure/menu-customize/%';
   $base_link['module'] = 'menu';
-  $result = db_query("SELECT * FROM {menu_custom}", array(), array('fetch' => PDO::FETCH_ASSOC));
+  $result = db_query("SELECT * FROM {menu_custom} WHERE personalized = 0", array(), array('fetch' => PDO::FETCH_ASSOC));
   foreach ($result as $menu) {
     // $link is passed by reference to menu_link_save(), so we make a copy of $base_link.
     $link = $base_link;
@@ -205,6 +236,186 @@ function menu_overview_title($menu) {
  */
 function menu_load($menu_name) {
   return db_query("SELECT * FROM {menu_custom} WHERE menu_name = :menu", array(':menu' => $menu_name))->fetchAssoc();
+}
+
+/**
+ * Determines if a menu is personalized for a particular user.
+ *
+ * @param $menu
+ *   An array representing the menu to check.
+ * @param $account
+ *   The user account to check.
+ * @return
+ *   TRUE if the menu is personalized for this user, or FALSE if not.
+ */
+function menu_is_personalized_for_user($menu, $account) {
+  return $menu['personalized'] && $menu['uid'] == $account->uid;
+}
+
+/**
+ * Save a link to the personalized version of a menu for a particular user.
+ *
+ * @param $menu_link
+ *   An array of information about the menu link to save, containing at least
+ *   the keys 'link_title' and 'link_path'. Other keys will be filled in when
+ *   the menu link is saved.
+ * @param $menu_name
+ *   The name of an existing menu. If this menu is already a personalized menu
+ *   associated with the user, the link will be saved there; otherwise, the
+ *   menu will first be cloned to create a personalized version, and the link
+ *   will be saved to the new menu.
+ * @param $account
+ *   The user for whom the menu link will be saved. Defaults to the current
+ *   logged-in user.
+ * @return
+ *   The mlid of the saved menu link, or FALSE if the menu link could not be
+ *   saved.
+ */
+function menu_save_link_to_personalized_menu(&$menu_link, $menu_name, $account = NULL) {
+  global $user;
+  if (!isset($account)) {
+    $account = $user;
+  }
+
+  // If the provided menu doesn't exist, bail out right away.
+  $menu = menu_load($menu_name);
+  if (empty($menu)) {
+    return FALSE;
+  }
+
+  // Clone the menu if it is not already personalized for this user.
+  if (!menu_is_personalized_for_user($menu, $account)) {
+    $menu = menu_clone_menu($menu, $account);
+  }
+
+  // Require that a new menu item be created, and that it be placed in the
+  // correct menu.
+  $menu_link['mlid'] = 0;
+  $menu_link['menu_name'] = $menu['menu_name'];
+
+  // Add some default values to the requested menu link.
+  $menu_link += array(
+    'plid' => 0,
+    'module' => 'menu',
+  );
+
+  // Put the new link at the end of the list by default.
+  if (!isset($menu_link['weight'])) {
+    $menu_link['weight'] = (int)db_query('SELECT MAX(weight) FROM {menu_links} WHERE menu_name = :menu AND plid = :plid', array(':menu' => $menu['menu_name'], ':plid' => $menu_link['plid']))->fetchField() + 1;
+  }
+
+  // Save the link and return the result.
+  return menu_link_save($menu_link);
+}
+
+/**
+ * Clones a menu for the provided user account.
+ *
+ * @param $menu
+ *   An array representing the menu to clone.
+ * @param $account
+ *   The user for whom the menu will be cloned. Defaults to the current
+ *   logged-in user.
+ * @return
+ *   An array representing the newly-cloned menu.
+ */
+function menu_clone_menu($menu, $account = NULL) {
+  global $user;
+  if (!isset($account)) {
+    $account = $user;
+  }
+
+  // First clone the menu.
+  $original_name = $menu['menu_name'];
+  $menu['menu_name'] = menu_get_unique_name($original_name);
+  $menu['original_menu'] = $original_name;
+  $menu['uid'] = $account->uid;
+  $menu['personalized'] = 1;
+  drupal_write_record('menu_custom', $menu);
+
+  // Then clone each individual menu link.
+  $menu_links = db_query("SELECT * FROM {menu_links} WHERE menu_name = :menu", array(':menu' => $original_name))->fetchAll(PDO::FETCH_ASSOC);
+  foreach ($menu_links as $menu_link) {
+    unset($menu_link['mlid']);
+    $menu_link['menu_name'] = $menu['menu_name'];
+    $menu_link['options'] = unserialize($menu_link['options']);
+    menu_link_save($menu_link);
+  }
+
+  return $menu;
+}
+
+/**
+ * Returns a unique, machine-readable menu name, based on the provided name.
+ */
+function menu_get_unique_name($menu_name) {
+  $candidate_name = $menu_name;
+  while ($existing_name = db_query('SELECT menu_name FROM {menu_custom} WHERE menu_name = :menu', array(':menu' => $candidate_name))->fetchField()) {
+    // If the menu name already exists, try adding a continually incrementing
+    // numerical index to make it unique.
+    $index = empty($index) ? 1 : $index + 1;
+    // Make sure to keep the menu name under the maximum length.
+    if (!isset($maximum_length)) {
+      $schema = drupal_get_schema('menu_custom');
+      $maximum_length = $schema['fields']['menu_name']['length'];
+    }
+    $candidate_name = substr($menu_name, 0, $maximum_length - strlen((string)$index) - 1) . '-' . $index;
+  }
+  return $candidate_name;
+}
+
+/**
+ * Returns the name of the most appropriate version of a menu for a given user.
+ *
+ * @param $menu_name
+ *   The name of a menu to check.
+ * @param $account
+ *   The user account to check. Defaults to the current logged-in user.
+ * @return
+ *   If the menu has a version personalized for the provided user, the name of
+ *   that personalized menu will be returned. Otherwise, the original menu that
+ *   was passed in will be returned unchanged.
+ */
+function menu_get_menu_name_for_user($menu_name, $account = NULL) {
+  global $user;
+  if (!isset($account)) {
+    $account = $user;
+  }
+  $personalized_menu_name = menu_get_personalized_menu_name($menu_name, $account);
+  return !empty($personalized_menu_name) ? $personalized_menu_name : $menu_name;
+}
+
+/**
+ * Returns the name of the personalized version of a menu, if there is one.
+ *
+ * @param $menu_name
+ *   The name of the menu to check.
+ * @param $account
+ *   The user account to check. Defaults to the current logged-in user.
+ * @return
+ *   The name of the version of the menu that is personalized for this user, or
+ *   FALSE if there is none.
+ */
+function menu_get_personalized_menu_name($menu_name, $account = NULL) {
+  global $user;
+  if (!isset($account)) {
+    $account = $user;
+  }
+  $personalized_menu = db_query('SELECT menu_name FROM {menu_custom} WHERE personalized = 1 AND uid = :uid AND original_menu = :menu', array(':uid' => $account->uid, ':menu' => $menu_name))->fetchField();
+  return $personalized_menu;
+}
+
+/**
+ * Returns an array representing the original version of a menu, if one exists.
+ *
+ * @param $menu
+ *   An array representing the menu to check.
+ * @return
+ *   An array representing the original menu that this menu was cloned from, or
+ *   FALSE if there is none.
+ */
+function menu_get_original_menu($menu) {
+  return !empty($menu['original_menu']) ? menu_load($menu['original_menu']) : FALSE;
 }
 
 /**
@@ -389,6 +600,7 @@ function menu_node_delete($node) {
  * Implement hook_node_prepare().
  */
 function menu_node_prepare($node) {
+  global $user;
   if (empty($node->menu)) {
     // Prepare the node for the edit form so that $node->menu always exists.
     $menu_name = variable_get('menu_default_node_menu', 'main-menu');
@@ -400,10 +612,13 @@ function menu_node_prepare($node) {
         ':menu_name' => $menu_name,
       ), 0, 1)
       ->fetchField();
-      // Check all menus if a link does not exist in the default menu.
+      // Check all menus if a link does not exist in the default menu. Give
+      // priority to site-wide menus over personalized ones, and never display
+      // another user's personalized menu.
       if (!$mlid) {
-        $mlid = db_query_range("SELECT mlid FROM {menu_links} WHERE link_path = :path AND module = 'menu' ORDER BY mlid ASC", array(
+        $mlid = db_query_range("SELECT ml.mlid FROM {menu_links} ml INNER JOIN {menu_custom} mc ON ml.menu_name = mc.menu_name WHERE ml.link_path = :path AND ml.module = 'menu' AND (mc.personalized = 0 OR mc.uid = :uid) ORDER BY mc.personalized, ml.mlid ASC", array(
           ':path' => 'node/' . $node->nid,
+          ':uid' => $user->uid,
         ), 0, 1)
         ->fetchField();
       }
@@ -473,20 +688,32 @@ function menu_form_alter(&$form, $form_state, $form_id) {
       '#description' => t('The link text corresponding to this item that should appear in the menu. Leave blank if you do not wish to add this post to the menu.'),
       '#required' => FALSE,
     );
-    // Generate a list of possible parents (not including this item or descendants).
-    $options = menu_parent_options(menu_get_menus(), $item);
+    // Store the parent of this item, if it is in a personalized menu.
+    // Switching this item to a new menu will not be allowed via the UI.
     $default = $item['menu_name'] . ':' . $item['plid'];
-    if (!isset($options[$default])) {
-      $default = 'main-menu:0';
+    $menu = menu_load($item['menu_name']);
+    if ($menu['personalized']) {
+      $form['menu']['parent'] = array(
+        '#type' => 'value',
+        '#value' => $default,
+      );
     }
-    $form['menu']['parent'] = array(
-      '#type' => 'select',
-      '#title' => t('Parent item'),
-      '#default_value' => $default,
-      '#options' => $options,
-      '#description' => t('The maximum depth for an item and all its children is fixed at !maxdepth. Some menu items may not be available as parents if selecting them would exceed this limit.', array('!maxdepth' => MENU_MAX_DEPTH)),
-      '#attributes' => array('class' => array('menu-title-select')),
-    );
+    // Otherwise, generate a list of possible parents (not including this item
+    // or descendants) so the user can choose a new one.
+    else {
+      $options = menu_parent_options(menu_get_menus(), $item);
+      if (!isset($options[$default])) {
+        $default = 'main-menu:0';
+      }
+      $form['menu']['parent'] = array(
+        '#type' => 'select',
+        '#title' => t('Parent item'),
+        '#default_value' => $default,
+        '#options' => $options,
+        '#description' => t('The maximum depth for an item and all its children is fixed at !maxdepth. Some menu items may not be available as parents if selecting them would exceed this limit.', array('!maxdepth' => MENU_MAX_DEPTH)),
+        '#attributes' => array('class' => array('menu-title-select')),
+      );
+    }
     $form['#submit'][] = 'menu_node_form_submit';
 
     $form['menu']['weight'] = array(
@@ -509,20 +736,26 @@ function menu_node_form_submit($form, &$form_state) {
 /**
  * Return an associative array of the custom menus names.
  *
- * @param $all
+ * @param $include_system_menus
  *   If FALSE return only user-added menus, or if TRUE also include
  *   the menus defined by the system.
+ * @param $include_personalized_menus
+ *   If FALSE return only site-wide menus that are not personalized for a
+ *   particular user, or if TRUE also include the personalized menus.
  * @return
  *   An array with the machine-readable names as the keys, and human-readable
  *   titles as the values.
  */
-function menu_get_menus($all = TRUE) {
+function menu_get_menus($include_system_menus = TRUE, $include_personalized_menus = FALSE) {
   $system_menus = array_keys(menu_list_system_menus());
   $query = db_select('menu_custom');
   $query->addField('menu_custom', 'menu_name', 'menu_name');
   $query->addField('menu_custom', 'title', 'title');
-  if (!$all) {
+  if (!$include_system_menus) {
     $query->condition('menu_name', $system_menus, 'NOT IN');
+  }
+  if (!$include_personalized_menus) {
+    $query->condition('personalized', 0);
   }
   $query->orderBy('title');
 

@@ -742,3 +742,10 @@ body.overlay #page {
 body.overlay #content {
   padding: 20px;
 }
+
+/* Shortcut theming */
+div.toolbar-add-to-shortcuts {
+  float: left;
+  margin-left: 6px;
+  margin-top: 6px;
+}

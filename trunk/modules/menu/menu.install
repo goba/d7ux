@@ -58,6 +58,31 @@ function menu_schema() {
         'not null' => FALSE,
         'description' => 'Menu description.',
       ),
+      'personalized' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'size' => 'tiny',
+        'description' => 'This field is set to 1 for menus that are personalized for a particular user, and 0 for site-wide menus shared by all users.',
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'The {users}.uid that this menu is personalized for. This field is only relevant if the menu is personalized.',
+      ),
+      'original_menu' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'The name of the menu that this menu was cloned from, if there is one.',
+      ),
+    ),
+    'indexes' => array(
+      'menu_custom_personalized' => array('personalized', 'uid', 'original_menu'),
+    ),
+    'foreign keys' => array(
+      'uid' => array('users' => 'uid'),
     ),
     'primary key' => array('menu_name'),
   );
@@ -65,3 +90,24 @@ function menu_schema() {
   return $schema;
 }
 
+/**
+ * @defgroup updates-6.x-to-7.x System updates from 6.x to 7.x
+ * @{
+ */
+
+/**
+ * Add columns to the {menu_custom} table to allow per-user menus.
+ */
+function menu_update_7000() {
+  $ret = array();
+  db_add_field($ret, 'menu_custom', 'personalized', array('type' => 'int', 'not null' => TRUE, 'default' => 0, 'size' => 'tiny'));
+  db_add_field($ret, 'menu_custom', 'uid', array('type' => 'int', 'not null' => FALSE));
+  db_add_field($ret, 'menu_custom', 'original_menu', array('type' => 'varchar', 'length' => 32, 'not null' => TRUE, 'default' => ''));
+  db_add_index($ret, 'menu_custom', 'menu_custom_personalized', array('personalized', 'uid', 'original_menu'));
+  return $ret;
+}
+
+/**
+ * @} End of "defgroup updates-6.x-to-7.x"
+ * The next series of updates should start at 8000.
+ */

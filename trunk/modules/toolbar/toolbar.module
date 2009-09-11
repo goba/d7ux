@@ -7,6 +7,25 @@
  */
 
 /**
+ * Implement hook_menu().
+ */
+function toolbar_menu() {
+  $items = array();
+  $items['admin/settings/shortcuts/add-link'] = array(
+    'title' => 'Add link',
+    'page callback' => 'toolbar_shortcut_add_link',
+    'access arguments' => array('create own shortcuts'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/shortcuts/edit'] = array(
+    'page callback' => 'toolbar_shortcut_edit_links',
+    'access arguments' => array('create own shortcuts'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
  * Implementation of hook_permission().
  */
 function toolbar_permission() {
@@ -14,6 +33,10 @@ function toolbar_permission() {
     'access toolbar' => array(
       'title' => t('Access administration toolbar'),
       'description' => t('Access the persistent administration toolbar displayed on all pages.'),
+    ),
+    'create own shortcuts' => array(
+      'title' => t('Create own shortcuts'),
+      'description' => t('Users with this permission are able to automatically add items to their personal shortcuts menu.'),
     ),
   );
 }
@@ -39,6 +62,53 @@ function toolbar_page_build(&$page) {
   if (user_access('access toolbar') && toolbar_enabled()) {
     $page['page_top']['toolbar'] = toolbar_build();
   }
+  if (user_access('create own shortcuts')) {
+    // $_GET['q'] is the unaliased version.
+    $get = $_GET;
+    unset($get['q']);
+    $link = $_GET['q'];
+    if (!empty($get)) {
+      $link .= '?' . http_build_query($get);
+    }
+    $query = array(
+      'link' => $link,
+      'name' => drupal_get_title(),
+      'token' => drupal_get_token('toolbar-add-to-shortcuts'),
+    );
+    $page['add_to_shortcuts'] = array(
+      '#prefix' => '<div class="toolbar-add-to-shortcuts">',
+      '#markup' => l('<span class="icon"></span><span class="text">' . t('Add to shortcuts') . '</span>', 'admin/settings/shortcuts/add-link', array('query' => http_build_query($query), 'html' => TRUE)),
+      '#suffix' => '</div>',
+    );
+  }
+}
+
+/**
+ * Add a link to the shortcuts menu.
+ */
+function toolbar_shortcut_add_link() {
+  if (isset($_REQUEST['token']) && drupal_valid_token($_REQUEST['token'], 'toolbar-add-to-shortcuts')) {
+    $link = array(
+      'link_title' => $_GET['name'],
+      'link_path' => $_GET['link'],
+    );
+    if (menu_save_link_to_personalized_menu($link, toolbar_shortcuts_menu_name())) {
+      drupal_set_message(t('Added a shortcut for %title.', array('%title' => $link['link_title'])));
+      drupal_goto('admin/structure/menu-customize/' . $link['menu_name']);
+    }
+  }
+}
+
+/**
+ * Edit the shortcuts menu for the current user, creating a new one if needed.
+ */
+function toolbar_shortcut_edit_links() {
+  global $user;
+  $menu = menu_load(toolbar_shortcuts_menu_name());
+  if (!menu_is_personalized_for_user($menu, $user)) {
+    $menu = menu_clone_menu($menu, $user);
+  }
+  drupal_goto('admin/structure/menu-customize/' . $menu['menu_name']);
 }
 
 /**
@@ -68,6 +138,7 @@ function toolbar_preprocess_page(&$vars) {
   if (user_access('access toolbar')) {
     $vars['classes_array'][] = 'toolbar toolbar-shortcuts';
   }
+  $vars['add_to_shortcuts'] = !empty($vars['page']['add_to_shortcuts']) ? drupal_render($vars['page']['add_to_shortcuts']) : '';
 }
 
 /**
@@ -116,15 +187,29 @@ function toolbar_build() {
   );
 
   // Add convenience shortcut links.
-  $shortcuts = menu_tree_all_data('admin_shortcuts');
+  $shortcuts = menu_tree_all_data(toolbar_shortcuts_menu_name());
   $shortcuts = toolbar_menu_navigation_links($shortcuts);
   $build['toolbar_shortcuts'] = array(
-    '#theme' => 'links',
-    '#links' => $shortcuts,
-    '#attributes' => array('id' => 'toolbar-shortcuts'),
+    'shortcuts' => array(
+      '#theme' => 'links',
+      '#links' => $shortcuts,
+      '#attributes' => array('id' => 'toolbar-shortcuts'),
+    ),
   );
+  if (user_access('create own shortcuts')) {
+    $build['toolbar_shortcuts']['configure'] = array(
+      '#markup' => l(t('edit shortcuts'), 'admin/settings/shortcuts/edit', array('attributes' => array('id' => 'toolbar-customize'))),
+    );
+  }
 
   return $build;
+}
+
+/**
+ * Returns the name of the menu that has the current user's toolbar shortcuts.
+ */
+function toolbar_shortcuts_menu_name() {
+  return menu_get_menu_name_for_user('admin-shortcuts');
 }
 
 /**
