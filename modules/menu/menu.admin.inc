@@ -10,7 +10,7 @@
  * Menu callback which shows an overview page of all the custom menus and their descriptions.
  */
 function menu_overview_page() {
-  $result = db_query("SELECT * FROM {menu_custom} ORDER BY title", array(), array('fetch' => PDO::FETCH_ASSOC));
+  $result = db_query("SELECT * FROM {menu_custom} WHERE personalized = 0 ORDER BY title", array(), array('fetch' => PDO::FETCH_ASSOC));
   $header = array(t('Title'), array('data' => t('Operations'), 'colspan' => '3'));
   $rows = array();
   foreach ($result as $menu) {
@@ -32,6 +32,28 @@ function theme_menu_admin_overview($title, $name, $description) {
   $output .= '<div class="description">' . filter_xss_admin($description) . '</div>';
 
   return $output;
+}
+
+/**
+ * Menu callback; display the page for editing the menu tree for a given menu.
+ *
+ * @param $menu
+ *   An array representing the menu to be edited.
+ * @return
+ *   A page displaying the form for editing this menu.
+ */
+function menu_customize_menu($menu) {
+  // Cross-link menus with any personalized versions of them that belong to the
+  // current logged-in user.
+  if ($personalized_menu_name = menu_get_personalized_menu_name($menu['menu_name'])) {
+    drupal_set_message(t('You have a personalized version of this menu which you can <a href="@url">edit instead</a>.', array('@url' => url('admin/structure/menu-customize/' . $personalized_menu_name))), 'status', FALSE);
+  }
+  elseif (user_access('administer menu') && ($original_menu = menu_get_original_menu($menu))) {
+    drupal_set_message(t('You are editing a personalized version of the site-wide <a href="@url">%title</a> menu.', array('@url' => url('admin/structure/menu-customize/' . $original_menu['menu_name']), '%title' => $original_menu['title'])), 'status', FALSE);
+  }
+
+  // Display the form for editing the menu tree.
+  return drupal_get_form('menu_overview_form', $menu);
 }
 
 /**
@@ -321,20 +343,32 @@ function menu_edit_item(&$form_state, $type, $item, $menu) {
     '#description' => t('If selected and this menu link has children, the menu will always appear expanded.'),
   );
 
-  // Generate a list of possible parents (not including this link or descendants).
-  $options = menu_parent_options(menu_get_menus(), $item);
+  // Store the parent of this item, if it is in a personalized menu. Switching
+  // this item to a new menu will not be allowed via the UI.
   $default = $item['menu_name'] . ':' . $item['plid'];
-  if (!isset($options[$default])) {
-    $default = 'main-menu:0';
+  $parent_menu = menu_load($item['menu_name']);
+  if ($parent_menu['personalized']) {
+    $form['menu']['parent'] = array(
+      '#type' => 'value',
+      '#value' => $default,
+    );
   }
-  $form['menu']['parent'] = array(
-    '#type' => 'select',
-    '#title' => t('Parent link'),
-    '#default_value' => $default,
-    '#options' => $options,
-    '#description' => t('The maximum depth for a link and all its children is fixed at !maxdepth. Some menu links may not be available as parents if selecting them would exceed this limit.', array('!maxdepth' => MENU_MAX_DEPTH)),
-    '#attributes' => array('class' => array('menu-title-select')),
-  );
+  // Otherwise, generate a list of possible parents (not including this item or
+  // descendants) so the user can choose a new one.
+  else {
+    $options = menu_parent_options(menu_get_menus(), $item);
+    if (!isset($options[$default])) {
+      $default = 'main-menu:0';
+    }
+    $form['menu']['parent'] = array(
+      '#type' => 'select',
+      '#title' => t('Parent link'),
+      '#default_value' => $default,
+      '#options' => $options,
+      '#description' => t('The maximum depth for a link and all its children is fixed at !maxdepth. Some menu links may not be available as parents if selecting them would exceed this limit.', array('!maxdepth' => MENU_MAX_DEPTH)),
+      '#attributes' => array('class' => array('menu-title-select')),
+    );
+  }
   $form['menu']['weight'] = array(
     '#type' => 'weight',
     '#title' => t('Weight'),

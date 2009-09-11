@@ -4,3 +4,5 @@ with images from http://drupal.org/node/517688#comment-2024878
 Edit links on everything patch from http://drupal.org/node/473268#comment-2030276
 with images from http://drupal.org/node/473268#comment-1919854
 
+Shortcut editing patch from http://drupal.org/node/511286#comment-2003216
+
