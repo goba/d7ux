@@ -1,4 +1,4 @@
-/* $Id: style.css,v 1.17 2009/09/05 06:07:58 dries Exp $ */
+/* $Id: style.css,v 1.18 2009/09/11 13:48:44 dries Exp $ */
 
 /**
  * Generic elements
@@ -115,7 +115,7 @@ legend {
  */
 #console div.messages {
   padding: 9px;
-  margin: 1em 0;
+  margin: 0.5em 0 0;
   color: #036;
   background: #bdf;
   border: 1px solid #ace;
@@ -159,8 +159,7 @@ legend {
  * Console.
  */
 #console {
-  border-top: 1px solid #ccc;
-  padding: 9px 0 10px;
+  margin: 9px 0 10px;
 }
 
 /**
@@ -261,7 +260,7 @@ ul.secondary li.active a.active {
 }
 
 #block-system-main {
-  padding-bottom: 20px;
+  padding: 20px 0;
   background: #fff;
   color: #333;
 }
@@ -323,9 +322,16 @@ ul.secondary li.active a.active {
   list-style-type: none;
   list-style-image: none;
 }
+
+#block-system-main ul.admin-list.compact {
+  margin-bottom: 8px;
+}
+
 #block-system-main ul.admin-list.compact li {
   border: 0;
   background: none;
+  margin-bottom: 2px;
+  padding-top: 2px;
 }
 
 #block-system-main ul.admin-list li:last-child {
@@ -714,33 +720,34 @@ div.admin-options div.form-item {
 }
 
 /* Overlay theming */
-body.overlay {
-  background: #fff;
+.overlay #branding {
+  background-color: #fff;
+  padding-top: 0.3em;
 }
-
-body.overlay .primary,
-body.overlay .page-title,
-body.overlay #page #left,
-body.overlay #page #footer {
+.overlay .primary,
+.overlay #branding h1.page-title,
+.overlay #page #left,
+.overlay #page #footer {
   display: none;
 }
-
-/* Branding needs a white background to look good in the overlay. */
-body.overlay #branding {
-  background-color: #ffffff;
-}
-
-body.overlay #branding {
-  padding-top: 5px;
-}
-
-body.overlay #page {
+.overlay #page {
   margin: 0;
-  padding: 0;
 }
-
-body.overlay #content {
-  padding: 20px;
+.overlay #branding div.breadcrumb {
+  float: left;
+  position: relative;
+  z-index: 10;
+}
+.overlay ul.secondary {
+  background: transparent none;
+  margin: -2.4em 0 0;
+  padding: 3px 10px;
+}
+.overlay #content {
+  padding: 0 20px;
+}
+.overlay #block-system-main {
+  padding: 0;
 }
 
 /* Shortcut theming */

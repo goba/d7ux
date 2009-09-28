@@ -1,10 +1,10 @@
-Overlay patch from http://drupal.org/node/517688#comment-2024872
+Overlay patch from http://drupal.org/node/517688#comment-2084036
 with images from http://drupal.org/node/517688#comment-2024878
 
-Edit links on everything patch from http://drupal.org/node/473268#comment-2030276
+Edit links on everything patch from http://drupal.org/node/473268#comment-2074264
 with images from http://drupal.org/node/473268#comment-1919854
 
 Shortcut editing patch from http://drupal.org/node/511286#comment-2003216
 
-Dashboard patch from http://drupal.org/node/544360#comment-2024234
+Dashboard patch from http://drupal.org/node/544360#comment-2090028
 

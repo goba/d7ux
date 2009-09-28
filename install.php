@@ -1,5 +1,5 @@
 <?php
-// $Id: install.php,v 1.204 2009/09/11 03:15:51 webchick Exp $
+// $Id: install.php,v 1.210 2009/09/18 00:12:45 webchick Exp $
 
 /**
  * Root directory of Drupal installation.
@@ -45,7 +45,7 @@ define('INSTALL_TASK_RUN_IF_REACHED', 2);
  * once and be marked complete once they are successfully finished. For
  * example, the Drupal installer uses this flag for the batch installation of
  * modules on the new site, and also for the configuration form that collects
- * basic site information and sets up the first user account.
+ * basic site information and sets up the site maintenance account.
  */
 define('INSTALL_TASK_RUN_IF_NOT_COMPLETED', 3);
 
@@ -257,6 +257,13 @@ function install_begin_request(&$install_state) {
   drupal_load('module', 'filter');
   drupal_load('module', 'user');
 
+  // Load the cache infrastructure with the Fake Cache. Switch to the database cache
+  // later if possible.
+  require_once DRUPAL_ROOT . '/includes/cache.inc';
+  require_once DRUPAL_ROOT . '/includes/cache-install.inc';
+  $conf['cache_inc'] = 'includes/cache.inc';
+  $conf['cache_default_class'] = 'DrupalFakeCache';
+   
   // Prepare for themed output, if necessary. We need to run this at the
   // beginning of the page request to avoid a different theme accidentally
   // getting set.
@@ -271,8 +278,7 @@ function install_begin_request(&$install_state) {
     // Since we have a database connection, we use the normal cache system.
     // This is important, as the installer calls into the Drupal system for
     // the clean URL checks, so we should maintain the cache properly.
-    require_once DRUPAL_ROOT . '/includes/cache.inc';
-    $conf['cache_inc'] = 'includes/cache.inc';
+    unset($conf['cache_default_class']);
 
     // Initialize the database system. Note that the connection
     // won't be initialized until it is actually requested.
@@ -282,13 +288,6 @@ function install_begin_request(&$install_state) {
     $task = install_verify_completed_task();
   }
   else {
-    // Since no persistent storage is available yet, and functions that check
-    // for cached data will fail, we temporarily replace the normal cache
-    // system with a stubbed-out version that short-circuits the actual
-    // caching process and avoids any errors.
-    require_once DRUPAL_ROOT . '/includes/cache-install.inc';
-    $conf['cache_inc'] = 'includes/cache-install.inc';
-
     $task = NULL;
 
     // Since previous versions of Drupal stored database connection information
@@ -757,8 +756,8 @@ function install_system_module(&$install_state) {
  */
 function install_verify_completed_task() {
   try {
-    if ($result = db_query("SELECT value FROM {variable} WHERE name = '%s'", 'install_task')) {
-      $task = unserialize(db_result($result));
+    if ($result = db_query("SELECT value FROM {variable} WHERE name = :name", array('name' => 'install_task'))) {
+      $task = unserialize($result->fetchField());
     }
   }
   // Do not trigger an error if the database query fails, since the database
@@ -802,7 +801,7 @@ function install_verify_settings() {
  * @return
  *   The form API definition for the database configuration form.
  */
-function install_settings_form(&$form_state, &$install_state) {
+function install_settings_form($form, &$form_state, &$install_state) {
   global $databases, $db_prefix;
   $profile = $install_state['parameters']['profile'];
   $install_locale = $install_state['parameters']['locale'];
@@ -1001,8 +1000,7 @@ function install_find_profiles() {
 }
 
 /**
- * Installation task; allow the site administrator to select which profile to
- * install.
+ * Installation task; select which profile to install.
  *
  * @param $install_state
  *   An array of information about the current installation state. The chosen
@@ -1071,7 +1069,7 @@ function _install_select_profile($profiles) {
  * @param $profile_files
  *   Array of .profile files, as returned from file_scan_directory().
  */
-function install_select_profile_form(&$form_state, $profile_files) {
+function install_select_profile_form($form, &$form_state, $profile_files) {
   $profiles = array();
   $names = array();
 
@@ -1118,8 +1116,7 @@ function install_find_locales($profilename) {
 }
 
 /**
- * Installation task; allow the site administrator to select which locale to
- * use for the current profile.
+ * Installation task; select which locale to use for the current profile.
  *
  * @param $install_state
  *   An array of information about the current installation state. The chosen
@@ -1208,7 +1205,7 @@ function install_select_locale(&$install_state) {
 /**
  * Form API array definition for language selection.
  */
-function install_select_locale_form(&$form_state, $locales) {
+function install_select_locale_form($form, &$form_state, $locales) {
   include_once DRUPAL_ROOT . '/includes/iso.inc';
   $languages = _locale_get_predefined_list();
   foreach ($locales as $locale) {
@@ -1340,7 +1337,7 @@ function install_import_locales(&$install_state) {
  * @return
  *   The form API definition for the site configuration form.
  */
-function install_configure_form(&$form_state, &$install_state) {
+function install_configure_form($form, &$form_state, &$install_state) {
   if (variable_get('site_name', FALSE) || variable_get('site_mail', FALSE)) {
     // Site already configured: This should never happen, means re-running the
     // installer, possibly by an attacker after the 'install_task' variable got
@@ -1385,7 +1382,7 @@ function install_configure_form(&$form_state, &$install_state) {
   drupal_get_schema(NULL, TRUE);
 
   // Return the form.
-  return _install_configure_form($form_state, $install_state);
+  return _install_configure_form($form, $form_state, $install_state);
 }
 
 /**
@@ -1400,6 +1397,7 @@ function install_import_locales_remaining(&$install_state) {
   include_once DRUPAL_ROOT . '/includes/locale.inc';
   // Collect files to import for this language. Skip components already covered
   // in the initial batch set.
+  $install_locale = $install_state['parameters']['locale'];
   $batch = locale_batch_by_language($install_locale, NULL, variable_get('install_locale_batch_components', array()));
   // Remove temporary variable.
   variable_del('install_locale_batch_components');
@@ -1434,6 +1432,11 @@ function install_finished(&$install_state) {
   // Rebuild menu and registry to get content type links registered by the
   // profile, and possibly any other menu items created through the tasks.
   menu_rebuild();
+
+  // Rebuild the database cache of node types, so that any node types added
+  // by newly installed modules are registered correctly and initialized with
+  // the necessary fields.
+  node_types_rebuild();
 
   // Register actions declared by any modules.
   actions_synchronize();
@@ -1540,7 +1543,7 @@ function install_check_requirements($install_state) {
 /**
  * Form API array definition for site configuration.
  */
-function _install_configure_form(&$form_state, &$install_state) {
+function _install_configure_form($form, &$form_state, &$install_state) {
   include_once DRUPAL_ROOT . '/includes/locale.inc';
 
   $form['site_information'] = array(
@@ -1564,7 +1567,7 @@ function _install_configure_form(&$form_state, &$install_state) {
   );
   $form['admin_account'] = array(
     '#type' => 'fieldset',
-    '#title' => st('Administrator account'),
+    '#title' => st('Site maintenance account'),
     '#collapsible' => FALSE,
   );
 
@@ -1686,8 +1689,8 @@ function install_configure_form_submit($form, &$form_state) {
   if ($form_state['values']['update_status_module'][1]) {
     drupal_install_modules(array('update'));
  
-    // Add the administrator's email address to the list of addresses to be
-    // notified when updates are available, if selected.
+    // Add the site maintenance account's email address to the list of
+    // addresses to be notified when updates are available, if selected.
     if ($form_state['values']['update_status_module'][2]) {
       variable_set('update_notify_emails', array($form_state['values']['account']['mail']));
     }

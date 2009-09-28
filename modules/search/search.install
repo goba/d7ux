@@ -1,5 +1,5 @@
 <?php
-// $Id: search.install,v 1.23 2009/09/10 06:38:19 dries Exp $
+// $Id: search.install,v 1.25 2009/09/27 00:12:14 dries Exp $
 
 /**
  * @file

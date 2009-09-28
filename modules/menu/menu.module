@@ -1,5 +1,5 @@
 <?php
-// $Id: menu.module,v 1.203 2009/09/05 15:05:03 dries Exp $
+// $Id: menu.module,v 1.204 2009/09/18 00:04:22 webchick Exp $
 
 /**
  * @file
@@ -524,10 +524,10 @@ function menu_page_alter(&$page) {
   foreach (element_children($page) as $region) {
     $blocks = &$page[$region];
     foreach (element_children($blocks) as $id) {
-      if (isset($blocks[$id]['#theme']) && isset($blocks[$id]['#block'])) {
+      if (isset($blocks[$id]['#theme_wrappers']) && isset($blocks[$id]['#block'])) {
         $block = $blocks[$id]['#block'];
         $content = &$blocks[$id];
-        if ($content['#theme'] == 'menu_tree' && !empty($content['#menu'])) {
+        if (isset($content['#theme_wrappers']) && in_array('menu_tree', $content['#theme_wrappers'])) {
           // If we have a non-empty menu tree, wrap it in a theme function
           // that will display an edit link.
           $content['#theme_wrappers'] += array('menu_editable');
@@ -607,20 +607,18 @@ function menu_node_prepare($node) {
     $item = array();
     if (isset($node->nid)) {
       // Give priority to the default menu
-      $mlid = db_query_range("SELECT mlid FROM {menu_links} WHERE link_path = :path AND menu_name = :menu_name AND module = 'menu' ORDER BY mlid ASC", array(
+      $mlid = db_query_range("SELECT mlid FROM {menu_links} WHERE link_path = :path AND menu_name = :menu_name AND module = 'menu' ORDER BY mlid ASC", 0, 1, array(
         ':path' => 'node/' . $node->nid,
         ':menu_name' => $menu_name,
-      ), 0, 1)
-      ->fetchField();
+      ))->fetchField();
       // Check all menus if a link does not exist in the default menu. Give
       // priority to site-wide menus over personalized ones, and never display
       // another user's personalized menu.
       if (!$mlid) {
-        $mlid = db_query_range("SELECT ml.mlid FROM {menu_links} ml INNER JOIN {menu_custom} mc ON ml.menu_name = mc.menu_name WHERE ml.link_path = :path AND ml.module = 'menu' AND (mc.personalized = 0 OR mc.uid = :uid) ORDER BY mc.personalized, ml.mlid ASC", array(
+        $mlid = db_query_range("SELECT ml.mlid FROM {menu_links} ml INNER JOIN {menu_custom} mc ON ml.menu_name = mc.menu_name WHERE ml.link_path = :path AND ml.module = 'menu' AND (mc.personalized = 0 OR mc.uid = :uid) ORDER BY mc.personalized, ml.mlid ASC", 0, 1, array(
           ':path' => 'node/' . $node->nid,
           ':uid' => $user->uid,
-        ), 0, 1)
-        ->fetchField();
+        ))->fetchField();
       }
       if ($mlid) {
         $item = menu_link_load($mlid);
