@@ -6,16 +6,16 @@
  */
 Drupal.behaviors.dashboard = {
   attach: function () {
-    $('#dashboard').prepend('<div class="customize"><input type="button" class="form-submit" value="' + Drupal.t('Customize') + '"></input><div class="canvas"></div></div>');
-    $('#dashboard .customize input').click(Drupal.behaviors.dashboard.enterCustomizeMode);
+    $('#dashboard').prepend('<div class="customize"><ul class="action-links"><a href="#">' + Drupal.t('Customize') + '</a></ul><div class="canvas"></div></div>');
+    $('#dashboard .customize .action-links a').click(Drupal.behaviors.dashboard.enterCustomizeMode);
   },
 
   /**
    * Enter "customize" mode by displaying disabled blocks.
    */
   enterCustomizeMode: function () {
-    $('#dashboard .customize input').unbind("click").click(Drupal.behaviors.dashboard.exitCustomizeMode).attr('value', Drupal.t('Done'));
-    $('div.customize .canvas').load(Drupal.settings.dashboard.customize, Drupal.behaviors.dashboard.makeDraggable);
+    $('#dashboard .customize .action-links').hide();
+    $('div.customize .canvas').load(Drupal.settings.dashboard.customize, Drupal.behaviors.dashboard.setupDrawer);
   },
 
   /**
@@ -26,9 +26,12 @@ Drupal.behaviors.dashboard = {
   },
 
   /**
-   * Helper function for enterCustomizeMode; sets up drag-and-drop.
+   * Helper for enterCustomizeMode; sets up drag-and-drop and close button.
    */
-  makeDraggable: function () {
+  setupDrawer: function () {
+    $('div.customize .canvas-content').prepend('<input type="button" class="form-submit" value="' + Drupal.t('Done') + '"></input>');
+    $('div.customize .canvas-content input').click(Drupal.behaviors.dashboard.exitCustomizeMode);
+
     // Initialize drag-and-drop.
     var regions = $('div.region');
     regions.sortable({

@@ -1,4 +1,4 @@
-// $Id: toolbar.js,v 1.4 2009/09/11 00:37:38 webchick Exp $
+// $Id: toolbar.js,v 1.6 2009/09/15 20:50:48 dries Exp $
 (function ($) {
 
 /**
@@ -9,9 +9,6 @@ Drupal.behaviors.admin = {
 
     // Set the intial state of the toolbar.
     $('#toolbar', context).once('toolbar', Drupal.admin.toolbar.init);
-
-    // Add the toggling element for shortcuts visibility.
-    $('#toolbar div.toolbar-menu').prepend('<span class="toggle toggle-active"><a href="#">' + Drupal.t('Show shortcuts') + '</a></span>');
 
     // Toggling of admin shortcuts visibility.
     $('#toolbar span.toggle', context).once('toolbar-toggle').click(function() {
@@ -81,6 +78,10 @@ Drupal.admin.toolbar.toggle = function() {
   else {
     Drupal.admin.toolbar.collapse();
   }
+}
+
+Drupal.admin.toolbar.height = function() {
+  return $("#toolbar").height();
 }
 
 })(jQuery);

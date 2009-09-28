@@ -2,12 +2,14 @@
 
 (function ($) {
 
-Drupal.behaviors.keepOverlay = {
+/**
+ * Open or modify overlay based on clicks of links marked with .to-overlay.
+ */
+Drupal.behaviors.overlayParent = {
   attach: function(context, settings) {
-
     // Attach on the .to-overlay class.
     $('a.to-overlay:not(.overlay-exclude)').once('overlay').click(function() {
-
+// @todo Toolbar.
       // Remove the active class from where it was, and add the active class to
       // this link, so the button keeps highlighting where we are. Only
       // highlight active items in the shortcuts bar.
@@ -20,8 +22,8 @@ Drupal.behaviors.keepOverlay = {
 
       // Append render variable, so the server side can choose the right
       // rendering and add child modal frame code to the page if needed.
+      this.search += (!this.search.length ? '?' : '&') + 'render=overlay';
       var linkURL = $(this).attr('href');
-      linkURL += (linkURL.indexOf('?') > -1 ? '&' : '?') + 'render=overlay';
 
       // If the modal frame is already open, replace the loaded document with
       // this new one. Keeps browser history.
@@ -31,20 +33,25 @@ Drupal.behaviors.keepOverlay = {
       }
 
       // There is overlay opened yet, we should open a new one.
+// @todo Toolbar?  Toolbar doesn't belong in here.  Please stop doing such stuff.
       var toolbarHeight = $('#toolbar').height();
       var overlayOptions = {
         url: linkURL,
+// @todo What is 40?
         width: $(window).width() - 40,
         height: $(window).height() - 40 - toolbarHeight,
         // Remove active class from all header buttons.
-        onOverlayClose: function() { $('#toolbar a').each(function() { $(this).removeClass('active'); }); },
+        onOverlayClose: function() {
+          $('#toolbar a').each(function() {
+            $(this).removeClass('active');
+          });
+        },
         draggable: false
       };
       Drupal.overlay.open(overlayOptions);
 
       // Set position and styling to let the admin toolbar work.
       $('.overlay').css('top', toolbarHeight + 20);
-      $('#toolbar').css('z-index', 2000);
 
       // Prevent default action of the link click event.
       return false;
@@ -63,6 +70,25 @@ Drupal.overlay = Drupal.overlay || {
 
 /**
  * Open an overlay.
+ *
+ * Ensure that only one overlay is opened ever. Use Drupal.overlay.load() if
+ * the overlay is already open but a new page needs to be opened.
+ *
+ * @param options
+ *   Properties of the overlay to open:
+ *   - url: the URL of the page to open in the overlay.
+ *   - width: width of the overlay in pixels.
+ *   - height: height of the overlay in pixels.
+ *   - autoFit: boolean indicating whether the overlay should be resized to
+ *     fit the contents of the document loaded.
+ *   - onOverlayOpen: callback to invoke when the overlay is opened.
+ *   - onOverlayCanClose: callback to allow external scripts decide if the
+ *     overlay can be closed.
+ *   - onOverlayClose: callback to invoke when the overlay is closed.
+ *   - customDialogOptions: an object with custom jQuery UI Dialog options.
+ *
+ * @return
+ *   If the overlay was opened true, otherwise false.
  */
 Drupal.overlay.open = function(options) {
   var self = this;
@@ -77,22 +103,28 @@ Drupal.overlay.open = function(options) {
     width: options.width,
     height: options.height,
     autoFit: (options.autoFit == undefined || options.autoFit),
-    onOverlayClose: options.onOverlayClose
+    onOverlayOpen: options.onOverlayOpen,
+    onOverlayCanClose: options.onOverlayCanClose,
+    onOverlayClose: options.onOverlayClose,
+    customDialogOptions: options.customDialogOptions || {}
   }
 
   self.options = $.extend(defaultOptions, options);
 
   // Create the dialog and related DOM elements.
-  self.create(options);
+  self.create();
 
   // Open the dialog offscreen where we can set its size, etc.
-  self.iframe.$container.dialog('option', {position: ['-999em', '-999em']}).dialog('open');
+  self.iframe.$container.dialog('option', { position: ['-999em', '-999em'] }).dialog('open');
 
   return true;
 };
 
 /**
- * Create the overlay.
+ * Create the underlying markup and behaviors for the overlay.
+ *
+ * Reuses jQuery UI's dialog component to construct the overlay markup and
+ * behaviors, sanitizing the options previously set in self.options.
  */
 Drupal.overlay.create = function() {
   var self = this;
@@ -102,99 +134,120 @@ Drupal.overlay.create = function() {
   // iframe element is defined.
   self.iframe.$element = $('<iframe id="overlay-element" frameborder="0" name="overlay-element"'+ ($.browser.msie ? ' scrolling="yes"' : '') +'/>');
   self.iframe.$container = $('<div id="overlay-container"/>').append(self.iframe.$element);
-  self.iframe.$element
-    .after($('<div class="overlay-shadow overlay-shadow-right" />').append('<div class="overlay-shadow overlay-shadow-bottom-right" />'))
-    .after($('<div class="overlay-shadow overlay-shadow-bottom" />').append('<div class="overlay-shadow overlay-shadow-bottom-left" />'));
 
   $('body').append(self.iframe.$container);
 
-  self.iframe.$container.dialog({
+  // Open callback for jQuery UI Dialog.
+  var dialogOpen = function() {
+    // Unbind the keypress handler installed by ui.dialog itself.
+    // IE does not fire keypress events for some non-alphanumeric keys
+    // such as the tab character. http://www.quirksmode.org/js/keys.html
+    // Also, this is not necessary here because we need to deal with an
+    // iframe element that contains a separate window.
+    // We'll try to provide our own behavior from bindChild() method.
+    $('.overlay').unbind('keypress.ui-dialog');
+
+    // Adjust close button features.
+    $('.overlay .ui-dialog-titlebar-close:not(.overlay-processed)').addClass('overlay-processed')
+      .attr('href', '#')
+      .attr('title', Drupal.t('Close'))
+      .unbind('click')
+      .bind('click', function() { try { self.close(); } catch(e) {}; return false; });
+
+    // Replace the title span element with an h1 element for accessibility.
+    $('.overlay .ui-dialog-title').replaceWith('<h1 id="ui-dialog-title-overlay-container" class="ui-dialog-title" tabindex="-1" unselectable="on">' + $('.overlay .ui-dialog-title').html() + '</h1>');
+
+    // Compute initial dialog size.
+    var dialogSize = self.sanitizeSize({width: self.options.width, height: self.options.height});
+
+    // Compute frame size and dialog position based on dialog size.
+    var frameSize = $.extend({}, dialogSize);
+    frameSize.height -= $('.overlay .ui-dialog-titlebar').outerHeight(true);
+    var dialogPosition = self.computePosition($('.overlay'), dialogSize);
+
+    // Adjust size of the iframe element and container.
+    $('.overlay').width(dialogSize.width).height(dialogSize.height);
+    self.iframe.$container.width(frameSize.width).height(frameSize.height);
+    self.iframe.$element.width(frameSize.width).height(frameSize.height);
+
+    // Update the dialog size so that UI internals are aware of the change.
+    self.iframe.$container.dialog('option', { width: dialogSize.width, height: dialogSize.height });
+
+    // Hide the dialog, position it on the viewport and then fade it in with
+    // the frame hidden until the child document is loaded.
+    self.iframe.$element.hide();
+    $('.overlay').hide().css({top: dialogPosition.top, left: dialogPosition.left});
+    $('.overlay').fadeIn('fast', function() {
+      // Load the document on hidden iframe (see bindChild method).
+      self.load(self.options.url);
+    });
+
+    if ($.isFunction(self.options.onOverlayOpen)) {
+      self.options.onOverlayOpen(self);
+    }
+
+    self.isOpen = true;
+  };
+
+  // Before close callback for jQuery UI Dialog.
+  var dialogBeforeClose = function() {
+    if (self.beforeCloseEnabled) {
+      return true;
+    }
+    if (!self.beforeCloseIsBusy) {
+      self.beforeCloseIsBusy = true;
+      setTimeout(function() { self.close(); }, 1);
+    }
+    return false;
+  };
+
+  // Close callback for jQuery UI Dialog.
+  var dialogClose = function() {
+    $(document).unbind('keydown.overlay-event');
+    $('.overlay .ui-dialog-titlebar-close').unbind('keydown.overlay-event');
+    try {
+      self.iframe.$element.remove();
+      self.iframe.$container.dialog('destroy').remove();
+    } catch(e) {};
+    delete self.iframe.documentSize;
+    delete self.iframe.Drupal;
+    delete self.iframe.$element;
+    delete self.iframe.$container;
+    if (self.beforeCloseEnabled) {
+      delete self.beforeCloseEnabled;
+    }
+    if (self.beforeCloseIsBusy) {
+      delete self.beforeCloseIsBusy;
+    }
+    self.isOpen = false;
+  };
+
+  // Default jQuery UI Dialog options.
+  var dialogOptions = {
     modal: true,
     autoOpen: false,
     closeOnEscape: true,
     resizable: false,
     title: Drupal.t('Loading...'),
     dialogClass: 'overlay',
-    open: function() {
-      // Unbind the keypress handler installed by ui.dialog itself.
-      // IE does not fire keypress events for some non-alphanumeric keys
-      // such as the tab character. http://www.quirksmode.org/js/keys.html
-      // Also, this is not necessary here because we need to deal with an
-      // iframe element that contains a separate window.
-      // We'll try to provide our own behavior from bindChild() method.
-      $('.overlay').unbind('keypress.ui-dialog');
+    zIndex: 500,
+    open: dialogOpen,
+    beforeclose: dialogBeforeClose,
+    close: dialogClose
+  };
 
-      // Adjust close button features.
-      $('.overlay .ui-dialog-titlebar-close:not(.overlay-processed)').addClass('overlay-processed')
-        .attr('href', '#')
-        .attr('title', Drupal.t('Close'))
-        .unbind('click')
-        .bind('click', function() { try { self.close(false); } catch(e) {}; return false; })
-        .before('<div class="ui-dialog-titlebar-close-bg" />');
+  // Allow external script override default jQuery UI Dialog options.
+  $.extend(dialogOptions, self.options.customDialogOptions);
 
-      // Compute initial dialog size.
-      var dialogSize = self.sanitizeSize({width: self.options.width, height: self.options.height});
-
-      // Compute frame size and dialog position based on dialog size.
-      var frameSize = $.extend({}, dialogSize);
-      frameSize.height -= $('.overlay .ui-dialog-titlebar').outerHeight(true);
-      var dialogPosition = self.computePosition($('.overlay'), dialogSize);
-
-      // Adjust size of the iframe element and container.
-      $('.overlay').width(dialogSize.width).height(dialogSize.height);
-      self.iframe.$container.width(frameSize.width).height(frameSize.height);
-      self.iframe.$element.width(frameSize.width).height(frameSize.height);
-
-      // Update the dialog size so that UI internals are aware of the change.
-      self.iframe.$container.dialog('option', {width: dialogSize.width, height: dialogSize.height});
-
-      // Hide the dialog, position it on the viewport and then fade it in with
-      // the frame hidden until the child document is loaded.
-      self.iframe.$element.hide();
-      $('.overlay').hide().css({top: dialogPosition.top, left: dialogPosition.left});
-      $('.overlay').fadeIn('fast', function() {
-        // Load the document on hidden iframe (see bindChild method).
-        self.load(self.options.url);
-      });
-
-      self.isOpen = true;
-    },
-    beforeclose: function() {
-      if (self.beforeCloseEnabled) {
-        return true;
-      }
-      if (!self.beforeCloseIsBusy) {
-        self.beforeCloseIsBusy = true;
-        setTimeout(function() { self.close(false); }, 1);
-      }
-      return false;
-    },
-    close: function() {
-      $(document).unbind('keydown.overlay-event');
-      $('.overlay .ui-dialog-titlebar-close').unbind('keydown.overlay-event');
-      try {
-        self.iframe.$element.remove();
-        self.iframe.$container.dialog('destroy').remove();
-      } catch(e) {};
-      delete self.iframe.documentSize;
-      delete self.iframe.Drupal;
-      delete self.iframe.$element;
-      delete self.iframe.$container;
-      if (self.beforeCloseEnabled) {
-        delete self.beforeCloseEnabled;
-      }
-      if (self.beforeCloseIsBusy) {
-        delete self.beforeCloseIsBusy;
-      }
-      self.isOpen = false;
-    }
-  });
-  // Replace the title span element with an h1 element for accessibility.
-  $('.overlay .ui-dialog-title').replaceWith('<h1 id="ui-dialog-title-overlay-container" class="ui-dialog-title" tabindex="-1" unselectable="on">' + $('.overlay .ui-dialog-title').html() + '</h1>');
+  // Create the jQuery UI Dialog.
+  self.iframe.$container.dialog(dialogOptions);
 };
 
 /**
- * Load the given URL into the dialog iframe.
+ * Load the given URL into the overlay iframe.
+ *
+ * Use this method to change the URL being loaded in the overlay if it is
+ * already open.
  */
 Drupal.overlay.load = function(url) {
   var self = this;
@@ -216,13 +269,19 @@ Drupal.overlay.canClose = function() {
   if (!self.isOpen) {
     return false;
   }
+  // Allow external scripts decide if the overlay can be closed.
+  if ($.isFunction(self.options.onOverlayCanClose)) {
+    if (!self.options.onOverlayCanClose(self)) {
+      return false;
+    }
+  }
   return true;
 };
 
 /**
- * Close the overlay.
+ * Close the overlay and remove markup related to it from the document.
  */
-Drupal.overlay.close = function(statusMessages) {
+Drupal.overlay.close = function(args, statusMessages) {
   var self = this;
 
   // Offer the user a chance to change their mind if there is a form on the
@@ -231,9 +290,6 @@ Drupal.overlay.close = function(statusMessages) {
   var iframeDocument = (iframeElement.contentWindow || iframeElement.contentDocument);
   if (iframeDocument.document) {
     iframeDocument = iframeDocument.document;
-  }
-  if (!self.skipWarning && $(iframeDocument).find('form').size() && !confirm(Drupal.t('Are you sure you want to close this dialog? Any unsaved work will be lost.'))) {
-    return false;
   }
 
   // Check if the dialog can be closed.
@@ -251,19 +307,25 @@ Drupal.overlay.close = function(statusMessages) {
     self.beforeCloseEnabled = true;
     self.iframe.$container.dialog('close');
     if ($.isFunction(self.options.onOverlayClose)) {
-      self.options.onOverlayClose(statusMessages);
+      self.options.onOverlayClose(args, statusMessages);
     }
   }
   if (!self.isObject(self.iframe.$element) || !self.iframe.$element.size() || !self.iframe.$element.is(':visible')) {
     closeDialog();
   }
   else {
-    self.iframe.$container.animate({height: 'hide'}, {duration: 'fast', 'queue': false});
+    self.iframe.$container.animate({height: 'hide'}, { duration: 'fast', 'queue': false });
     $('.overlay').animate({opacity: 'hide'}, closeDialog);
   }
   return true;
 };
 
+/**
+ * Redirect the overlay parent window to the given URL.
+ *
+ * @param link
+ *   Can be an absolute URL or a relative link to the domain root.
+ */
 Drupal.overlay.redirect = function(link) {
   if (link.indexOf('http') != 0 && link.indexOf('https') != 0) {
     var absolute = location.href.match(/https?:\/\/[^\/]*/)[0];
@@ -275,6 +337,8 @@ Drupal.overlay.redirect = function(link) {
 
 /**
  * Bind the child window.
+ *
+ * Add tabs on the overlay, keyboard actions and display animation.
  */
 Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
   var self = this;
@@ -291,7 +355,7 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
   // Update the dialog title with the child window title.
   $('.overlay .ui-dialog-title').html($iFrameDocument.attr('title')).focus();
   // Add a title attribute to the iframe for accessibility.
-  self.iframe.$element.attr('title', Drupal.t('@title dialog', {'@title': $iFrameDocument.attr('title')}));
+  self.iframe.$element.attr('title', Drupal.t('@title dialog', { '@title': $iFrameDocument.attr('title') }));
 
   // Remove any existing tabs.
   $('.overlay .ui-dialog-titlebar ul').remove();
@@ -307,7 +371,7 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
     // iframed document. There are many ways to do it, and none of them
     // seem to be perfect. Note though, that the size of the iframe itself
     // may affect the size of the child document, especially on fluid layouts.
-    self.iframe.documentSize = {width: $iFrameDocument.width(), height: $iFrameWindow('body').height() + 25 };
+    self.iframe.documentSize = { width: $iFrameDocument.width(), height: $iFrameWindow('body').height() + 25 };
 
     // Adjust overlay to fit the iframe content?
     if (self.options.autoFit) {
@@ -361,7 +425,7 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
           }
         }
         else if (event.keyCode == $.ui.keyCode.ESCAPE) {
-          setTimeout(function() { self.close(false); }, 10);
+          setTimeout(function() { self.close(); }, 10);
           return false;
         }
       }
@@ -382,12 +446,13 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
       // because of padding and/or border added by the theme.
       var height = $(iframeDocument).find('body').outerHeight() + 25;
       self.iframe.$element.css('height', height);
-      $('.overlay-shadow-right').css('height', height);
       self.iframe.$container.css('height', height);
       self.iframe.$container.parent().css('height', height + 45);
       // Don't allow the shadow background to shrink so it's not enough to hide
-      // the whole page.
-      $('.ui-widget-overlay').height(Math.max($('.ui-widget-overlay').height(), height + 145));
+      // the whole page. Take the existing document height (with overlay) and
+      // the body height itself for our base calculation.
+      var docHeight = Math.min($(document).find('body').outerHeight(), $(document).height());
+      $('.ui-widget-overlay').height(Math.max(docHeight, $(window).height(), height + 145));
       setTimeout(autoResize, 150);
     };
 
@@ -451,6 +516,8 @@ Drupal.overlay.bindChild = function(iFrameWindow, isClosing) {
 
 /**
  * Unbind the child window.
+ *
+ * Remove keyboard event handlers, reset title and hide the iframe.
  */
 Drupal.overlay.unbindChild = function(iFrameWindow) {
   var self = this;
@@ -475,32 +542,51 @@ Drupal.overlay.isObject = function(something) {
 
 /**
  * Sanitize dialog size.
+ *
+ * Do not let the overlay go over the 0.78x of the width of the screen and set
+ * minimal height. The height is not limited due to how we rely on the parent
+ * window to provide scrolling instead of scrolling in scrolling with the
+ * overlay.
+ *
+ * @param size
+ *   Contains 'width' and 'height' items as numbers.
+ * @return
+ *   The same structure with sanitized number values.
  */
 Drupal.overlay.sanitizeSize = function(size) {
   var width, height;
   var $window = $(window);
+
+  // Use 300px as the minimum width but at most expand to 78% of the window.
+  // Ensures that users see that there is an actual website in the background.
   var minWidth = 300, maxWidth = parseInt($window.width() * .78);
   if (typeof size.width != 'number') {
     width = maxWidth;
   }
+  // Set to at least minWidth but at most maxWidth. 
   else if (size.width < minWidth || size.width > maxWidth) {
     width = Math.min(maxWidth, Math.max(minWidth, size.width));
   }
   else {
     width = size.width;
   }
+  
+  // Use 100px as the minimum height. Expand to 92% of the window if height
+  // was invalid, to ensure that we have a reasonable chance to show content.
   var minHeight = 100, maxHeight = parseInt($window.height() * .92);
   if (typeof size.height != 'number') {
     height = maxHeight;
   }
   else if (size.height < minHeight) {
-    // Do not consider maxHeight, only set up to be at least the minimal height.
+    // Do not consider maxHeight as the actual maximum height, since we rely on
+    // the parent window scroll bar to scroll the window. Only set up to be at
+    // least the minimal height.
     height = Math.max(minHeight, size.height);
   }
   else {
     height = size.height;
   }
-  return {width: width, height: height};
+  return { width: width, height: height };
 };
 
 /**
@@ -522,7 +608,10 @@ Drupal.overlay.computePosition = function($element, elementSize) {
 };
 
 /**
- * Resize overlay.
+ * Resize overlay to the given size.
+ * 
+ * @param size
+ *   Contains 'width' and 'height' items as numbers.
  */
 Drupal.overlay.resize = function(size) {
   var self = this;
@@ -546,18 +635,14 @@ Drupal.overlay.resize = function(size) {
       $('.overlay').width(dialogSize.width).height(dialogSize.height);
       self.iframe.$container.width(frameSize.width).height(frameSize.height);
       self.iframe.$element.width(frameSize.width).height(frameSize.height);
-      $('.overlay-shadow-right').height(frameSize.height);
-      
-      // Animate shadows and the close button
-      $('.overlay-shadow', $(this)).animate({opacity: 0.9999}, 'slow');
 
       // Update the dialog size so that UI internals are aware of the change.
-      self.iframe.$container.dialog('option', {width: dialogSize.width, height: dialogSize.height});
+      self.iframe.$container.dialog('option', { width: dialogSize.width, height: dialogSize.height });
 
       // Keep the dim background grow or shrink with the dialog.
       $('.ui-widget-overlay').height($(document).height());
       
-      // Animate body opacity, so we fade in the page page as it loads in. 
+      // Animate body opacity, so we fade in the page as it loads in. 
       $(self.iframe.$element.get(0)).contents().find('body.overlay').animate({opacity: 0.9999}, 'slow');
     }
   });

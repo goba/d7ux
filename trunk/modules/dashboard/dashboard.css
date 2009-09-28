@@ -36,8 +36,8 @@
 
 #dashboard #disabled-blocks .block, #dashboard .block-placeholder {
   background: #e2e1dc;
-  padding: 4px;
-  margin: 3px;
+  padding: 6px 4px;
+  margin: 3px 3px 3px 0;
   float: left;
   -moz-border-radius: 4px;
 }
@@ -47,8 +47,29 @@
   padding: 10px;
 }
 
+#dashboard .canvas-content {
+  background-color: #4d4d4d;
+  padding: 10px;
+  color: #fff;
+}
+
+#dashboard .disabled-blocks.ui-sortable {
+  padding: 0;
+  background-color: #4d4d4d;
+  border: 0;
+}
+
+#dashboard .canvas-content input {
+  float: right;
+  margin: 10px;
+}
+
 #dashboard .section {
   margin: 5px;
+}
+
+#dashboard #disabled-blocks .section {
+  margin: 5px 0;
 }
 
 #dashboard div.dragging {
@@ -59,6 +80,7 @@
   display: inline;
   font-weight: normal;
   white-space: nowrap;
+  color: #000;
 }
 
 #dashboard #disabled-blocks .block .content, #dashboard .ui-sortable-helper .content {

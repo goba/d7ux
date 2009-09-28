@@ -9,6 +9,9 @@ function dashboard_menu() {
     'title' => 'Dashboard',
     'page callback' => 'dashboard_admin',
     'access arguments' => array('access dashboard'),
+    // Make this appear first, so for example, in admin menus, it shows up on
+    // the top corner of the window as a convinient "home link".
+    'weight' => -100,
   );
   $items['admin/dashboard/customize'] = array(
     'page callback' => 'dashboard_show_disabled',
@@ -89,6 +92,9 @@ function dashboard_permission() {
 function dashboard_system_info_alter(&$info, $file, $type) {
   if ($type == 'theme') {
     $info['regions'] += dashboard_region_descriptions();
+    if (module_exists('overlay')) {
+      $info['overlay_regions'] = !empty($info['overlay_regions']) ? array_merge($info['overlay_regions'], dashboard_regions()) : dashboard_regions();
+    }
   }
 }
 
@@ -305,13 +311,12 @@ function theme_dashboard_region($element) {
  * @ingroup themeable
  */
 function theme_dashboard_disabled_blocks($blocks) {
-  $output = '<p>' . t('Drag and drop dashboard widgets to their place. Changes are automatically saved.') . '</p>';
+  $output = '<div class="canvas-content"><p>' . t('Drag and drop dashboard blocks to their place. Changes are automatically saved.') . '</p>';
   $output .= '<div id="disabled-blocks"><div class="section region disabled-blocks clearfix">';
-  $output .= '<h3>' . t('Available blocks') . '</h3>';
   foreach ($blocks as $block) {
     $output .= theme('dashboard_disabled_block', $block);
   }
-  $output .= '</div></div>';
+  $output .= '</div></div></div>';
   return $output;
 }
 

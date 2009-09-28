@@ -1,124 +1,92 @@
 /* $Id$ */
 
 /**
- * jQuery UI Dialog classes.
- */
-.overlay {
-  color: #000;
-  padding-right: 30px;
-}
-
-.overlay .ui-dialog-titlebar {
-  position: relative;
-  height: 30px;
-  white-space: nowrap;
-  z-index: 2;
-  padding-right: 20px;
-}
-
-.overlay .ui-dialog-title {
-  display: block;
-  font-family: Verdana,sans-serif;
-  position: absolute;
-  top: 0;
-  left: 0;
-  margin: 0.2em 0.5em;
-  padding: 0;
-  color: #fff;
-  font-size: 20px;
-}
-
-.overlay .ui-dialog-title:active,
-.overlay .ui-dialog-title:focus {
-  outline: 0;
-}
-
-.overlay .ui-dialog-titlebar-close {
-  display: block;
-  position: absolute;
-  right: -26px;
-  top: 30px;
-  margin: 0;
-  padding: 0;
-  width: 26px;
-  height: 26px;
-}
-
-.overlay .ui-dialog-titlebar-close-bg {
-  background: transparent url(images/close.png) no-repeat;
-  width: 32px;
-  height: 36px;
-  position: absolute;
-  right: -32px;
-  top: 30px;
-  opacity: 0;
-  filter: alpha(opacity=0);
-}
-
-.overlay .ui-dialog-titlebar-close span {
-  display: none;
-}
-
-.overlay .ui-dialog-content {
-  color: #292929;
-  background-color: #f8f8f8;
-}
-
-/**
  * ui-dialog overlay.
  */
 .ui-widget-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   background-color: #000;
   opacity: 0.7;
   filter: alpha(opacity=80);
 }
 
 /**
- * Overlay content and shadows.
+ * jQuery UI Dialog classes.
  */
-#overlay-container {
-  margin: 0;
-  padding: 0;
-  background: #fff url(images/loading.gif) no-repeat 50% 50%;
-  -webkit-box-shadow: 8px 8px 8px;
-  -moz-box-shadow: 8px 8px 8px;
-  box-shadow: 8px 8px 8px;
+.overlay {
+  padding-right: 26px;
 }
 
-#overlay-element {
+.overlay .ui-dialog-titlebar {
+  white-space: nowrap;
+  padding: 0 20px;
+}
+
+.overlay .ui-dialog-title {
+  font-family: Verdana,sans-serif;
+  margin: 0;
+  padding: 0.3em 0;
+  color: #fff;
+  font-size: 20px;
+}
+.overlay .ui-dialog-title:active,
+.overlay .ui-dialog-title:focus {
+  outline: 0;
+}
+.overlay .ui-dialog-titlebar-close {
+  display: block;
+  right: -25px;
+  top: 100%;
   margin: 0;
   padding: 0;
-  border: none;
+  width: 26px;
+  height: 36px;
+  background: transparent url(images/close.png) no-repeat;
+}
+.overlay .ui-dialog-titlebar-close span {
+  display: none;
+}
+.overlay .ui-dialog-content {
+  color: #292929;
+  background-color: #f8f8f8;
+}
+
+/**
+ * Overlay content and shadows.
+ */
+.overlay #overlay-container {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  background: #fff url(images/loading.gif) no-repeat 50% 50%;
+  -webkit-box-shadow: 8px 8px 8px rgba(0,0,0,.5);
+  -moz-box-shadow: 8px 8px 8px rgba(0,0,0,.5);
+  box-shadow: 8px 8px 8px rgba(0,0,0,.5);
+}
+.overlay #overlay-element {
   overflow: hidden;
 }
 
 /**
  * Tabs on the overlay.
  */
-.ui-dialog-titlebar ul {
-  float: right;
-  margin: 0 0 -10px 0;
-  padding: 3px 0 0 8px;
-  line-height: 30px;
+.overlay .ui-dialog-titlebar ul {
+  position: absolute;
+  right: 20px;
+  bottom: 0;
+  margin: 0;
+  line-height: 2.2em;
   text-transform: uppercase;
-  font-size: 12px;
 }
-
-.ui-dialog-titlebar ul li {
-  display: inline;
+.overlay .ui-dialog-titlebar ul li {
+  display: inline-block;
   list-style: none;
-  margin-left: 0;
+  margin: 0 0 0 -3px;
+  padding: 0;
 }
-
-.ui-dialog-titlebar ul li a,
-.ui-dialog-titlebar ul li a:active,
-.ui-dialog-titlebar ul li a:visited,
-.ui-dialog-titlebar ul li a:hover {
+.overlay .ui-dialog-titlebar ul li a,
+.overlay .ui-dialog-titlebar ul li a:active,
+.overlay .ui-dialog-titlebar ul li a:visited,
+.overlay .ui-dialog-titlebar ul li a:hover {
   background-color: #a6a7a2;
   -moz-border-radius: 8px 8px 0 0;
   -webkit-border-top-left-radius: 8px;
@@ -126,17 +94,18 @@
   border-radius: 8px 8px 0 0;
   color: #000;
   font-weight: bold;
-  padding: 8px 20px 3px 20px;
+  padding: 0.5em 1.5em;
   text-decoration: none;
 }
-
-.ui-dialog-titlebar ul li.active a,
-.ui-dialog-titlebar ul li.active a.active,
-.ui-dialog-titlebar ul li.active a:active,
-.ui-dialog-titlebar ul li.active a:visited {
+.overlay .ui-dialog-titlebar ul li.active a,
+.overlay .ui-dialog-titlebar ul li.active a.active,
+.overlay .ui-dialog-titlebar ul li.active a:active,
+.overlay .ui-dialog-titlebar ul li.active a:visited {
   background-color: #fff;
-  padding: 8px 20px 5px 20px;
 }
-
-.ui-dialog-titlebar ul li a:hover {
+.overlay .ui-dialog-titlebar ul li a:hover {
   color: #fff;
+}
+.overlay .ui-dialog-titlebar ul li.active a:hover {
+  color: #000;
+}

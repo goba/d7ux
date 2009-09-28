@@ -1,5 +1,5 @@
 <?php
-// $Id: user.pages.inc,v 1.51 2009/09/10 12:33:46 webchick Exp $
+// $Id: user.pages.inc,v 1.56 2009/09/22 07:50:16 dries Exp $
 
 /**
  * @file
@@ -12,13 +12,13 @@
 function user_autocomplete($string = '') {
   $matches = array();
   if ($string) {
-    $result = db_query_range("SELECT name FROM {users} WHERE LOWER(name) LIKE LOWER(:name)", array(':name' => $string . '%'), 0, 10);
+    $result = db_query_range("SELECT name FROM {users} WHERE LOWER(name) LIKE LOWER(:name)", 0, 10, array(':name' => $string . '%'));
     foreach ($result as $user) {
       $matches[$user->name] = check_plain($user->name);
     }
   }
 
-  drupal_json($matches);
+  drupal_json_output($matches);
 }
 
 /**
@@ -75,7 +75,7 @@ function user_pass_submit($form, &$form_state) {
 /**
  * Menu callback; process one time login link and redirects to the user page on success.
  */
-function user_pass_reset(&$form_state, $uid, $timestamp, $hashed_pass, $action = NULL) {
+function user_pass_reset($form, &$form_state, $uid, $timestamp, $hashed_pass, $action = NULL) {
   global $user;
 
   // When processing the one-time login link, we have to make sure that a user
@@ -225,19 +225,21 @@ function user_edit($account, $category = 'account') {
  * @see user_profile_form_submit()
  * @see user_cancel_confirm_form_submit()
  */
-function user_profile_form($form_state, $account, $category = 'account') {
+function user_profile_form($form, &$form_state, $account, $category = 'account') {
   global $user;
 
-  $edit = (empty($form_state['values'])) ? (array)$account : $form_state['values'];
+  $form['#user'] = $account;
+  $form['#user_category'] = $category;
 
-  $form = _user_forms($edit, $account, $category);
+  if ($category == 'account') {
+    user_edit_form($form, $form_state);
+  }
 
   // Attach field widgets.
-  field_attach_form('user', (object) $edit, $form, $form_state);
+  field_attach_form('user', $account, $form, $form_state);
 
-  $form['_category'] = array('#type' => 'value', '#value' => $category);
-  $form['_account'] = array('#type' => 'value', '#value' => $account);
   $form['submit'] = array('#type' => 'submit', '#value' => t('Save'), '#weight' => 30);
+
   if (($account->uid == $user->uid && user_access('cancel account')) || user_access('administer users')) {
     $form['cancel'] = array(
       '#type' => 'submit',
@@ -257,7 +259,7 @@ function user_profile_form_validate($form, &$form_state) {
   $edit = (object)$form_state['values'];
   field_attach_form_validate('user', $edit, $form, $form_state);
   $edit = (array)$edit;
-  user_module_invoke('validate', $edit, $form_state['values']['_account'], $form_state['values']['_category']);
+  user_module_invoke('validate', $edit, $form['#user'], $form['#user_category']);
   // Validate input to ensure that non-privileged users can't alter protected data.
   if ((!user_access('administer users') && array_intersect(array_keys($edit), array('uid', 'init', 'session'))) || (!user_access('administer permissions') && isset($form_state['values']['roles']))) {
     watchdog('security', 'Detected malicious attempt to alter protected user fields.', array(), WATCHDOG_WARNING);
@@ -270,9 +272,9 @@ function user_profile_form_validate($form, &$form_state) {
  * Submit function for the user account and profile editing form.
  */
 function user_profile_form_submit($form, &$form_state) {
-  $account = $form_state['values']['_account'];
-  $category = $form_state['values']['_category'];
-  unset($form_state['values']['_account'], $form_state['values']['op'], $form_state['values']['submit'], $form_state['values']['cancel'], $form_state['values']['form_token'], $form_state['values']['form_id'], $form_state['values']['_category'], $form_state['values']['form_build_id']);
+  $account = $form['#user'];
+  $category = $form['#user_category'];
+  unset($form_state['values']['op'], $form_state['values']['submit'], $form_state['values']['cancel'], $form_state['values']['form_token'], $form_state['values']['form_id'], $form_state['values']['form_build_id']);
 
   $edit = (object)$form_state['values'];
   field_attach_submit('user', $edit, $form, $form_state);
@@ -284,7 +286,6 @@ function user_profile_form_submit($form, &$form_state) {
   cache_clear_all();
 
   drupal_set_message(t('The changes have been saved.'));
-  return;
 }
 
 /**
@@ -292,12 +293,12 @@ function user_profile_form_submit($form, &$form_state) {
  */
 function user_edit_cancel_submit($form, &$form_state) {
   $destination = '';
-  if (isset($_REQUEST['destination'])) {
+  if (isset($_GET['destination'])) {
     $destination = drupal_get_destination();
-    unset($_REQUEST['destination']);
+    unset($_GET['destination']);
   }
   // Note: We redirect from user/uid/edit to user/uid/cancel to make the tabs disappear.
-  $form_state['redirect'] = array("user/" . $form_state['values']['_account']->uid . "/cancel", $destination);
+  $form_state['redirect'] = array("user/" . $form['#user']->uid . "/cancel", $destination);
 }
 
 /**
@@ -306,7 +307,7 @@ function user_edit_cancel_submit($form, &$form_state) {
  * @ingroup forms
  * @see user_edit_cancel_submit()
  */
-function user_cancel_confirm_form(&$form_state, $account) {
+function user_cancel_confirm_form($form, &$form_state, $account) {
   global $user;
 
   $form['_account'] = array('#type' => 'value', '#value' => $account);
@@ -391,9 +392,7 @@ function user_cancel_confirm_form_submit($form, &$form_state) {
   if (user_access('administer users') && empty($form_state['values']['user_cancel_confirm']) && $account->uid != $user->uid) {
     user_cancel($form_state['values'], $account->uid, $form_state['values']['user_cancel_method']);
 
-    if (!isset($_REQUEST['destination'])) {
-      $form_state['redirect'] = 'admin/people';
-    }
+    $form_state['redirect'] = 'admin/people';
   }
   else {
     // Store cancelling method and whether to notify the user in $account for
@@ -407,9 +406,7 @@ function user_cancel_confirm_form_submit($form, &$form_state) {
     drupal_set_message(t('A confirmation request to cancel your account has been sent to your e-mail address.'));
     watchdog('user', 'Sent account cancellation request to %name %email.', array('%name' => $account->name, '%email' => '<' . $account->mail . '>'), WATCHDOG_NOTICE);
 
-    if (!isset($_REQUEST['destination'])) {
-      $form_state['redirect'] = "user/$account->uid";
-    }
+    $form_state['redirect'] = "user/$account->uid";
   }
 }
 
@@ -451,7 +448,6 @@ function user_cancel_methods() {
 
   // Turn all methods into real form elements.
   $default_method = variable_get('user_cancel_method', 'user_cancel_block');
-  $form = array();
   foreach ($methods as $name => $method) {
     $form[$name] = array(
       '#type' => 'radio',

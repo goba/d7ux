@@ -28,14 +28,9 @@ function toolbar_install() {
     'node/add' => 'Add content',
     'admin/content' => 'Find content',
     'admin/dashboard' => 'Dashboard',
+    // No title, so the title callback prevails.
     'edit-mode/toggle' => '',
   );
-
-  db_delete('menu_links')
-    ->condition('link_path', 'edit-mode/toggle')
-    ->condition('menu_name', 'navigation')
-    ->execute();
-
   $weight = -20;
   foreach ($items as $path => $title) {
     $link = array(
@@ -44,7 +39,11 @@ function toolbar_install() {
       'link_path' => $path,
       'router_path' => $path,
       'menu_name' => 'admin-shortcuts',
-      'module' => 'menu',
+      // Saved as links with the toolbar module which makes them impossible
+      // to delete on the user interface. This is important for items like
+      // the edit toggle which cannot be figured out easily from elsewhere.
+      // The items can be disabled still of course.
+      'module' => 'toolbar',
       'weight' => $weight,
     );
 

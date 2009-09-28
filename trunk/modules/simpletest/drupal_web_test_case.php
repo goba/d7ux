@@ -1,5 +1,5 @@
 <?php
-// $Id: drupal_web_test_case.php,v 1.147 2009/09/05 13:05:30 dries Exp $
+// $Id: drupal_web_test_case.php,v 1.153 2009/09/25 15:12:56 dries Exp $
 
 /**
  * Base class for Drupal tests.
@@ -728,7 +728,7 @@ class DrupalWebTestCase extends DrupalTestCase {
     // Merge body field value and format separately.
     $body = array(
       'value' => $this->randomName(32),
-      'format' => FILTER_FORMAT_DEFAULT
+      'format' => filter_default_format(),
     );
     $settings['body'][FIELD_LANGUAGE_NONE][0] += $body;
 
@@ -762,6 +762,7 @@ class DrupalWebTestCase extends DrupalTestCase {
     $defaults = array(
       'type' => $name,
       'name' => $name,
+      'base' => 'node_content',
       'description' => '',
       'help' => '',
       'title_label' => 'Title',
@@ -783,6 +784,7 @@ class DrupalWebTestCase extends DrupalTestCase {
 
     $saved_type = node_type_save($type);
     node_types_rebuild();
+    menu_rebuild();
 
     $this->assertEqual($saved_type, SAVED_NEW, t('Created content type %type.', array('%type' => $type->type)));
 
@@ -901,8 +903,8 @@ class DrupalWebTestCase extends DrupalTestCase {
     $role = new stdClass();
     $role->name = $name;
     user_role_save($role);
-    user_role_set_permissions($role->name, $permissions);
-    
+    user_role_grant_permissions($role->rid, $permissions);
+
     $this->assertTrue(isset($role->rid), t('Created role of name: @name, id: @rid', array('@name' => $name, '@rid' => (isset($role->rid) ? $role->rid : t('-n/a-')))), t('Role'));
     if ($role && !empty($role->rid)) {
       $count = db_query('SELECT COUNT(*) FROM {role_permission} WHERE rid = :rid', array(':rid' => $role->rid))->fetchField();
@@ -1063,7 +1065,7 @@ class DrupalWebTestCase extends DrupalTestCase {
     // Install the modules specified by the default profile.
     drupal_install_modules($profile_details['dependencies'], TRUE);
 
-    node_type_clear();
+    drupal_static_reset('_node_types_build');
 
     // Install additional modules one at a time in order to make sure that the
     // list of modules is updated between each module's installation.
@@ -1728,7 +1730,7 @@ class DrupalWebTestCase extends DrupalTestCase {
    */
   protected function assertLink($label, $index = 0, $message = '', $group = 'Other') {
     $links = $this->xpath('//a[text()="' . $label . '"]');
-    $message = ($message ?  $message : t('Link with label "!label" found.', array('!label' => $label)));
+    $message = ($message ?  $message : t('Link with label %label found.', array('%label' => $label)));
     return $this->assert(isset($links[$index]), $message, $group);
   }
 
@@ -1748,7 +1750,7 @@ class DrupalWebTestCase extends DrupalTestCase {
    */
   protected function assertNoLink($label, $message = '', $group = 'Other') {
     $links = $this->xpath('//a[text()="' . $label . '"]');
-    $message = ($message ?  $message : t('Link with label "!label" not found.', array('!label' => $label)));
+    $message = ($message ?  $message : t('Link with label %label not found.', array('%label' => $label)));
     return $this->assert(empty($links), $message, $group);
   }
 
@@ -1775,7 +1777,7 @@ class DrupalWebTestCase extends DrupalTestCase {
       $url_target = $this->getAbsoluteUrl($urls[$index]['href']);
     }
 
-    $this->assertTrue(isset($urls[$index]), t('Clicked link "!label" (!url_target) from !url_before', array('!label' => $label, '!url_target' => $url_target, '!url_before' => $url_before)), t('Browser'));
+    $this->assertTrue(isset($urls[$index]), t('Clicked link %label (@url_target) from @url_before', array('%label' => $label, '@url_target' => $url_target, '@url_before' => $url_before)), t('Browser'));
 
     if (isset($urls[$index])) {
       return $this->drupalGet($url_target);
@@ -1969,7 +1971,7 @@ class DrupalWebTestCase extends DrupalTestCase {
    */
   protected function assertRaw($raw, $message = '', $group = 'Other') {
     if (!$message) {
-      $message = t('Raw "@raw" found', array('@raw' => check_plain($raw)));
+      $message = t('Raw "@raw" found', array('@raw' => $raw));
     }
     return $this->assert(strpos($this->content, $raw) !== FALSE, $message, $group);
   }
@@ -1989,7 +1991,7 @@ class DrupalWebTestCase extends DrupalTestCase {
    */
   protected function assertNoRaw($raw, $message = '', $group = 'Other') {
     if (!$message) {
-      $message = t('Raw "@raw" not found', array('@raw' => check_plain($raw)));
+      $message = t('Raw "@raw" not found', array('@raw' => $raw));
     }
     return $this->assert(strpos($this->content, $raw) === FALSE, $message, $group);
   }

@@ -1,5 +1,5 @@
 <?php
-// $Id: common.inc,v 1.987 2009/09/10 22:10:10 webchick Exp $
+// $Id: common.inc,v 1.996 2009/09/27 11:08:45 dries Exp $
 
 /**
  * @file
@@ -364,8 +364,8 @@ function drupal_query_string_encode($query, $exclude = array(), $parent = '') {
  * @see drupal_goto()
  */
 function drupal_get_destination() {
-  if (isset($_REQUEST['destination'])) {
-    return 'destination=' . urlencode($_REQUEST['destination']);
+  if (isset($_GET['destination'])) {
+    return 'destination=' . urlencode($_GET['destination']);
   }
   else {
     // Use $_GET here to retrieve the original path in source form.
@@ -418,9 +418,8 @@ function drupal_get_destination() {
  * @see drupal_get_destination()
  */
 function drupal_goto($path = '', $query = NULL, $fragment = NULL, $http_response_code = 302) {
-
-  if (isset($_REQUEST['destination'])) {
-    extract(parse_url(urldecode($_REQUEST['destination'])));
+  if (isset($_GET['destination'])) {
+    extract(parse_url(urldecode($_GET['destination'])));
   }
 
   $args = array(
@@ -471,8 +470,8 @@ function drupal_not_found() {
   watchdog('page not found', check_plain($_GET['q']), NULL, WATCHDOG_WARNING);
 
   // Keep old path for reference, and to allow forms to redirect to it.
-  if (!isset($_REQUEST['destination'])) {
-    $_REQUEST['destination'] = $_GET['q'];
+  if (!isset($_GET['destination'])) {
+    $_GET['destination'] = $_GET['q'];
   }
 
   $path = drupal_get_normal_path(variable_get('site_404', ''));
@@ -502,8 +501,8 @@ function drupal_access_denied() {
   watchdog('access denied', check_plain($_GET['q']), NULL, WATCHDOG_WARNING);
 
   // Keep old path for reference, and to allow forms to redirect to it.
-  if (!isset($_REQUEST['destination'])) {
-    $_REQUEST['destination'] = $_GET['q'];
+  if (!isset($_GET['destination'])) {
+    $_GET['destination'] = $_GET['q'];
   }
 
   $path = drupal_get_normal_path(variable_get('site_403', ''));
@@ -578,11 +577,13 @@ function drupal_http_request($url, array $options = array()) {
 
   if ($uri == FALSE) {
     $result->error = 'unable to parse URL';
+    $result->code = -1001;
     return $result;
   }
 
   if (!isset($uri['scheme'])) {
     $result->error = 'missing schema';
+    $result->code = -1002;
     return $result;
   }
 
@@ -611,6 +612,7 @@ function drupal_http_request($url, array $options = array()) {
       break;
     default:
       $result->error = 'invalid schema ' . $uri['scheme'];
+      $result->code = -1003;
       return $result;
   }
 
@@ -878,7 +880,7 @@ function _drupal_decode_exception($exception) {
     // The first element in the stack is the call, the second element gives us the caller.
     // We skip calls that occurred in one of the classes of the database layer
     // or in one of its global functions.
-    $db_functions = array('db_query', 'pager_query', 'db_query_range', 'db_query_temporary', 'update_sql');
+    $db_functions = array('db_query',  'db_query_range', 'update_sql');
     while (!empty($backtrace[1]) && ($caller = $backtrace[1]) &&
         ((isset($caller['class']) && (strpos($caller['class'], 'Query') !== FALSE || strpos($caller['class'], 'Database') !== FALSE || strpos($caller['class'], 'PDO') !== FALSE)) ||
         in_array($caller['function'], $db_functions))) {
@@ -2403,6 +2405,7 @@ function drupal_page_footer() {
 
   _registry_check_code(REGISTRY_WRITE_LOOKUP_CACHE);
   drupal_cache_system_paths();
+  module_implements_write_cache();
 }
 
 /**
@@ -3165,7 +3168,7 @@ function drupal_get_js($scope = 'header', $javascript = NULL) {
   foreach ($items as $item) {
     switch ($item['type']) {
       case 'setting':
-        $output .= '<script type="text/javascript">' . $embed_prefix . 'jQuery.extend(Drupal.settings, ' . drupal_to_js(call_user_func_array('array_merge_recursive', $item['data'])) . ");" . $embed_suffix . "</script>\n";
+        $output .= '<script type="text/javascript">' . $embed_prefix . 'jQuery.extend(Drupal.settings, ' . drupal_json_encode(call_user_func_array('array_merge_recursive', $item['data'])) . ");" . $embed_suffix . "</script>\n";
         break;
 
       case 'inline':
@@ -3583,7 +3586,7 @@ function drupal_clear_js_cache() {
  *
  * We use HTML-safe strings, i.e. with <, > and & escaped.
  */
-function drupal_to_js($var) {
+function drupal_json_encode($var) {
   // json_encode() does not escape <, > and &, so we do it with str_replace()
   return str_replace(array("<", ">", "&"), array('\x3c', '\x3e', '\x26'), json_encode($var));
 }
@@ -3597,12 +3600,12 @@ function drupal_to_js($var) {
  * @param $var
  *   (optional) If set, the variable will be converted to JSON and output.
  */
-function drupal_json($var = NULL) {
+function drupal_json_output($var = NULL) {
   // We are returning JavaScript, so tell the browser.
   drupal_set_header('Content-Type', 'text/javascript; charset=utf-8');
 
   if (isset($var)) {
-    echo drupal_to_js($var);
+    echo drupal_json_encode($var);
   }
 }
 
@@ -3835,6 +3838,11 @@ function drupal_cron_run() {
 
   // Fetch the cron semaphore
   $semaphore = variable_get('cron_semaphore', FALSE);
+  
+  $return = FALSE;
+  // Grab the defined cron queues.
+  $queues = module_invoke_all('cron_queue_info');
+  drupal_alter('cron_queue_info', $queues);
 
   if ($semaphore) {
     if (REQUEST_TIME - $semaphore > 3600) {
@@ -3851,6 +3859,11 @@ function drupal_cron_run() {
     }
   }
   else {
+    // Make sure every queue exists. There is no harm in trying to recreate an
+    // existing queue.
+    foreach ($queues as $queue_name => $info) {
+      DrupalQueue::get($queue_name)->createQueue();
+    }
     // Register shutdown callback
     register_shutdown_function('drupal_cron_cleanup');
 
@@ -3868,8 +3881,19 @@ function drupal_cron_run() {
     variable_del('cron_semaphore');
 
     // Return TRUE so other functions can check if it did run successfully
-    return TRUE;
+    $return = TRUE;
   }
+  
+  foreach ($queues as $queue_name => $info) {
+    $function = $info['worker callback'];
+    $end = time() + (isset($info['time']) ? $info['time'] : 15);
+    $queue = DrupalQueue::get($queue_name);
+    while (time() < $end && ($item = $queue->claimItem())) {
+      $function($item->data);
+      $queue->deleteItem($item);
+    }
+  }
+  return $return;
 }
 
 /**
@@ -4126,7 +4150,7 @@ function drupal_render(&$elements) {
   }
 
   // Try to fetch the element's markup from cache and return.
-  if ($cached_output = drupal_render_cache_get($elements)) {
+  if (isset($elements['#cache']) && $cached_output = drupal_render_cache_get($elements)) {
     return $cached_output;
   }
 
@@ -4544,6 +4568,10 @@ function drupal_common_theme() {
     'placeholder' => array(
       'arguments' => array('text' => NULL)
     ),
+    'html' => array(
+      'arguments' => array('page' => NULL),
+      'template' => 'html',
+    ),
     'page' => array(
       'arguments' => array('page' => NULL),
       'template' => 'page',
@@ -4642,14 +4670,11 @@ function drupal_common_theme() {
       'arguments' => array('form' => NULL),
     ),
     // from menu.inc
-    'menu_item_link' => array(
-      'arguments' => array('item' => NULL),
+    'menu_link' => array(
+      'arguments' => array('element' => NULL),
     ),
     'menu_tree' => array(
       'arguments' => array('tree' => NULL),
-    ),
-    'menu_item' => array(
-      'arguments' => array('link' => NULL, 'has_children' => NULL, 'menu' => ''),
     ),
     'menu_local_task' => array(
       'arguments' => array('link' => NULL, 'active' => FALSE),
