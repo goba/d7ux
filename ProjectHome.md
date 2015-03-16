@@ -1,0 +1,3 @@
+A copy of Drupal 7 development code with patches applied to implement some of the Drupal 7 UX components as envisioned at http://d7ux.org/
+
+This repository will be used for team collaboration on creating patches and advance work on Drupal 7 user experience improvements. Creating a temporary repository for such work is common practice in Drupal, since it accelerates working together on patches, which are to end up in the main Drupal repository.
